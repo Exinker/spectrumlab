@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate, interpolate, signal
 
-from spectrumlab.alias import Array, Absorbance, Micro, Percent, Number
+from spectrumlab.alias import Array, Absorbance, MilliSecond, Micro, Percent, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.detector.characteristic.aperture import Aperture, ApertureProfile, ApproximatedApertureProfile, RectangularApertureProfile
@@ -306,7 +306,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         #
         return self
 
-    def run(self, random_state: int | None = None, is_noised=True, is_clipped=True, show: bool = False) -> EmittedSpectrum:
+    def run(self, random_state: int | None = None, is_noised: bool = True, is_clipped: bool = True, show: bool = False) -> EmittedSpectrum:
         """Run emulation."""
         config = self.config
         detector = config.detector
@@ -352,7 +352,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 # --------        HDR emission emulation        --------
 @dataclass(frozen=True, slots=True)
 class HighDynamicRangeMode:
-    total: int  # total exposure time
+    total: MilliSecond  # total exposure time
     n_frames: tuple[int, ...]  # tuple of n_frames of the each exposure (tau)
     method: Literal['naive', 'weighted'] = 'weighted'
     base: int = 10  # base of the each exposure
@@ -362,24 +362,24 @@ class HighDynamicRangeMode:
 
     def _validate(self, tol=1e-9) -> bool:
         """Validate mode to equal total exposure time and expected."""
-        total = sum([n_frames * tau for degree, n_frames, tau in self.items()])
+        total = sum([n_frames * tau for n_frames, tau in self.items()])
 
         return abs(total - self.total) <= tol
 
-    def items(self) -> tuple[int, int, float]:
-        """Generate tuples of degree, n_frames and tau."""
+    def items(self) -> tuple[int, MilliSecond]:
+        """Generate tuples of n_frames and tau."""
 
         for degree, n_frames in enumerate(self.n_frames):
             if n_frames > 0:
                 tau = self.base ** (-degree)
 
-                yield degree, n_frames, tau
+                yield n_frames, tau
 
 
-def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, intensity: Array, detector: Detector, is_noised=True, is_clipped=True) -> HighDynamicRangeEmittedSpectrum:
+def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, intensity: Array, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> HighDynamicRangeEmittedSpectrum:
 
     shorts = {}
-    for degree, n_frames, tau in mode.items():
+    for n_frames, tau in mode.items():
         spe = emulate_emitted_spectrum(
             number=number,
             intensity=tau*intensity,
@@ -391,7 +391,7 @@ def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, inte
             is_noised=is_noised,
             is_clipped=is_clipped,
         )
-        shorts[degree] = tau, spe
+        shorts[tau] = spe
 
     # 
     spectrum = HighDynamicRangeEmittedSpectrum(
@@ -414,7 +414,7 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
         self.mode = mode
 
     # --------        handlers        --------
-    def run(self, random_state: int | None = None, is_noised=True, is_clipped=True, show: bool = False) -> HighDynamicRangeEmittedSpectrum:
+    def run(self, random_state: int | None = None, is_noised: bool = True, is_clipped: bool = True, show: bool = False) -> HighDynamicRangeEmittedSpectrum:
         """Run emulation."""
         config = self.config
         detector = config.detector
@@ -492,7 +492,7 @@ class AbsorbedSpectrumEmulationConfig:
     dx: Micro = field(default=.01)  # шаг сетки интерполяции
 
 
-def emulate_absorbed_spectrum(number: Array, intensity: Array, noise: EmittedSpectrumNoise, base_level: float, base_noise: EmittedSpectrumNoise, detector: Detector, is_noised=True, is_clipped=True) -> AbsorbedSpectrum:
+def emulate_absorbed_spectrum(number: Array, intensity: Array, noise: EmittedSpectrumNoise, base_level: float, base_noise: EmittedSpectrumNoise, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> AbsorbedSpectrum:
 
     # init base spectrum
     spectrum_base = emulate_emitted_spectrum(
@@ -740,7 +740,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         #
         return self
 
-    def run(self, random_state: int | None = None, is_noised=True, is_clipped=True, show: bool = False) -> AbsorbedSpectrum:
+    def run(self, random_state: int | None = None, is_noised: bool = True, is_clipped: bool = True, show: bool = False) -> AbsorbedSpectrum:
         """Run emulation."""
         config = self.config
 

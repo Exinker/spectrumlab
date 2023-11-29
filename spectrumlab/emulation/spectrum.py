@@ -14,7 +14,7 @@ from typing import overload, Literal, TypeAlias
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Percent, Electron, Absorbance
+from spectrumlab.alias import Array, Percent, Electron, Absorbance, MilliSecond
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 
 
@@ -242,8 +242,7 @@ class EmittedSpectrum(BaseSpectrum):
 class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
     """Type for any microwave or ICP spectrum."""
 
-    def __init__(self, number: Array, shorts: Mapping[float, EmittedSpectrum], method: Literal['naive', 'weighted'], **kwargs):
-
+    def __init__(self, number: Array, shorts: Mapping[MilliSecond, EmittedSpectrum], method: Literal['naive', 'weighted'], **kwargs):
         n_shorts = len(shorts)
         n_numbers = len(number)
 
@@ -254,7 +253,7 @@ class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
                 variance = np.zeros((n_numbers, ))
                 for n in number:
 
-                    for i, (tau, spe) in shorts.items():
+                    for tau, spe in shorts.items():
                         if not spe.clipped[n]:
                             counts[n] += 1
                             intensity[n] += spe.intensity[n] / tau
@@ -262,29 +261,29 @@ class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
 
                 intensity = intensity / counts
                 deviation = np.sqrt(variance) / counts
-                clipped = np.min([spe.clipped for i, (tau, spe) in shorts.items()], axis=0)
+                clipped = np.min([spe.clipped for tau, spe in shorts.items()], axis=0)
 
             case 'weighted':
                 intensity = np.zeros((n_shorts, n_numbers))
                 deviation = np.zeros((n_shorts, n_numbers))
                 weight = np.zeros((n_shorts, n_numbers))
-                for i, (tau, spe) in shorts.items():
+                for i, (tau, spe) in enumerate(shorts.items()):
                     intensity[i] = spe.intensity / tau
                     deviation[i] = spe.deviation / tau
                     deviation[i][spe.clipped] = np.infty
                     weight[i] = (1 / deviation[i]) ** 2
 
-                intensity = np.array([np.dot(i, w) for i, w in zip(intensity.T, weight.T)] / np.sum(weight, axis=0))
-                deviation = np.sqrt(np.array([np.dot(d[d < np.infty]**2, w[d < np.infty]**2) for d, w in zip(deviation.T, weight.T)] / np.sum(weight, axis=0) ** 2))
-                clipped = np.min([spe.clipped for i, (tau, spe) in shorts.items()], axis=0)
+                intensity = np.array([np.dot(intensity, w) for intensity, w in zip(intensity.T, weight.T)] / np.sum(weight, axis=0))
+                deviation = np.sqrt(np.array([np.dot(deviation[deviation < np.infty]**2, w[deviation < np.infty]**2) for deviation, w in zip(deviation.T, weight.T)] / np.sum(weight, axis=0) ** 2))
+                clipped = np.min([spe.clipped for tau, spe in shorts.items()], axis=0)
 
             case _:
                 raise ValueError(f'method {method} is not supported!')
 
         # restore clipped values
         if any(clipped):
-            intensity[clipped] = [spe.intensity / tau for i, (tau, spe) in shorts.items()][-1][clipped]
-            deviation[clipped] = [spe.deviation / tau for i, (tau, spe) in shorts.items()][-1][clipped]
+            intensity[clipped] = [spe.intensity / tau for tau, spe in shorts.items()][-1][clipped]
+            deviation[clipped] = [spe.deviation / tau for tau, spe in shorts.items()][-1][clipped]
 
         #
         super().__init__(
