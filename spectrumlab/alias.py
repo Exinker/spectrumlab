@@ -25,6 +25,13 @@ class Dataset(Enum):
 Kelvin = NewType('Kelvin', float)
 Celsius = NewType('Celsius', float)
 
+
+# --------        time units        --------
+Second = NewType('Second', float)
+MilliSecond = NewType('MilliSecond', float)
+MicroSecond = NewType('MicroSecond', int)
+
+
 # --------        spacial units        --------
 Meter = NewType('Meter', float)
 Inch = NewType('Inch', float)
@@ -35,6 +42,7 @@ Nano = NewType('Nano', float)  # nanometer
 
 Number = NewType('Number', float)
 Wavelength = NewType('Wavelength', float)
+
 
 # --------        intensity units        --------
 Electron = NewType('Electron', float)
