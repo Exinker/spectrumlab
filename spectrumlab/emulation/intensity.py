@@ -35,7 +35,7 @@ def _estimate_intensity(x_grid: Array, y_grid: Array, position: Number, config: 
             }.get(config.kind),
         )
 
-    raise ValueError(f'config: {config} is not supported!')
+    raise ValueError(f'calculate_intensity: config {config} is not supported!')
 
 
 # --------        correct intensity        --------
@@ -110,6 +110,13 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
 
     # show
     if show:
+        noise = _estimate_intensity(
+            spectrum.number, (spectrum.deviation ** 2).flatten(),
+            position=position,
+            config=config,
+        ) ** (1/2)
+
+        #
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
 
         if isinstance(config, AmplitudeIntensityConfig):
@@ -176,15 +183,23 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
         if ylim:
             plt.ylim(ylim)
 
-        label = 'number'
-        plt.xlabel(label)
-        label = {
+        content = '\n'.join([
+            fr'$I$: {value:.4f} [%]',
+            fr'$\frac{{\Delta I}}{{I}}$: {100*noise/value:.4f} [%]',
+        ])
+        plt.text(
+            0.05, 0.95,
+            content,
+            transform=ax.transAxes,
+            ha='left', va='top',
+        )
+
+        plt.xlabel('number')
+        plt.ylabel({
             EmittedSpectrum: r'$I, \%$',
             AbsorbedSpectrum: r'$A$',
-        }.get(type(spectrum))
-        plt.ylabel(label)
-
-        plt.grid(True)
+        }.get(type(spectrum)))
+        plt.grid(color='grey', linestyle=':')
 
         plt.show()
 
@@ -197,10 +212,13 @@ def calculate_deviation(spectrum: Spectrum, background: float, position: Number,
     x_grid = spectrum.number
     y_grid = (spectrum.deviation ** 2).flatten()
 
-    value = _estimate_intensity(
-        x_grid, y_grid,
-        position=position,
-        config=config,
-    ) ** (1/2)
+    if isinstance(config, IntegralIntensityConfig):
+        value = _estimate_intensity(
+            x_grid, y_grid,
+            position=position,
+            config=config,
+        ) ** (1/2)
 
-    return value
+        return value
+
+    raise ValueError(f'calculate_deviation: config {config} is not supported!')
