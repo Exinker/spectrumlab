@@ -46,12 +46,12 @@ class EmulationInterface(ABC):
 
     # --------        handlers        --------
     @abstractmethod
-    def setup(self, number: Array[Number], position: Number, concentration: float):
+    def setup(self, number: Array[Number], position: Number, concentration: float) -> None:
         """Setup emulation of spectrum."""
         raise NotImplementedError
 
     @abstractmethod
-    def run(self, random_state: int | None = None, show: bool = False) -> Spectrum:
+    def run(self, show: bool = False, random_state: int | None = None) -> Spectrum:
         """Run emulation."""
         raise NotImplementedError
 
@@ -223,7 +223,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
         # I
         I = L * concentration * (detector.config.width * detector.config.height)
-        I = I * (1/detector.config.capacity*100)  # to percent
+        I *= (100/detector.config.capacity)  # to percent
 
         # intensity
         profile_function = interpolate.interp1d(
@@ -288,7 +288,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number | Sequence[Number], concentration: float, show: bool = False, ylim: tuple[float, float] | None = None):
+    def setup(self, position: Number | Sequence[Number], concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> None:
         """Setup emulation of emitted spectrum."""
         self.position = position
         self.concentration = concentration
@@ -303,10 +303,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 for x in position
             ])
 
-        #
-        return self
-
-    def run(self, random_state: int | None = None, is_noised: bool = True, is_clipped: bool = True, show: bool = False) -> EmittedSpectrum:
+    def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> EmittedSpectrum:
         """Run emulation."""
         config = self.config
         detector = config.detector
@@ -327,7 +324,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
         # show spectrum
         if show:
-            plt.figure(figsize=(6, 4))
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
 
             if spectrum.intensity.ndim == 1:
                 y2 = spectrum.intensity
@@ -341,8 +338,12 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
             )
 
+            plt.xlabel('number')
+            plt.ylabel({
+                EmittedSpectrum: r'$I, \%$',
+                AbsorbedSpectrum: r'$A$',
+            }.get(type(spectrum)))
             plt.grid(color='grey', linestyle=':')
-            plt.xlim([spectrum.number.min()-1, spectrum.number.max()+1])
             plt.show()
 
         # return spectrum
@@ -351,7 +352,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
 # --------        HDR emission emulation        --------
 @dataclass(frozen=True, slots=True)
-class HighDynamicRangeMode:
+class _HighDynamicRangeMode:
     total: MilliSecond  # total exposure time
     n_frames: tuple[int, ...]  # tuple of n_frames of the each exposure (tau)
     method: Literal['naive', 'weighted'] = 'weighted'
@@ -373,6 +374,29 @@ class HighDynamicRangeMode:
             if n_frames > 0:
                 tau = self.base ** (-degree)
 
+                yield n_frames, tau
+
+
+@dataclass(frozen=True, slots=True)
+class HighDynamicRangeMode:
+    total: MilliSecond  # total exposure time
+    n_frames: tuple[int, ...]  # tuple of n_frames of the each exposure
+    tau: tuple[MilliSecond, ...]  # tuple of exposures
+    method: Literal['naive', 'weighted'] = 'weighted'
+
+    def __post_init__(self):
+        assert self._validate(), f'{self} is not valid!'
+
+    def _validate(self, tol=1e-9) -> bool:
+        """Validate mode to equal total exposure time and expected."""
+        total = sum([n_frames * tau for n_frames, tau in self.items()])
+
+        return abs(total - self.total) <= tol
+
+    def items(self) -> tuple[int, MilliSecond]:
+        """Generate tuples of n_frames and tau."""
+
+        for n_frames, tau in zip(self.n_frames, self.tau):
                 yield n_frames, tau
 
 
@@ -414,7 +438,7 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
         self.mode = mode
 
     # --------        handlers        --------
-    def run(self, random_state: int | None = None, is_noised: bool = True, is_clipped: bool = True, show: bool = False) -> HighDynamicRangeEmittedSpectrum:
+    def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> HighDynamicRangeEmittedSpectrum:
         """Run emulation."""
         config = self.config
         detector = config.detector
@@ -435,7 +459,7 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
 
         # show spectrum
         if show:
-            plt.figure(figsize=(6, 4))
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
 
             if spectrum.intensity.ndim == 1:
                 y2 = spectrum.intensity
@@ -447,9 +471,14 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
                 y2=y2,
                 step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
             )
-
-            plt.grid(color='grey', linestyle=':')
             plt.xlim([spectrum.number.min()-1, spectrum.number.max()+1])
+
+            plt.xlabel('number')
+            plt.ylabel({
+                EmittedSpectrum: r'$I, \%$',
+                AbsorbedSpectrum: r'$A$',
+            }.get(type(spectrum)))
+            plt.grid(color='grey', linestyle=':')
             plt.show()
 
         # return spectrum
@@ -729,7 +758,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None):
+    def setup(self, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> None:
         """Setup emulation of absorbed spectrum."""
         self.position = position
         self.concentration = concentration
@@ -737,10 +766,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         #
         self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
 
-        #
-        return self
-
-    def run(self, random_state: int | None = None, is_noised: bool = True, is_clipped: bool = True, show: bool = False) -> AbsorbedSpectrum:
+    def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> AbsorbedSpectrum:
         """Run emulation."""
         config = self.config
 
@@ -768,7 +794,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         # show spectrum
         if show:
-            plt.figure(figsize=(6, 4))
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
 
             plt.fill_between(
                 spectrum.number,
@@ -776,9 +802,12 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
                 y2=spectrum.intensity,
                 step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
             )
-
+            plt.xlabel('number')
+            plt.ylabel({
+                EmittedSpectrum: r'$I, \%$',
+                AbsorbedSpectrum: r'$A$',
+            }.get(type(spectrum)))
             plt.grid(color='grey', linestyle=':')
-            plt.xlim([spectrum.number.min()-1, spectrum.number.max()+1])
             plt.show()
 
         # return spectrum

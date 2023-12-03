@@ -366,9 +366,9 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
+        plt.ylim([-.1, 2])
         plt.xlabel('$\log_{10}{C}$')
         plt.ylabel('$deviation, \%$')
-        plt.ylim(-1, +10)
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
