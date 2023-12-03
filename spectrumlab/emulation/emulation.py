@@ -46,7 +46,7 @@ class EmulationInterface(ABC):
 
     # --------        handlers        --------
     @abstractmethod
-    def setup(self, number: Array[Number], position: Number, concentration: float) -> None:
+    def setup(self, number: Array[Number], position: Number, concentration: float) -> 'EmulationInterface':
         """Setup emulation of spectrum."""
         raise NotImplementedError
 
@@ -288,7 +288,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number | Sequence[Number], concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> None:
+    def setup(self, position: Number | Sequence[Number], concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
         """Setup emulation of emitted spectrum."""
         self.position = position
         self.concentration = concentration
@@ -302,6 +302,9 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 self._get_intensity(number=self.number, position=x, concentration=concentration, show=show, ylim=ylim)
                 for x in position
             ])
+
+        #
+        return self    
 
     def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> EmittedSpectrum:
         """Run emulation."""
@@ -758,13 +761,16 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> None:
+    def setup(self, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
         """Setup emulation of absorbed spectrum."""
         self.position = position
         self.concentration = concentration
 
         #
         self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
+
+        #
+        return self
 
     def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> AbsorbedSpectrum:
         """Run emulation."""
