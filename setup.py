@@ -3,6 +3,11 @@ from setuptools import setup, find_packages
 from spectrumlab import DESCRIPTION, VERSION, NAME, AUTHOR_NAME, AUTHOR_EMAIL
 
 
+install_requires = [
+    item.strip() for item in open('requirements.txt', 'r').readlines()
+    if item.strip()
+]
+
 setup(
 	# info
     name=NAME,
@@ -24,7 +29,7 @@ setup(
     include_package_data=True,
 
 	# requires
-    install_requires=['tqdm', 'numpy', 'pandas', 'matplotlib', 'scipy'],
+    install_requires=install_requires,
     python_requires='>=3.10',
 
 )

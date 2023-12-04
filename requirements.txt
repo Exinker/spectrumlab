@@ -1,2 +1,8 @@
+tqdm
 
-pytest
+numpy
+pandas
+scipy
+
+matplotlib
+
