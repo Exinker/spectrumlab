@@ -19,29 +19,25 @@ class TestLimits:
 
     def test_default_lod(self, intensity: Array[float]):
         k = 3
-
         lod = LOD(
-            intensity=intensity,
+            deviation=np.std(intensity, ddof=1),
             units='%',
         )
 
-        assert lod.k == k
         assert np.abs(1 - lod.value/k) <= self.TOLERANCE
 
     def test_default_loq(self, intensity: Array[float]):
         k = 10
-
         loq = LOQ(
-            intensity=intensity,
+            deviation=np.std(intensity, ddof=1),
             units='%',
         )
 
-        assert loq.k == k
         assert np.abs(1 - loq.value/k) <= self.TOLERANCE
 
     def test_to_concentration(self, intensity: Array[float]):
         lod = LOD(
-            intensity=intensity,
+            deviation=np.std(intensity, ddof=1),
             units='%',
         )
         concentration = lod.to_concentration(coeff=[0, 1])

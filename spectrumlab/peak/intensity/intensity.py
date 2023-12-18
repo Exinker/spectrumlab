@@ -47,15 +47,15 @@ Slope = NewType('Slope', float)
 
 class BaseLimit:
 
-    def __init__(self, intensity: Sequence[float], units: Units, k: float, info: str):
-        self.intensity = intensity
-        self.units = units
-        self.k = k
-        self.info = info
+    def __init__(self, deviation: float, units: Units, k: float, info: str):
+        self._deviation = deviation
+        self._units = units
+        self._k = k
+        self._info = info
 
     @property
     def value(self) -> float:
-        return self.k * np.std(self.intensity, ddof=1)
+        return self._k * self._deviation
 
     def to_concentration(self, coeff: tuple[Intercept, Slope]) -> float:
         """Convert the limit to concentration."""
@@ -70,29 +70,29 @@ class BaseLimit:
         cls = self.__class__
 
         return '\n'.join([
-            f'{cls.__name__}({self.info})',
-            f'\tvalue: {self.value:.4f}$ [{self.units}]',
+            f'{cls.__name__}({self._info})',
+            f'\tvalue: {self.value:.4f}$ [{self._units}]',
         ])
 
 
 class LOD(BaseLimit):
     """Limit of Detection (LOD) in emission or absorption."""
 
-    def __init__(self, intensity: Sequence[float], units: Units, k: float = 3, info: str = ''):
-        super().__init__(intensity, units, k=k, info=info)
+    def __init__(self, deviation: float, units: Units, k: float = 3, info: str = ''):
+        super().__init__(deviation, units, k=k, info=info)
 
 
 class LOQ(BaseLimit):
     """Limit of Quantity (LOQ) in emission or absorption."""
 
-    def __init__(self, intensity: Sequence[float], units: Units, k: float = 10, info: str = ''):
-        super().__init__(intensity, units, k=k, info=info)
+    def __init__(self, deviation: float, units: Units, k: float = 10, info: str = ''):
+        super().__init__(deviation, units, k=k, info=info)
 
     @classmethod
     def from_lod(cls, lod: LOD, k: float = 10) -> 'LOQ':
         return cls(
-            intensity=lod.intensity,
-            units=lod.units,
+            deviation=lod._deviation,
+            units=lod._units,
             k=k,
-            info=lod.info,
+            info=lod._info,
         )
