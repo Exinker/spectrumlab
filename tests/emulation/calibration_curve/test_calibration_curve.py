@@ -1,3 +1,4 @@
+import os
 import pytest
 
 import numpy as np
@@ -14,38 +15,9 @@ from spectrumlab.emulation.line import VoigtLineProfile
 
 @pytest.fixture(scope='module')
 def config() -> ExperimentConfig:
-    return ExperimentConfig(
+    filedir, _ = os.path.split(__file__)
 
-        # --------        emulation config        --------
-        device=Device.GRAND2_II,
-        detector=Detector.BLPP2000,
-
-        n_numbers=10,
-        n_frames=1,
-
-        line_width=25,
-        line_asymmetry=0,
-        line_ratio=0,
-
-        aperture_profile=RectangularApertureProfile,
-
-        # --------        intensity config        --------
-        intensity=IntegralIntensityConfig(
-            kind=InterpolationKind.LINEAR,
-            interval=3,
-        ),
-
-        # --------        calibration curve config        --------
-        n_probes=18,
-        n_parallels=10,
-
-        position=5,
-        concentration=10_000,
-
-        # --------        others        --------
-        background_level=0,
-        concentration_ratio=10**(0),  # concentration coefficient
-    )
+    return ExperimentConfig.from_ini(filedir=filedir, filename='config (naive).ini')
 
 
 @pytest.fixture(scope='module')
