@@ -11,7 +11,6 @@ from scipy.optimize import minimize
 from spectrumlab.utils import mse
 from spectrumlab.peak.profile import PeakProfile, VoightPeakProfile, EffectedVoightPeakProfile
 
-
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 

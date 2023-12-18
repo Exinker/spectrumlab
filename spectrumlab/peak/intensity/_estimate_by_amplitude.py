@@ -1,7 +1,6 @@
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
-
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
