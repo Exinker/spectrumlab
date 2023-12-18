@@ -1,18 +1,17 @@
 
-from dataclasses import dataclass, field
-from typing import Literal, Mapping, TypeAlias
+from dataclasses import dataclass
+from string import Template
+from typing import Literal, TypeAlias
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import integrate, interpolate
 
 from spectrumlab.alias import Array, Number
-from spectrumlab.picture.config import COLOR
+from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum
-from spectrumlab.peak.intensity import InterpolationKind, integrate_grid, interpolate_grid
 from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, ApproxIntensityConfig
-from spectrumlab.peak.intensity.utils import integrate_grid, InterpolationKind
-
+from spectrumlab.peak.intensity import LOD, LOQ
+from spectrumlab.peak.intensity import InterpolationKind, integrate_grid, interpolate_grid
 
 
 # --------        estimate intensity        --------
@@ -222,3 +221,55 @@ def calculate_deviation(spectrum: Spectrum, background: float, position: Number,
         return value
 
     raise ValueError(f'calculate_deviation: config {config} is not supported!')
+
+
+# --------        limits (LOD and LOQ)        --------
+LimitsKind: TypeAlias = Literal['theoretical', 'emulational']
+
+
+def _estimate_deviation(emulation: Emulation, config: IntegralIntensityConfig, n_parallels: int) -> float:
+    """Estimate deviation of intensity at noise level."""
+    n_numbers = emulation.config.spectrum.n_numbers
+    background_level = emulation.config.background_level
+    emulation = emulation.setup(position=n_numbers//2, concentration=0)
+
+    intensity = []
+    for _ in range(n_parallels):
+        value = calculate_intensity(
+            spectrum=emulation.run(),
+            background=background_level,
+            position=n_numbers//2,
+            config=config,
+        )
+        intensity.append(value)
+    return np.std(intensity, ddof=1).item()
+
+
+def calculate_lod(emulation: Emulation, config: IntegralIntensityConfig, n_parallels: int = 10, kind: LimitsKind = 'theoretical') -> LOD:
+    """Calculate Limit of Detection (LOD)"""
+    background_level = emulation.config.background_level
+    units = {
+        EmittedSpectrumEmulation: '%',
+        AbsorbedSpectrumEmulation: 'A',
+    }.get(type(emulation), '')
+
+    match kind:
+        case 'theoretical':
+            deviation = np.sqrt(config.interval) * emulation.noise(background_level)
+
+            return LOD(
+                deviation=deviation,
+                units=units,
+                info=f'kind: {kind}',
+            )
+
+        case 'emulational':
+            deviation = _estimate_deviation(emulation=emulation, config=config, n_parallels=n_parallels)
+
+            return LOD(
+                deviation=deviation,
+                units=units,
+                info=f'kind: {kind}',
+            )
+
+    raise TypeError(f'LOD kind: {kind} is not supported yet!')

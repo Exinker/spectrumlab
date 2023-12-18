@@ -11,11 +11,11 @@ from scipy import interpolate
 
 from spectrumlab.alias import Frame, Number
 from spectrumlab.picture.config import COLOR
+from spectrumlab.calibration_curve import Intercept, Slope
 from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
-from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
-from .concentration_limits import DynamicRange, calculate_dynamic_range
+from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation, LOD, LOQ, calculate_lod
+from .metrology import DynamicRange, calculate_dynamic_range
 from .exceptions import EmulationError
-from .intensity_limits import IntensityLOD, calculate_intensity_LOD
 
 
 def _get_filename(emulation: Emulation, extension: Literal['png', 'txt']):
@@ -47,18 +47,22 @@ class CalibrationCurve:
 
         self._position = None
         self._concentrations = None
-        self._intensity_lod = None  # intensity limit of detection (LoD)
+        self._lod = None  # limit of detection (LOD)
         self._data = None
         self._unicorn = None
         self._coeff = None  # intercept, slope
         self._dynamic_range = None
 
     @property
-    def intensity_lod(self) -> IntensityLOD:
-        if self._intensity_lod is None:
+    def lod(self) -> LOD:
+        if self._lod is None:
             raise EmulationError('setup and run the calibration curve before!')
 
-        return self._intensity_lod
+        return self._lod
+
+    @property
+    def loq(self) -> LOQ:
+        return LOQ.from_lod(self.lod)
 
     @property
     def dynamic_range(self) -> DynamicRange:
@@ -68,8 +72,8 @@ class CalibrationCurve:
         return self._dynamic_range
 
     @property
-    def coeff(self) -> tuple[float, float]:
-        """Calibration curve's coeffs (intercept, slope) in log10 scale."""
+    def coeff(self) -> tuple[Intercept, Slope]:
+        """Calibration curve's coeffs in log10 scale."""
         if self._coeff is None:
             raise EmulationError('setup and run the calibration curve before!')
 
@@ -112,8 +116,8 @@ class CalibrationCurve:
         if random_state is not None:
             np.random.seed(random_state)
 
-        # calculate curve's intensity limit of detection (LoD)
-        self._intensity_lod = calculate_intensity_LOD(
+        # calculate curve's limit of detection (LOD)
+        self._lod = calculate_lod(
             emulation=emulation,
             config=config.intensity_config,
         )
@@ -130,7 +134,7 @@ class CalibrationCurve:
             index=pd.Index(list(range(config.n_probes)), name='probe'),
         )  # idealized data (no noise)
 
-        for i, concentration in enumerate(tqdm(concentrations)):
+        for i, concentration in enumerate(tqdm(concentrations, leave=True)):
             emulation = emulation.setup(position=position, concentration=concentration)
 
             # data
@@ -174,15 +178,14 @@ class CalibrationCurve:
         coeff = 0, 1
         while True:
             values = y[~unicorn['mask']] - x[~unicorn['mask']]
-            intercept, slope = np.mean(values), 1
+            coeff = np.mean(values), 1
 
             #
+            intercept, slope = coeff
             ref = 10**(intercept + slope*x)
             predicted = 10**(y)
             if np.max((100*np.abs(ref - predicted) / ref)[~unicorn['mask']]) > config.threshold:
                 unicorn.loc[max(values.index), 'mask'] = True  # mask the last of unmasked!
-                coeff = intercept, slope  # update coeff
-
             else:
                 break
 
@@ -192,7 +195,7 @@ class CalibrationCurve:
         # calculate curve's dynamic range
         self._dynamic_range = calculate_dynamic_range(
             emulation=emulation,
-            intensity_lod=self._intensity_lod,
+            loq=self.loq,
             unicorn=unicorn,
             coeff=self._coeff,
             threshold=config.threshold,
@@ -200,7 +203,7 @@ class CalibrationCurve:
 
         # verbose
         if verbose:
-            print(self.intensity_lod)
+            print(self.lod)
             print(self.dynamic_range)
 
         # show
@@ -279,15 +282,15 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        x = np.log10(self.intensity_lod.value) - intercept
-        y = np.log10(self.intensity_lod.value)
+        x = np.log10(self.lod.value) - intercept
+        y = np.log10(self.lod.value)
         plt.scatter(
             x, y,
             s=40,
             marker='*',
             facecolors='none',
             edgecolors=COLOR['red'],
-            label='DL',
+            label='LoD',
         )
 
         x = np.log10(list(self.dynamic_range))
