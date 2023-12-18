@@ -4,20 +4,14 @@ import pytest
 import numpy as np
 
 from spectrumlab.emulation.calibration_curve.calibration_curve import CalibrationCurve, CalibrationCurveConfig
-from spectrumlab.emulation.detector.characteristic.aperture import RectangularApertureProfile
-from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.emulation import fetch_emulation, Emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
 from spectrumlab.emulation.experiment import EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulation.intensity import IntegralIntensityConfig, InterpolationKind
 from spectrumlab.emulation.line import VoigtLineProfile
 
 
 @pytest.fixture(scope='module')
 def config() -> ExperimentConfig:
-    filedir, _ = os.path.split(__file__)
-
-    return ExperimentConfig.from_ini(filedir=filedir, filename='config (naive).ini')
+    return ExperimentConfig.from_ini(filedir=os.path.dirname(__file__), filename='config_emission_naive.ini')
 
 
 @pytest.fixture(scope='module')
