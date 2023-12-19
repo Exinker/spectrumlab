@@ -16,10 +16,12 @@ from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_l
 
 class CalibrationCurve:
 
-    def __init__(self, data: Frame):  # , lol: LOL
+    def __init__(self, data: Frame, blank: Frame | None = None):  # , lol: LOL
         self._data = data
+        self._blank = blank
         self._coeff = None
 
+        self._blank_deviation = None
         self._lod = None
         self._loq = None
         self._lol = None
@@ -28,6 +30,10 @@ class CalibrationCurve:
     @property
     def data(self) -> Frame:
         return self._data
+
+    @property
+    def blank(self) -> Frame:
+        return self._blank
 
     def predict(self, intensity: Array[float]) -> Array[float]:
         interpect, slope = self.coeff
@@ -54,51 +60,51 @@ class CalibrationCurve:
 
         return self._coeff
 
+    # --------        blank deviation        --------
+    @property
+    def blank_deviation(self) -> float:
+        if self._blank_deviation is None:
+            self._blank_deviation = self._calculate_blank_deviation()
+
+        return self._blank_deviation
+
+    def _calculate_blank_deviation(self) -> float:
+
+        if self.blank is None:
+            print('blank: blank is not found!')  # FIXME: add exception!
+
+            index = self.data.index[self.data['concentration'] == 0]
+            if index.empty:
+                print('blank: min concentration of data is not zero!')  # FIXME: add exception!
+                index = self.data.index[self.data['concentration'] == min(self.data['concentration'])]
+            intensity = self.data.loc[index, 'intensity'].values
+
+        else:
+            intensity = self.blank.loc[0, 'intensity'].values
+
+        return np.std(intensity, ddof=1)
+
     # --------        limit of detective (LOD)        --------
     @property
     def lod(self) -> LOD:
         if self._lod is None:
-            self._lod = self._calculate_lod()
+            self._lod = LOD.from_deviation(
+                deviation=self.blank_deviation,
+                coeff=self.coeff,
+            )
 
         return self._lod
-
-    def _calculate_lod(self) -> 'LOD':
-        data = self.data
-
-        #
-        index = data.index[data['concentration'] == 0]
-        if index.empty:
-            print('LOD: blank is not found!')  # FIXME: add exception!
-            index = data.index[data['concentration'] == min(data['concentration'])]
-
-        #
-        return LOD.from_deviation(
-            deviation=np.std(data.loc[index, 'intensity'].values, ddof=1),
-            coeff=self.coeff,
-        )
 
     # --------        limit of quantity (LOQ)        --------
     @property
     def loq(self) -> LOQ:
         if self._loq is None:
-            self._loq = self._calculate_loq()
+            self._loq = LOQ.from_deviation(
+                deviation=self.blank_deviation,
+                coeff=self.coeff,
+            )
 
         return self._loq
-
-    def _calculate_loq(self) -> 'LOQ':
-        data = self.data
-
-        #
-        index = data.index[data['concentration'] == 0]
-        if index.empty:
-            print('LOQ: blank is not found!')  # FIXME: add exception!
-            index = data.index[data['concentration'] == min(data['concentration'])]
-
-        #
-        return LOQ.from_deviation(
-            deviation=np.std(data.loc[index, 'intensity'].values, ddof=1),
-            coeff=self.coeff,
-        )
 
     # --------        limit of linearity (LOL)        --------
     @property

@@ -43,6 +43,7 @@ class BaseEmittedExperimentConfig:
 
     # --------        others        --------
     background_level: float = field(default=0)
+    concentration_blank: float = field(default=0)
     concentration_base: float = field(default=10_000)
     concentration_ratio: float = field(default=1)
 
@@ -136,6 +137,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
 
             # --------        others        --------
             background_level=float(parser.get('others', 'background_level')),
+            concentration_blank=float(parser.get('others', 'concentration_blank')),
             concentration_base=float(parser.get('others', 'concentration_base')),
             concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
         )
@@ -258,8 +260,9 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
             ref=ref,
 
             # --------        others        --------
+            background_level=float(parser.get('others', 'background_level')),
+            concentration_blank=float(parser.get('others', 'concentration_blank')),
             concentration_base=float(parser.get('others', 'concentration_base')),
             concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
-            background_level=float(parser.get('others', 'background_level')),
             scattering_ratio=float(parser.get('others', 'scattering_ratio')),
         )

@@ -32,7 +32,8 @@ def _get_filename(emulation: Emulation, extension: Literal['png', 'txt']):
 class CalibrationCurveConfig:
     intensity_config: IntensityConfig = field(default=IntegralIntensityConfig())
 
-    threshold: float = field(default=5)
+    concentration_blank: float = field(default=0)
+    threshold: float = field(default=0.05)
     is_clipped: bool = field(default=True)
 
     n_probes: int = field(default=20)
@@ -191,7 +192,7 @@ class CalibrationCurve:
             intercept, slope = coeff
             ref = 10**(intercept + slope*x)
             predicted = 10**(y)
-            if np.max((100*np.abs(ref - predicted) / ref)[~unicorn['mask']]) > config.threshold:
+            if np.max((np.abs(ref - predicted) / ref)[~unicorn['mask']]) > config.threshold:
                 unicorn.loc[max(values.index), 'mask'] = True  # mask the last of unmasked!
             else:
                 break
@@ -200,6 +201,8 @@ class CalibrationCurve:
         self._coeff = coeff  # update coeff
 
         # calculate limits
+        emulation = emulation.setup(position=position, concentration=self.config.concentration_blank)
+
         deviation = estimate_deviation(
             emulation=emulation,
             config=config.intensity_config,
