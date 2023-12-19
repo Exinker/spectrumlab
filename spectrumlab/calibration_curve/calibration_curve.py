@@ -9,255 +9,257 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from scipy import interpolate
 
-from spectrumlab.alias import Frame, Number
+from spectrumlab.alias import Array, Frame, Number
 from spectrumlab.picture.config import COLOR
-from spectrumlab.peak.intensity import LOQ
-from .metrology import DynamicRange, calculate_dynamic_range
+from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol, estimate_dynamic_range
 
 
-Intercept = NewType('Intercept', float)
-Slope = NewType('Slope', float)
+class CalibrationCurve:
 
+    def __init__(self, data: Frame):  # , lol: LOL
+        self._data = data
+        self._coeff = None
 
-# def _get_filename(emulation: Emulation, extension: Literal['png', 'txt']):
-#     device = emulation.config.device
-#     detector = emulation.config.detector
-#     info = emulation.config.info
+        self._lod = None
+        self._loq = None
+        self._lol = None
+        self._dynamic_range = None
 
-#     content = '; '.join([f'{item}' for item in [device.config.dispersion, detector.config.name, info] if item])  # FIXME: change device.config.dispersion to device.config.name
-#     return f'calibration_curve ({content}).{extension}'
+    @property
+    def data(self) -> Frame:
+        return self._data
 
+    def predict(self, intensity: Array[float]) -> Array[float]:
+        interpect, slope = self.coeff
 
-# @dataclass
-# class CalibrationCurveConfig:
-#     intensity_config: IntensityConfig = field(default=IntegralIntensityConfig())
+        return 10**((np.log10(intensity) - interpect) / slope)
 
-#     threshold: float = field(default=5)
-#     is_clipped: bool = field(default=True)
+    # --------        coeff        --------
+    def _calculate_coeff(self) -> tuple[Intercept, Slope]:
+        data = self.data.copy()
+        data = data[~data['mask']][['concentration', 'intensity']]
+        data = data.groupby(level=0, sort=False).mean()
+        data = data.map(lambda x: np.log10(x))
 
-#     n_probes: int = field(default=20)
-#     n_parallels: int = field(default=5)
+        x = data['concentration'].values
+        y = data['intensity'].values
+        slope, intercept = np.polyfit(x, y, deg=1)
 
+        return intercept, slope
 
-# class CalibrationCurve:
+    @property
+    def coeff(self) -> tuple[Intercept, Slope]:
+        if self._coeff is None:
+            self._coeff = self._calculate_coeff()
 
-#     def __init__(self, data: Frame, loq: LOQ, lol: LOL):
-#         self._data = data
-#         self._loq = loq
-#         self._lol = lol
+        return self._coeff
 
-#         self._coeff = calculate_coeff()
-#         self._dynamic_range = calculate_dynamic_range()
+    # --------        limit of detective (LOD)        --------
+    @property
+    def lod(self) -> LOD:
+        if self._lod is None:
+            self._lod = self._calculate_lod()
 
-#     @property
-#     def coeff(self) -> tuple[Intercept, Slope]:
-#         """Calibration curve's coeffs (intercept, slope) in log10 scale."""
-#         if self._coeff is None:
-#             raise EmulationError('setup and run the calibration curve before!')
+        return self._lod
 
-#         return self._coeff
+    def _calculate_lod(self) -> 'LOD':
+        data = self.data
 
+        #
+        index = data.index[data['concentration'] == 0]
+        if index.empty:
+            print('LOD: blank is not found!')  # FIXME: add exception!
+            index = data.index[data['concentration'] == min(data['concentration'])]
 
-#     def calculate_coeff(self) -> tuple[Intercept, Slope]:
+        #
+        return LOD.from_deviation(
+            deviation=np.std(data.loc[index, 'intensity'].values, ddof=1),
+            coeff=self.coeff,
+        )
 
-#         data = self._data
-        
+    # --------        limit of quantity (LOQ)        --------
+    @property
+    def loq(self) -> LOQ:
+        if self._loq is None:
+            self._loq = self._calculate_loq()
 
+        return self._loq
 
-#         x = data['concentration'][~data['mask']].apply(lambda x: np.log10(x)).groupby(level=0, sort=False).mean().astype(float).values
-#         y = data['intensity'][~data['mask']].apply(lambda x: np.log10(x)).groupby(level=0, sort=False).mean().astype(float).values
+    def _calculate_loq(self) -> 'LOQ':
+        data = self.data
 
-#         slope, intercept = np.polyfit(x, y, deg=1)
-#         slope, intercept
+        #
+        index = data.index[data['concentration'] == 0]
+        if index.empty:
+            print('LOQ: blank is not found!')  # FIXME: add exception!
+            index = data.index[data['concentration'] == min(data['concentration'])]
 
-#     # --------        handlers        --------
-#     def show(self, ref: Frame | None = None, concentration_ratio: float = 1, ylim: tuple[float, float] | None = None):
-#         emulation = self.emulation
-#         intercept, slope = self.coeff
+        #
+        return LOQ.from_deviation(
+            deviation=np.std(data.loc[index, 'intensity'].values, ddof=1),
+            coeff=self.coeff,
+        )
 
-#         if ref is None:
-#             data = self.data.copy()
-#             data['concentration'] = data['concentration'].apply(lambda x: np.log10(x) + np.log10(concentration_ratio))
-#             data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
-#         else:
-#             data = ref.copy()
-#             data = data.set_index(['probe', 'parallel'])
-#             data['concentration'] = data['concentration'].apply(lambda x: np.log10(x))
-#             data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
+    # --------        limit of linearity (LOL)        --------
+    @property
+    def lol(self) -> LOL:
+        if self._lol is None:
+            self._lol = estimate_lol(
+                data=self.data,
+                coeff=self.coeff,
+            )
 
-#         unicorn = self.unicorn.copy()
-#         unicorn['concentration'] = unicorn['concentration'].apply(lambda x: np.log10(x) + np.log10(concentration_ratio))
-#         unicorn['intensity'] = unicorn['intensity'].apply(lambda x: np.log10(x))
+        return self._lol
 
-#         # show
-#         fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
+    # --------        dynamic_range        --------
+    @property
+    def dynamic_range(self) -> DynamicRange:
+        if self._dynamic_range is None:
+            self._dynamic_range = self._calculate_dynamic_range()
 
-#         title = '\n'.join([
-#             # fr'dispersion: {emulation.config.device.config.dispersion:.4f}, nm/mm',
-#             # fr'detector: {emulation.config.detector.config.name}',
-#             # fr'$\alpha: {emulation.config.scattering_ratio}$',
-#             # fr'$\beta: {emulation.config.background_level}$',
-#             # fr'dynamic_range: {self.dynamic_range.c_min:.4f} - {self.dynamic_range.c_max:.4f} ({np.log10(self.dynamic_range.c_max) - np.log10(self.dynamic_range.c_min):.4f})',
-#         ])
-#         plt.suptitle(title)  # TODO: add title's config
+        return self._dynamic_range
 
-#         #
-#         plt.sca(ax_left)
+    def _calculate_dynamic_range(self) -> DynamicRange:
+        low = self.loq.intensity
+        high = self.lol.intensity
 
-#         x = unicorn['concentration']
-#         y = unicorn['intensity']
-#         plt.plot(
-#             x, y,
-#             color='black', linestyle='none', marker='s', markersize=2,
-#             alpha=.5,
-#             label='unicorn',
-#         )
+        return DynamicRange(
+            intensity=(low, high),
+            coeff=self.coeff,
+        )
 
-#         x = data['concentration']
-#         y = data['intensity']
-#         plt.scatter(
-#             x, y,
-#             s=20,
-#             marker='s',
-#             facecolors='none',
-#             edgecolors=[0, 0, 0, 0],
-#             alpha=.2,
-#         )
+    # --------        handlers        --------
+    def show(self, ref: Frame | None = None, concentration_ratio: float = 1, ylim: tuple[float, float] | None = None, save: bool = False):
+        intercept, slope = self.coeff
 
-#         x = data['concentration'].groupby(level=0, sort=False).mean()
-#         y = data['intensity'].groupby(level=0, sort=False).mean()
-#         plt.scatter(
-#             x, y,
-#             s=40,
-#             marker='s',
-#             facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-#             edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-#             alpha=.5,
-#             label='emulated' if ref is None else 'recorded',
-#         )
+        if ref is None:
+            data = self.data.copy()
+            data['concentration'] = data['concentration'].apply(lambda x: np.log10(x) + np.log10(concentration_ratio))
+            data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
+        else:
+            data = ref.copy()
+            data = data.set_index(['probe', 'parallel'])
+            data['concentration'] = data['concentration'].apply(lambda x: np.log10(x))
+            data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
 
-#         x = np.log10(self.intensity_lod.value) - intercept
-#         y = np.log10(self.intensity_lod.value)
-#         plt.scatter(
-#             x, y,
-#             s=40,
-#             marker='*',
-#             facecolors='none',
-#             edgecolors=COLOR['red'],
-#             label='DL',
-#         )
+        # show
+        fig, (ax_left, ax_right) = plt.subplots(ncols=2, figsize=(10, 5), sharex=True, tight_layout=True,)
 
-#         x = np.log10(list(self.dynamic_range))
-#         y = intercept + slope*x
-#         plt.plot(
-#             x, y,
-#             color='black',
-#             linestyle=':',
-#             alpha=.5,
-#         )
+        title = '\n'.join([
+            # fr'dispersion: {emulation.config.device.config.dispersion:.4f}, nm/mm',
+            # fr'detector: {emulation.config.detector.config.name}',
+            # fr'$\alpha: {emulation.config.scattering_ratio}$',
+            # fr'$\beta: {emulation.config.background_level}$',
+            # fr'dynamic_range: {self.dynamic_range.c_min:.4f} - {self.dynamic_range.c_max:.4f} ({np.log10(self.dynamic_range.c_max) - np.log10(self.dynamic_range.c_min):.4f})',
+        ])
+        plt.suptitle(title)  # TODO: add title's config
 
-#         if ylim:
-#             plt.ylim(ylim)
-#         plt.xlabel('$\log_{10}{C}$')
-#         if isinstance(emulation, EmittedSpectrumEmulation):
-#             plt.ylabel('$\log_{10}{I}$')
-#         if isinstance(emulation, AbsorbedSpectrumEmulation):
-#             plt.ylabel('$\log_{10}{A}$')
-#         plt.grid(color='grey', linestyle=':')
-#         plt.legend()
+        #
+        plt.sca(ax_left)
 
-#         #
-#         plt.sca(ax_mid)
+        x = data['concentration']
+        y = data['intensity']
+        plt.scatter(
+            x, y,
+            s=20,
+            marker='s',
+            facecolors='none',
+            edgecolors=[0, 0, 0, 0],
+            alpha=.2,
+        )
 
-#         x = data['concentration'].groupby(level=0, sort=False).mean()
-#         y = data['intensity'].apply(lambda x: 10**(x)).groupby(level=0, sort=False).mean()
-#         x_grid = unicorn['concentration']
-#         y_grid = unicorn['intensity']
-#         y_hat = 10**(interpolate.interp1d(
-#             x_grid, y_grid,
-#             kind='linear',
-#             bounds_error=False,
-#             fill_value=np.nan,
-#         )(x))
-#         dy = 100*(y - y_hat)/y
-#         plt.scatter(
-#             x, dy,
-#             s=20,
-#             marker='s',
-#             facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-#             edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-#             alpha=.5,
-#             label='emulated' if ref is None else 'recorded',
-#         )
+        x = data['concentration'].groupby(level=0, sort=False).mean()
+        y = data['intensity'].groupby(level=0, sort=False).mean()
+        plt.scatter(
+            x, y,
+            s=40,
+            marker='s',
+            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
+            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
+            alpha=.5,
+            label='emulated' if ref is None else 'recorded',
+        )
 
-#         lim = 1.1*np.max(np.abs(dy))
-#         if lim > 50: lim = 50  # restrict lim
-#         if lim < 20: lim = 20  # restrict lim
-#         plt.ylim(-lim, +lim)
-#         plt.xlabel('$\log_{10}{C}$')
-#         plt.ylabel('$bias, \%$')
-#         plt.grid(color='grey', linestyle=':')
-#         plt.legend()
+        x = np.log10(self.lod.concentration)
+        y = np.log10(self.lod.intensity)
+        plt.scatter(
+            x, y,
+            s=40,
+            marker='*',
+            facecolors='none',
+            edgecolors=COLOR['red'],
+            label='LoD',
+        )
 
-#         #
-#         plt.sca(ax_right)
+        x = np.log10(self.dynamic_range.concentration)
+        y = np.log10(self.dynamic_range.intensity)
+        plt.plot(
+            x, y,
+            color='black',
+            linestyle=':',
+            alpha=.5,
+        )
 
-#         x = unicorn['concentration']
-#         y = 100 * unicorn['deviation'] / unicorn['intensity'].apply(lambda x: 10**(x))
-#         plt.plot(
-#             x, y,
-#             color='black', linestyle=':', marker='s', markersize=2,
-#             alpha=.5,
-#             label='unicorn',
-#         )
+        if ylim:
+            plt.ylim(ylim)
+        plt.xlabel('$\log_{10}{C}$')
+        plt.ylabel('$\log_{10}{I}$')
+        plt.grid(color='grey', linestyle=':')
+        plt.legend()
 
-#         x = data['concentration'].groupby(level=0, sort=False).mean()
-#         y = 100 * data['intensity'].apply(lambda x: 10**(x)).groupby(level=0, sort=False).std(ddof=1) / data['intensity'].apply(lambda x: 10**(x)).groupby(level=0, sort=False).mean()
-#         plt.scatter(
-#             x, y,
-#             s=40,
-#             marker='s',
-#             facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-#             edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-#             alpha=.5,
-#             label='emulated' if ref is None else 'recorded',
-#         )
+        #
+        plt.sca(ax_right)
 
-#         plt.ylim([-.1, 2])
-#         plt.xlabel('$\log_{10}{C}$')
-#         plt.ylabel('$deviation, \%$')
-#         plt.grid(color='grey', linestyle=':')
-#         plt.legend()
+        predicted = self.predict(data['intensity'])
+        x = data['concentration'].groupby(level=0, sort=False).mean()
+        y = 100 * predicted.groupby(level=0, sort=False).std(ddof=1) / predicted.groupby(level=0, sort=False).mean()
+        plt.scatter(
+            x, y,
+            s=40,
+            marker='s',
+            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
+            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
+            alpha=.5,
+            label='emulated' if ref is None else 'recorded',
+        )
 
-#         #
-#         filedir = os.path.join('.', 'img')
-#         if not os.path.isdir(filedir):
-#             os.mkdir(filedir)
-#         filename = _get_filename(emulation, extension='png')
+        plt.ylim([-.1, 10])
+        plt.xlabel('$\log_{10}{C}$')
+        plt.ylabel('$\sigma_{{C}}/C, \%$')
+        plt.grid(color='grey', linestyle=':')
+        plt.legend()
 
-#         plt.savefig(
-#             os.path.join(filedir, filename)
-#         )
+        # save
+        if save:
+            filedir = os.path.join('.', 'img')
+            if not os.path.isdir(filedir):
+                os.mkdir(filedir)
+            filename = _get_filename(emulation, extension='png')
 
-#         plt.show()
+            plt.savefig(
+                os.path.join(filedir, filename)
+            )
 
-#     def write(self):
-#         emulation = self.emulation
-#         data = self.data
+        #
+        plt.show()
 
-#         #
-#         filedir = os.path.join('.', 'txt')
-#         if not os.path.isdir(filedir):
-#             os.mkdir(filedir)
-#         filename = _get_filename(emulation, extension='txt')
-#         filepath = os.path.join(filedir, filename)
+    def write(self):
+        emulation = self.emulation
+        data = self.data
 
-#         #
-#         data.to_csv(
-#             filepath,
-#             decimal=',',
-#             sep=';',
-#             encoding='utf-8',
-#             index=True,
-#             columns=data.columns,
-#         )
+        #
+        filedir = os.path.join('.', 'txt')
+        if not os.path.isdir(filedir):
+            os.mkdir(filedir)
+        filename = _get_filename(emulation, extension='txt')
+        filepath = os.path.join(filedir, filename)
+
+        #
+        data.to_csv(
+            filepath,
+            decimal=',',
+            sep=';',
+            encoding='utf-8',
+            index=True,
+            columns=data.columns,
+        )

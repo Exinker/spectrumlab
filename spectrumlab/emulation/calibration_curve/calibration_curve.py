@@ -10,11 +10,12 @@ from tqdm import tqdm
 from scipy import interpolate
 
 from spectrumlab.alias import Frame, Number
-from spectrumlab.picture.config import COLOR
-from spectrumlab.calibration_curve import Intercept, Slope
+from spectrumlab.calibration_curve import Intercept, Slope, LOD, LOQ, LOL, estimate_lol
 from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
-from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation, LOD, LOQ, calculate_lod
-from .metrology import DynamicRange, calculate_dynamic_range
+from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
+from spectrumlab.picture.config import COLOR
+
+from .metrology import DynamicRange, estimate_deviation, estimate_dynamic_range
 from .exceptions import EmulationError
 
 
@@ -47,37 +48,13 @@ class CalibrationCurve:
 
         self._position = None
         self._concentrations = None
-        self._lod = None  # limit of detection (LOD)
         self._data = None
         self._unicorn = None
-        self._coeff = None  # intercept, slope
+        self._coeff = None
+        self._lod = None
+        self._loq = None
+        self._lol = None
         self._dynamic_range = None
-
-    @property
-    def lod(self) -> LOD:
-        if self._lod is None:
-            raise EmulationError('setup and run the calibration curve before!')
-
-        return self._lod
-
-    @property
-    def loq(self) -> LOQ:
-        return LOQ.from_lod(self.lod)
-
-    @property
-    def dynamic_range(self) -> DynamicRange:
-        if self._dynamic_range is None:
-            raise EmulationError('setup and run the calibration curve before!')
-
-        return self._dynamic_range
-
-    @property
-    def coeff(self) -> tuple[Intercept, Slope]:
-        """Calibration curve's coeffs in log10 scale."""
-        if self._coeff is None:
-            raise EmulationError('setup and run the calibration curve before!')
-
-        return self._coeff
 
     @property
     def data(self) -> tuple[float, float]:
@@ -92,6 +69,42 @@ class CalibrationCurve:
             raise EmulationError('setup and run the calibration curve before!')
 
         return self._unicorn
+
+    @property
+    def coeff(self) -> tuple[Intercept, Slope]:
+        """Calibration curve's coeffs in log10 scale."""
+        if self._coeff is None:
+            raise EmulationError('setup and run the calibration curve before!')
+
+        return self._coeff
+
+    @property
+    def lod(self) -> LOD:
+        if self._lod is None:
+            raise EmulationError('setup and run the calibration curve before!')
+
+        return self._lod
+
+    @property
+    def loq(self) -> LOQ:
+        if self._loq is None:
+            raise EmulationError('setup and run the calibration curve before!')
+
+        return self._loq
+
+    @property
+    def lol(self) -> LOL:
+        if self._lol is None:
+            raise EmulationError('setup and run the calibration curve before!')
+
+        return self._lol
+
+    @property
+    def dynamic_range(self) -> DynamicRange:
+        if self._dynamic_range is None:
+            raise EmulationError('setup and run the calibration curve before!')
+
+        return self._dynamic_range
 
     # --------        handlers        --------
     def setup(self, position: Number, concentrations: tuple[float]):
@@ -115,12 +128,6 @@ class CalibrationCurve:
         # set random state
         if random_state is not None:
             np.random.seed(random_state)
-
-        # calculate curve's limit of detection (LOD)
-        self._lod = calculate_lod(
-            emulation=emulation,
-            config=config.intensity_config,
-        )
 
         # emulate curve
         data = pd.DataFrame(
@@ -192,13 +199,32 @@ class CalibrationCurve:
         data.loc[unicorn['mask'][unicorn['mask']].index, 'mask'] = True  # mask data
         self._coeff = coeff  # update coeff
 
-        # calculate curve's dynamic range
-        self._dynamic_range = calculate_dynamic_range(
+        # calculate limits
+        deviation = estimate_deviation(
             emulation=emulation,
-            loq=self.loq,
-            unicorn=unicorn,
-            coeff=self._coeff,
+            config=config.intensity_config,
+        )
+
+        self._lod = LOD.from_deviation(
+            deviation=deviation,
+            coeff=self.coeff,
+        )
+        self._loq = LOQ.from_deviation(
+            deviation=deviation,
+            coeff=self.coeff,
+        )
+        self._lol = estimate_lol(
+            self.unicorn,
+            coeff=self.coeff,
             threshold=config.threshold,
+        )
+
+        # calculate curve's dynamic range
+        self._dynamic_range = estimate_dynamic_range(
+            emulation=emulation,
+            coeff=self.coeff,
+            loq=self.loq,
+            lol=self.lol,
         )
 
         # verbose
@@ -217,7 +243,7 @@ class CalibrationCurve:
         # return self
         return self
 
-    def show(self, ref: Frame | None = None, concentration_ratio: float = 1, ylim: tuple[float, float] | None = None):
+    def show(self, ref: Frame | None = None, concentration_ratio: float = 1, ylim: tuple[float, float] | None = None, save: bool = False):
         emulation = self.emulation
         intercept, slope = self.coeff
 
@@ -282,8 +308,8 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        x = np.log10(self.lod.value) - intercept
-        y = np.log10(self.lod.value)
+        x = np.log10(self.lod.intensity) - intercept
+        y = np.log10(self.lod.intensity)
         plt.scatter(
             x, y,
             s=40,
@@ -375,16 +401,18 @@ class CalibrationCurve:
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
+        # save
+        if save:
+            filedir = os.path.join('.', 'img')
+            if not os.path.isdir(filedir):
+                os.mkdir(filedir)
+            filename = _get_filename(emulation, extension='png')
+
+            plt.savefig(
+                os.path.join(filedir, filename)
+            )
+
         #
-        filedir = os.path.join('.', 'img')
-        if not os.path.isdir(filedir):
-            os.mkdir(filedir)
-        filename = _get_filename(emulation, extension='png')
-
-        plt.savefig(
-            os.path.join(filedir, filename)
-        )
-
         plt.show()
 
     def write(self):

@@ -6,63 +6,54 @@ from scipy import interpolate
 
 from spectrumlab.alias import Frame
 from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
-from spectrumlab.emulation.intensity import LOQ
+from spectrumlab.emulation.intensity import calculate_intensity
+
+from dataclasses import dataclass
+from string import Template
+from typing import Literal, TypeAlias
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from spectrumlab.alias import Array, Number
+from spectrumlab.calibration_curve import Intercept, Slope, LOD, LOQ, LOL, DynamicRange
+from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
+
+from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum
+from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, ApproxIntensityConfig
+from spectrumlab.peak.intensity import InterpolationKind, integrate_grid, interpolate_grid
 
 
-# --------        limit of linearity (LOL)        --------
-def calculate_concentration_LOL(unicorn: Frame, coeff: tuple[float, float], threshold: float) -> float:
-    """Calculate Limit of Linearity in concentration."""
-    intercept, slope = coeff
-
-    # calibration curve
-    x_grid = unicorn['concentration'].apply(lambda x: np.log10(x))
-    y_grid = unicorn['intensity'].apply(lambda x: np.log10(x))
-
-    x = np.linspace(np.min(x_grid), np.max(x_grid), 1_000_000)
-    y = interpolate.interp1d(
-        x_grid, y_grid,
-        kind='linear',
-        bounds_error=False,
-        fill_value=np.nan,
-    )(x)
-
-    ref = 10**(slope*x + intercept)
-    predicted = 10**(y)
-
-    mask = (100*np.abs(ref - predicted) / ref) <= threshold
-    limit = 10**(np.max(x[mask])) if any(mask) else np.nan
-
-    #
-    return limit
+# --------        limits (LOD and LOQ)        --------
+EstimationKind: TypeAlias = Literal['theoretical', 'emulational']
 
 
-# --------        dynamic range        --------
-@dataclass(frozen=True)
-class DynamicRange:
-    emulation: Emulation
-    lb: float  # limit of quantity (LOQ)
-    ub: float  # limit of linearity (LOL)
+def estimate_deviation(emulation: Emulation, config: IntegralIntensityConfig, n_parallels: int = 10, kind: EstimationKind = 'theoretical') -> float:
+    """Calculate intensity deviation."""
+    n_numbers = emulation.config.spectrum.n_numbers
+    background_level = emulation.config.background_level
+    emulation = emulation.setup(position=n_numbers//2, concentration=0)
 
-    @property
-    def value(self) -> float:
-        return np.log10(self.ub) - np.log10(self.lb)
+    match kind:
+        case 'theoretical':
+            return np.sqrt(config.interval) * emulation.noise(background_level)
 
-    def __repr__(self):
-        emulation = self.emulation
-        config = emulation.config
-        detector = emulation.detector
+        case 'emulational':
+            intensity = []
+            for _ in range(n_parallels):
+                value = calculate_intensity(
+                    spectrum=emulation.run(),
+                    background=background_level,
+                    position=n_numbers//2,
+                    config=config,
+                )
+                intensity.append(value)
+            return np.std(intensity, ddof=1).item()
 
-        return '\n'.join([
-            f'Dynamic range ({detector.name}, n_frames: {config.spectrum.n_frames})',
-            f'\trange: {self.lb:.4f} - {self.ub:.4f} ({self.value:.4f})',
-        ])
-
-    def __iter__(self):
-        for key in ['lb', 'ub']:
-            yield getattr(self, key)
+    raise TypeError(f'LimitsKind: {kind} is not supported yet!')
 
 
-def calculate_dynamic_range(emulation: Emulation, unicorn: Frame, coeff: tuple[float, float], loq: LOQ, k: float = 3, threshold: float = 0.05) -> DynamicRange:
+def estimate_dynamic_range(emulation: Emulation, coeff: tuple[Intercept, Slope], loq: LOQ, lol: LOL, k: float = 3) -> DynamicRange:
     n_numbers = emulation.config.spectrum.n_numbers
     config = emulation.config
 
@@ -85,23 +76,17 @@ def calculate_dynamic_range(emulation: Emulation, unicorn: Frame, coeff: tuple[f
             print(error)
 
         return DynamicRange(
-            emulation=emulation,
-            lb=lb,
-            ub=ub,
+            intensity=(lb, ub),
+            coeff=coeff,
         )
 
     if isinstance(emulation, AbsorbedSpectrumEmulation):
-        lb = loq.to_concentration(coeff=coeff)
-        ub = calculate_concentration_LOL(
-            unicorn=unicorn,
-            coeff=coeff,
-            threshold=threshold,
-        )
+        lb = loq.concentration
+        ub = lol.concentration
 
         return DynamicRange(
-            emulation=emulation,
-            lb=lb,
-            ub=ub if lb < ub else np.nan,
+            intensity=(lb, ub if lb < ub else np.nan),
+            coeff=coeff,
         )
 
     raise TypeError(f'Emulation type: {type(emulation)} is not supported yet!')
