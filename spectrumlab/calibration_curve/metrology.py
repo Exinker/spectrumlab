@@ -99,7 +99,7 @@ def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.0
     ref = 10**(slope*x + intercept)
     predicted = 10**(y)
 
-    mask = (100*np.abs(ref - predicted) / ref) <= threshold
+    mask = (np.abs(ref - predicted) / ref) <= threshold
     value = 10**(np.max(y[mask])) if any(mask) else np.nan
 
     #

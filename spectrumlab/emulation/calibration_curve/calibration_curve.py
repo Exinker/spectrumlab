@@ -245,7 +245,6 @@ class CalibrationCurve:
 
     def show(self, ref: Frame | None = None, concentration_ratio: float = 1, ylim: tuple[float, float] | None = None, save: bool = False):
         emulation = self.emulation
-        intercept, slope = self.coeff
 
         if ref is None:
             data = self.data.copy()
@@ -308,7 +307,7 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        x = np.log10(self.lod.intensity) - intercept
+        x = np.log10(self.lod.concentration)
         y = np.log10(self.lod.intensity)
         plt.scatter(
             x, y,
@@ -319,8 +318,8 @@ class CalibrationCurve:
             label='LoD',
         )
 
-        x = np.log10(list(self.dynamic_range))
-        y = intercept + slope*x
+        x = np.log10(self.dynamic_range.concentration)
+        y = np.log10(self.dynamic_range.intensity)
         plt.plot(
             x, y,
             color='black',
