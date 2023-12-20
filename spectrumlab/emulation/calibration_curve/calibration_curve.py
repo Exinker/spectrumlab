@@ -1,4 +1,3 @@
-
 import os
 from dataclasses import dataclass, field
 from typing import Literal
@@ -7,10 +6,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from scipy import interpolate
 
-from spectrumlab.alias import Frame, Number
-from spectrumlab.calibration_curve import Intercept, Slope, LOD, LOQ, LOL, estimate_lol
+from spectrumlab.alias import Frame, Series, Number
+from spectrumlab.calibration_curve import BaseCalibrationCurve, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
 from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
 from spectrumlab.picture.config import COLOR
@@ -19,18 +17,9 @@ from .metrology import DynamicRange, estimate_deviation, estimate_dynamic_range
 from .exceptions import EmulationError
 
 
-def _get_filename(emulation: Emulation, extension: Literal['png', 'txt']):
-    device = emulation.config.device
-    detector = emulation.config.detector
-    info = emulation.config.info
-
-    content = '; '.join([f'{item}' for item in [device.config.dispersion, detector.config.name, info] if item])  # FIXME: change device.config.dispersion to device.config.name
-    return f'calibration_curve ({content}).{extension}'
-
-
 @dataclass
 class CalibrationCurveConfig:
-    intensity_config: IntensityConfig = field(default=IntegralIntensityConfig())
+    intensity_config: IntensityConfig = field(default=IntegralIntensityConfig(interval=3, kind=InterpolationKind.LINEAR))
 
     concentration_blank: float = field(default=0)
     threshold: float = field(default=0.05)
@@ -40,10 +29,9 @@ class CalibrationCurveConfig:
     n_parallels: int = field(default=5)
 
 
-class CalibrationCurve:
+class CalibrationCurve(BaseCalibrationCurve):
 
     def __init__(self, emulation: Emulation, config: CalibrationCurveConfig):
-
         self.emulation = emulation
         self.config = config
 
@@ -116,7 +104,7 @@ class CalibrationCurve:
         #
         return self
 
-    def run(self, random_state: int | None = None, verbose: bool = True, show: bool = False, write=False):
+    def run(self, random_state: int | None = None, verbose: bool = True, show: bool = False, write: bool = False):
         """Run emulation."""
         emulation = self.emulation
         config = self.config
@@ -179,29 +167,54 @@ class CalibrationCurve:
         self._data = data
         self._unicorn = unicorn
 
+        # fit
+        self.fit()
+
+        # verbose
+        if verbose:
+            print(self.lod)
+            print(self.dynamic_range)
+
+        # show
+        if show:
+            self.show()
+
+        # write
+        if write:
+            self.write()
+
+        # return self
+        return self
+
+    def fit(self):
+        emulation = self.emulation
+        config = self.config
+        data = self._data
+        unicorn = self._unicorn
+
         # emulate curve / mask non-linear part of curve
         x = unicorn['concentration'].apply(lambda x: np.log10(x))
         y = unicorn['intensity'].apply(lambda x: np.log10(x))
 
-        coeff = 0, 1
+        intercept, slope = 0, 1
         while True:
             values = y[~unicorn['mask']] - x[~unicorn['mask']]
-            coeff = np.mean(values), 1
+            intercept, slope = np.mean(values), 1
 
             #
-            intercept, slope = coeff
-            ref = 10**(intercept + slope*x)
-            predicted = 10**(y)
-            if np.max((np.abs(ref - predicted) / ref)[~unicorn['mask']]) > config.threshold:
+            i_true = 10**(intercept + slope*x)
+            i_hat = 10**(y)
+            if np.max((np.abs(i_true - i_hat) / i_true)[~unicorn['mask']]) > config.threshold:
                 unicorn.loc[max(values.index), 'mask'] = True  # mask the last of unmasked!
             else:
                 break
 
         data.loc[unicorn['mask'][unicorn['mask']].index, 'mask'] = True  # mask data
-        self._coeff = coeff  # update coeff
+
+        self._coeff = intercept, slope  # update coeff
 
         # calculate limits
-        emulation = emulation.setup(position=position, concentration=self.config.concentration_blank)
+        emulation = emulation.setup(position=self._position, concentration=self.config.concentration_blank)
 
         deviation = estimate_deviation(
             emulation=emulation,
@@ -230,49 +243,28 @@ class CalibrationCurve:
             lol=self.lol,
         )
 
-        # verbose
-        if verbose:
-            print(self.lod)
-            print(self.dynamic_range)
+    def predict(self, intensity: Series) -> Series:
+        interpect, slope = self.coeff
 
-        # show
-        if show:
-            self.show()
+        return 10**((intensity.apply(lambda x: np.log10(x)) - interpect) / slope)
 
-        # write
-        if write:
-            self.write()
+    def show(self, ref: Frame | None = None, concentration_ratio: float = 1, save: bool = False):
+        """Show calibration curve."""
 
-        # return self
-        return self
-
-    def show(self, ref: Frame | None = None, concentration_ratio: float = 1, ylim: tuple[float, float] | None = None, save: bool = False):
-        emulation = self.emulation
+        unicorn = self.unicorn.copy()
+        unicorn['concentration'] = concentration_ratio * unicorn['concentration']
 
         if ref is None:
             data = self.data.copy()
-            data['concentration'] = data['concentration'].apply(lambda x: np.log10(x) + np.log10(concentration_ratio))
-            data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
+            data['concentration'] = concentration_ratio * data['concentration']
         else:
             data = ref.copy()
             data = data.set_index(['probe', 'parallel'])
-            data['concentration'] = data['concentration'].apply(lambda x: np.log10(x))
-            data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
-
-        unicorn = self.unicorn.copy()
-        unicorn['concentration'] = unicorn['concentration'].apply(lambda x: np.log10(x) + np.log10(concentration_ratio))
-        unicorn['intensity'] = unicorn['intensity'].apply(lambda x: np.log10(x))
 
         # show
         fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
 
-        title = '\n'.join([
-            # fr'dispersion: {emulation.config.device.config.dispersion:.4f}, nm/mm',
-            # fr'detector: {emulation.config.detector.config.name}',
-            # fr'$\alpha: {emulation.config.scattering_ratio}$',
-            # fr'$\beta: {emulation.config.background_level}$',
-            # fr'dynamic_range: {self.dynamic_range.c_min:.4f} - {self.dynamic_range.c_max:.4f} ({np.log10(self.dynamic_range.c_max) - np.log10(self.dynamic_range.c_min):.4f})',
-        ])
+        title = ''
         plt.suptitle(title)  # TODO: add title's config
 
         #
@@ -284,7 +276,7 @@ class CalibrationCurve:
             x, y,
             color='black', linestyle='none', marker='s', markersize=2,
             alpha=.5,
-            label='unicorn',
+            label='theoretical',
         )
 
         x = data['concentration']
@@ -310,8 +302,8 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        x = np.log10(self.lod.concentration)
-        y = np.log10(self.lod.intensity)
+        x = self.lod.concentration
+        y = self.lod.intensity
         plt.scatter(
             x, y,
             s=40,
@@ -321,8 +313,8 @@ class CalibrationCurve:
             label='LoD',
         )
 
-        x = np.log10(self.dynamic_range.concentration)
-        y = np.log10(self.dynamic_range.intensity)
+        x = self.dynamic_range.concentration
+        y = self.dynamic_range.intensity
         plt.plot(
             x, y,
             color='black',
@@ -330,32 +322,35 @@ class CalibrationCurve:
             alpha=.5,
         )
 
-        if ylim:
-            plt.ylim(ylim)
-        plt.xlabel('$\log_{10}{C}$')
-        if isinstance(emulation, EmittedSpectrumEmulation):
-            plt.ylabel('$\log_{10}{I}$')
-        if isinstance(emulation, AbsorbedSpectrumEmulation):
-            plt.ylabel('$\log_{10}{A}$')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.xlabel('$C$')
+        plt.ylabel('$R$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
         #
         plt.sca(ax_mid)
 
-        x = data['concentration'].groupby(level=0, sort=False).mean()
-        y = data['intensity'].apply(lambda x: 10**(x)).groupby(level=0, sort=False).mean()
-        x_grid = unicorn['concentration']
-        y_grid = unicorn['intensity']
-        y_hat = 10**(interpolate.interp1d(
-            x_grid, y_grid,
-            kind='linear',
-            bounds_error=False,
-            fill_value=np.nan,
-        )(x))
-        dy = 100*(y - y_hat)/y
+        c_true = unicorn['concentration']
+        c_hat = self.predict(unicorn['intensity'])
+        bias = 100*(c_hat - c_true)/c_true
+        x = c_true
+        y = bias
+        plt.plot(
+            x, y,
+            color='black', linestyle='none', marker='s', markersize=2,
+            alpha=.5,
+            label='theoretical',
+        )
+
+        c_true = data['concentration'].groupby(level=0, sort=False).mean()
+        c_hat = self.predict(data['intensity'].groupby(level=0, sort=False).mean())
+        bias = 100*(c_hat - c_true)/c_true
+        x = c_true
+        y = bias
         plt.scatter(
-            x, dy,
+            x, y,
             s=20,
             marker='s',
             facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
@@ -364,11 +359,8 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        lim = 1.1*np.max(np.abs(dy))
-        if lim > 50: lim = 50  # restrict lim
-        if lim < 20: lim = 20  # restrict lim
-        plt.ylim(-lim, +lim)
-        plt.xlabel('$\log_{10}{C}$')
+        plt.xscale('log')
+        plt.xlabel('$C$')
         plt.ylabel('$bias, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
@@ -376,17 +368,23 @@ class CalibrationCurve:
         #
         plt.sca(ax_right)
 
-        x = unicorn['concentration']
-        y = 100 * unicorn['deviation'] / unicorn['intensity'].apply(lambda x: 10**(x))
+        c_true = unicorn['concentration']
+        c_hat = self.predict(unicorn['deviation'])
+        deviation = 100 * c_hat / c_true
+        x = c_true
+        y = deviation
         plt.plot(
             x, y,
-            color='black', linestyle=':', marker='s', markersize=2,
+            color='black', linestyle='none', marker='s', markersize=2,
             alpha=.5,
-            label='unicorn',
+            label='theoretical',
         )
 
-        x = data['concentration'].groupby(level=0, sort=False).mean()
-        y = 100 * data['intensity'].apply(lambda x: 10**(x)).groupby(level=0, sort=False).std(ddof=1) / data['intensity'].apply(lambda x: 10**(x)).groupby(level=0, sort=False).mean()
+        c_true = data['concentration'].groupby(level=0, sort=False).mean()
+        c_hat = self.predict(data['intensity'])
+        deviation = 100 * c_hat.groupby(level=0, sort=False).std(ddof=1) / c_true
+        x = c_true
+        y = deviation
         plt.scatter(
             x, y,
             s=40,
@@ -397,8 +395,9 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        plt.ylim([-.1, 2])
-        plt.xlabel('$\log_{10}{C}$')
+        # plt.ylim([-.1, 2])
+        plt.xscale('log')
+        plt.xlabel('$C$')
         plt.ylabel('$deviation, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
@@ -408,7 +407,7 @@ class CalibrationCurve:
             filedir = os.path.join('.', 'img')
             if not os.path.isdir(filedir):
                 os.mkdir(filedir)
-            filename = _get_filename(emulation, extension='png')
+            filename = self._get_filename(extension='png')
 
             plt.savefig(
                 os.path.join(filedir, filename)
@@ -418,14 +417,14 @@ class CalibrationCurve:
         plt.show()
 
     def write(self):
-        emulation = self.emulation
+        
         data = self.data
 
         #
         filedir = os.path.join('.', 'txt')
         if not os.path.isdir(filedir):
             os.mkdir(filedir)
-        filename = _get_filename(emulation, extension='txt')
+        filename = self._get_filename(extension='txt')
         filepath = os.path.join(filedir, filename)
 
         #
@@ -437,3 +436,14 @@ class CalibrationCurve:
             index=True,
             columns=data.columns,
         )
+
+    # --------        private        --------
+    def _get_filename(self, emulation: Emulation, extension: Literal['png', 'txt']):
+        emulation = self.emulation
+
+        device = emulation.config.device
+        detector = emulation.config.detector
+        info = emulation.config.info
+
+        content = '; '.join([f'{item}' for item in [device.config.dispersion, detector.config.name, info] if item])  # FIXME: change device.config.dispersion to device.config.name
+        return f'calibration_curve ({content}).{extension}'

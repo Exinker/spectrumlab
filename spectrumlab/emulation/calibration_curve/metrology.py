@@ -1,34 +1,18 @@
-
-from dataclasses import dataclass
-
-import numpy as np
-from scipy import interpolate
-
-from spectrumlab.alias import Frame
-from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
-from spectrumlab.emulation.intensity import calculate_intensity
-
-from dataclasses import dataclass
-from string import Template
 from typing import Literal, TypeAlias
 
 import numpy as np
-import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Number
-from spectrumlab.calibration_curve import Intercept, Slope, LOD, LOQ, LOL, DynamicRange
+from spectrumlab.calibration_curve import Intercept, Slope, LOQ, LOL, DynamicRange
 from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
-
-from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum
-from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, ApproxIntensityConfig
-from spectrumlab.peak.intensity import InterpolationKind, integrate_grid, interpolate_grid
+from spectrumlab.emulation.intensity import calculate_intensity
+from spectrumlab.peak.intensity import IntegralIntensityConfig
 
 
-# --------        limits (LOD and LOQ)        --------
-EstimationKind: TypeAlias = Literal['theoretical', 'emulational']
+# --------        deviation        --------
+EstimateDeviationKind: TypeAlias = Literal['theoretical', 'emulational']
 
 
-def estimate_deviation(emulation: Emulation, config: IntegralIntensityConfig, n_parallels: int = 10, kind: EstimationKind = 'theoretical') -> float:
+def estimate_deviation(emulation: Emulation, config: IntegralIntensityConfig, n_parallels: int = 10, kind: EstimateDeviationKind = 'theoretical') -> float:
     """Calculate intensity deviation."""
     n_numbers = emulation.config.spectrum.n_numbers
     background_level = emulation.config.background_level
@@ -53,12 +37,12 @@ def estimate_deviation(emulation: Emulation, config: IntegralIntensityConfig, n_
     raise TypeError(f'LimitsKind: {kind} is not supported yet!')
 
 
+# --------        dynamic range        --------
 def estimate_dynamic_range(emulation: Emulation, coeff: tuple[Intercept, Slope], loq: LOQ, lol: LOL, k: float = 3) -> DynamicRange:
-    n_numbers = emulation.config.spectrum.n_numbers
-    config = emulation.config
 
-    #
     if isinstance(emulation, EmittedSpectrumEmulation):
+        # n_numbers = emulation.config.spectrum.n_numbers
+        # config = emulation.config
         # emulation = emulation.setup(position=n_numbers//2, concentration=1)
         # B = config.background_level
         # lb = k * (emulation.noise(B) / np.max(emulation.intensity))

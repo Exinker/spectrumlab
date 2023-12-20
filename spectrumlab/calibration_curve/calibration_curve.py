@@ -1,31 +1,73 @@
-
 import os
-from dataclasses import dataclass, field
-from typing import Literal, NewType
+from abc import ABC, abstractmethod
+from typing import Literal
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from tqdm import tqdm
-from scipy import interpolate
 
-from spectrumlab.alias import Array, Frame, Number
+from spectrumlab.alias import Frame, Series
 from spectrumlab.picture.config import COLOR
-from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol, estimate_dynamic_range
+
+from .exceptions import FitError
+from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol
 
 
-class CalibrationCurve:
+class BaseCalibrationCurve(ABC):
 
-    def __init__(self, data: Frame, blank: Frame | None = None):  # , lol: LOL
+    @abstractmethod
+    def fit(self, intensity: Series, concentration: Series):
+        pass
+    
+    @abstractmethod
+    def predict(self, intensity: Series) -> Series:
+        pass
+
+    # --------        handlers        --------
+    @abstractmethod
+    def show(self, save: bool = False):
+        """Show calibration curve."""
+        pass
+
+    def write(self):
+        """Write calibration curve's data to file."""
+
+        filedir = os.path.join('.', 'txt')
+        if not os.path.isdir(filedir):
+            os.mkdir(filedir)
+        filename = self._get_filename(extension='txt')
+        filepath = os.path.join(filedir, filename)
+
+        #
+        data = self.data
+        data.to_csv(
+            filepath,
+            decimal=',',
+            sep=';',
+            encoding='utf-8',
+            index=True,
+            columns=data.columns,
+        )
+
+    # --------        private        --------
+    @abstractmethod
+    def _get_filename(extension: Literal['png', 'txt']) -> str:
+        pass
+
+
+class CalibrationCurve(BaseCalibrationCurve):
+
+    def __init__(self, data: Frame, blank: Frame | None = None):
         self._data = data
         self._blank = blank
-        self._coeff = None
 
-        self._blank_deviation = None
+        self._coeff = None
         self._lod = None
         self._loq = None
         self._lol = None
         self._dynamic_range = None
+
+        # fit
+        self.fit()
 
     @property
     def data(self) -> Frame:
@@ -35,13 +77,43 @@ class CalibrationCurve:
     def blank(self) -> Frame:
         return self._blank
 
-    def predict(self, intensity: Array[float]) -> Array[float]:
-        interpect, slope = self.coeff
+    @property
+    def coeff(self) -> tuple[Intercept, Slope]:
+        if self._coeff is None:
+            raise FitError('fit the calibration curve before!')
 
-        return 10**((np.log10(intensity) - interpect) / slope)
+        return self._coeff
 
-    # --------        coeff        --------
-    def _calculate_coeff(self) -> tuple[Intercept, Slope]:
+    @property
+    def lod(self) -> LOD:
+        if self._lod is None:
+            raise FitError('fit the calibration curve before!')
+
+        return self._lod
+
+    @property
+    def loq(self) -> LOQ:
+        if self._loq is None:
+            raise FitError('fit the calibration curve before!')
+
+        return self._loq
+
+    @property
+    def lol(self) -> LOL:
+        if self._lol is None:
+            raise FitError('fit the calibration curve before!')
+
+        return self._lol
+
+    @property
+    def dynamic_range(self) -> DynamicRange:
+        if self._dynamic_range is None:
+            raise FitError('fit the calibration curve before!')
+
+        return self._dynamic_range
+
+    # --------        handlers        --------
+    def fit(self):
         data = self.data.copy()
         data = data[~data['mask']][['concentration', 'intensity']]
         data = data.groupby(level=0, sort=False).mean()
@@ -51,113 +123,47 @@ class CalibrationCurve:
         y = data['intensity'].values
         slope, intercept = np.polyfit(x, y, deg=1)
 
-        return intercept, slope
+        # coeff
+        self._coeff = intercept, slope
 
-    @property
-    def coeff(self) -> tuple[Intercept, Slope]:
-        if self._coeff is None:
-            self._coeff = self._calculate_coeff()
+        # limits
+        blank_deviation = self._calculate_blank_deviation()
 
-        return self._coeff
-
-    # --------        blank deviation        --------
-    @property
-    def blank_deviation(self) -> float:
-        if self._blank_deviation is None:
-            self._blank_deviation = self._calculate_blank_deviation()
-
-        return self._blank_deviation
-
-    def _calculate_blank_deviation(self) -> float:
-
-        if self.blank is None:
-            print('blank: blank is not found!')  # FIXME: add exception!
-
-            index = self.data.index[self.data['concentration'] == 0]
-            if index.empty:
-                print('blank: min concentration of data is not zero!')  # FIXME: add exception!
-                index = self.data.index[self.data['concentration'] == min(self.data['concentration'])]
-            intensity = self.data.loc[index, 'intensity'].values
-
-        else:
-            intensity = self.blank.loc[0, 'intensity'].values
-
-        return np.std(intensity, ddof=1)
-
-    # --------        limit of detective (LOD)        --------
-    @property
-    def lod(self) -> LOD:
-        if self._lod is None:
-            self._lod = LOD.from_deviation(
-                deviation=self.blank_deviation,
-                coeff=self.coeff,
-            )
-
-        return self._lod
-
-    # --------        limit of quantity (LOQ)        --------
-    @property
-    def loq(self) -> LOQ:
-        if self._loq is None:
-            self._loq = LOQ.from_deviation(
-                deviation=self.blank_deviation,
-                coeff=self.coeff,
-            )
-
-        return self._loq
-
-    # --------        limit of linearity (LOL)        --------
-    @property
-    def lol(self) -> LOL:
-        if self._lol is None:
-            self._lol = estimate_lol(
-                data=self.data,
-                coeff=self.coeff,
-            )
-
-        return self._lol
-
-    # --------        dynamic_range        --------
-    @property
-    def dynamic_range(self) -> DynamicRange:
-        if self._dynamic_range is None:
-            self._dynamic_range = self._calculate_dynamic_range()
-
-        return self._dynamic_range
-
-    def _calculate_dynamic_range(self) -> DynamicRange:
-        low = self.loq.intensity
-        high = self.lol.intensity
-
-        return DynamicRange(
-            intensity=(low, high),
+        self._lod = LOD.from_deviation(
+            deviation=blank_deviation,
+            coeff=self.coeff,
+        )
+        self._loq = LOQ.from_deviation(
+            deviation=blank_deviation,
+            coeff=self.coeff,
+        )
+        self._lol = estimate_lol(
+            data=self.data,
+            coeff=self.coeff,
+        )
+        self._dynamic_range = DynamicRange(
+            intensity=(self.loq.intensity, self.lol.intensity),
             coeff=self.coeff,
         )
 
-    # --------        handlers        --------
-    def show(self, ref: Frame | None = None, concentration_ratio: float = 1, ylim: tuple[float, float] | None = None, save: bool = False):
-        intercept, slope = self.coeff
+    def predict(self, intensity: Series) -> Series:
+        interpect, slope = self.coeff
+
+        return 10**((intensity.apply(lambda x: np.log10(x)) - interpect) / slope)
+
+    def show(self, ref: Frame | None = None, save: bool = False):
+        """Show calibration curve."""
 
         if ref is None:
             data = self.data.copy()
-            data['concentration'] = data['concentration'].apply(lambda x: np.log10(x) + np.log10(concentration_ratio))
-            data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
         else:
             data = ref.copy()
             data = data.set_index(['probe', 'parallel'])
-            data['concentration'] = data['concentration'].apply(lambda x: np.log10(x))
-            data['intensity'] = data['intensity'].apply(lambda x: np.log10(x))
 
         # show
-        fig, (ax_left, ax_right) = plt.subplots(ncols=2, figsize=(10, 5), sharex=True, tight_layout=True,)
+        fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
 
-        title = '\n'.join([
-            # fr'dispersion: {emulation.config.device.config.dispersion:.4f}, nm/mm',
-            # fr'detector: {emulation.config.detector.config.name}',
-            # fr'$\alpha: {emulation.config.scattering_ratio}$',
-            # fr'$\beta: {emulation.config.background_level}$',
-            # fr'dynamic_range: {self.dynamic_range.c_min:.4f} - {self.dynamic_range.c_max:.4f} ({np.log10(self.dynamic_range.c_max) - np.log10(self.dynamic_range.c_min):.4f})',
-        ])
+        title = ''
         plt.suptitle(title)  # TODO: add title's config
 
         #
@@ -186,8 +192,8 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        x = np.log10(self.lod.concentration)
-        y = np.log10(self.lod.intensity)
+        x = self.lod.concentration
+        y = self.lod.intensity
         plt.scatter(
             x, y,
             s=40,
@@ -197,8 +203,8 @@ class CalibrationCurve:
             label='LoD',
         )
 
-        x = np.log10(self.dynamic_range.concentration)
-        y = np.log10(self.dynamic_range.intensity)
+        x = self.dynamic_range.concentration
+        y = self.dynamic_range.intensity
         plt.plot(
             x, y,
             color='black',
@@ -206,19 +212,49 @@ class CalibrationCurve:
             alpha=.5,
         )
 
-        if ylim:
-            plt.ylim(ylim)
-        plt.xlabel('$\log_{10}{C}$')
-        plt.ylabel('$\log_{10}{I}$')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.xlabel('$C$')
+        plt.ylabel('$R$')
+        plt.grid(color='grey', linestyle=':')
+        plt.legend()
+
+        #
+        plt.sca(ax_mid)
+
+        c_true = data['concentration'].groupby(level=0, sort=False).mean()
+        c_hat = self.predict(data['intensity'].groupby(level=0, sort=False).mean())
+        bias = 100*(c_hat - c_true)/c_true
+        x = c_true
+        y = bias
+        plt.scatter(
+            x, y,
+            s=20,
+            marker='s',
+            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
+            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
+            alpha=.5,
+            label='emulated' if ref is None else 'recorded',
+        )
+
+        # lim = 1.1*np.max(np.abs(bias))
+        # if lim > 50: lim = 50  # restrict lim
+        # if lim < 20: lim = 20  # restrict lim
+        # plt.ylim(-lim, +lim)
+        plt.xscale('log')
+        plt.xlabel('$C$')
+        plt.ylabel('$bias, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
         #
         plt.sca(ax_right)
 
-        predicted = self.predict(data['intensity'])
-        x = data['concentration'].groupby(level=0, sort=False).mean()
-        y = 100 * predicted.groupby(level=0, sort=False).std(ddof=1) / predicted.groupby(level=0, sort=False).mean()
+        c_true = data['concentration'].groupby(level=0, sort=False).mean()
+        c_hat = self.predict(data['intensity'])
+        deviation = 100 * c_hat.groupby(level=0, sort=False).std(ddof=1) / c_true
+        x = c_true
+        y = deviation
         plt.scatter(
             x, y,
             s=40,
@@ -229,9 +265,10 @@ class CalibrationCurve:
             label='emulated' if ref is None else 'recorded',
         )
 
-        plt.ylim([-.1, 10])
-        plt.xlabel('$\log_{10}{C}$')
-        plt.ylabel('$\sigma_{{C}}/C, \%$')
+        # plt.ylim([-.1, 2])
+        plt.xscale('log')
+        plt.xlabel('$C$')
+        plt.ylabel('$deviation, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
@@ -240,7 +277,7 @@ class CalibrationCurve:
             filedir = os.path.join('.', 'img')
             if not os.path.isdir(filedir):
                 os.mkdir(filedir)
-            filename = _get_filename(emulation, extension='png')
+            filename = self._get_filename(extension='png')
 
             plt.savefig(
                 os.path.join(filedir, filename)
@@ -249,23 +286,22 @@ class CalibrationCurve:
         #
         plt.show()
 
-    def write(self):
-        emulation = self.emulation
-        data = self.data
+    # --------        private        --------
+    def _calculate_blank_deviation(self) -> float:
 
-        #
-        filedir = os.path.join('.', 'txt')
-        if not os.path.isdir(filedir):
-            os.mkdir(filedir)
-        filename = _get_filename(emulation, extension='txt')
-        filepath = os.path.join(filedir, filename)
+        if self.blank is None:
+            print('blank: blank is not found!')  # FIXME: add exception!
 
-        #
-        data.to_csv(
-            filepath,
-            decimal=',',
-            sep=';',
-            encoding='utf-8',
-            index=True,
-            columns=data.columns,
-        )
+            index = self.data.index[self.data['concentration'] == 0]
+            if index.empty:
+                print('blank: min concentration of data is not zero!')  # FIXME: add exception!
+                index = self.data.index[self.data['concentration'] == min(self.data['concentration'])]
+            intensity = self.data.loc[index, 'intensity'].values
+
+        else:
+            intensity = self.blank.loc[0, 'intensity'].values
+
+        return np.std(intensity, ddof=1)
+
+    def _get_filename(content: str, extension: Literal['png', 'txt']):
+        return f'calibration_curve ({content}).{extension}'

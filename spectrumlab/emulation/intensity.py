@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum
-from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, ApproxIntensityConfig
-from spectrumlab.peak.intensity import InterpolationKind, integrate_grid, interpolate_grid
+from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, integrate_grid, interpolate_grid
+from spectrumlab.peak.profile import VoightPeakProfile
 
 
 # --------        estimate intensity        --------
-def _estimate_intensity(x_grid: Array, y_grid: Array, position: Number, config: IntensityConfig) -> float:
+def _estimate_intensity(x_grid: Array, y_grid: Array, mask: Array, position: Number, config: IntensityConfig) -> float:
     """Interface to estimate analyte peak's intensity."""
 
     if isinstance(config, AmplitudeIntensityConfig):
@@ -26,6 +26,11 @@ def _estimate_intensity(x_grid: Array, y_grid: Array, position: Number, config: 
                 InterpolationKind.LINEAR: 'linear',
             }.get(config.kind),
         )
+
+    if isinstance(config, ApproxIntensityConfig):
+        profile = config.approx_profile
+
+        return np.dot(y_grid[~mask], y_grid[~mask]) / np.dot(y_grid[~mask], profile(x_grid[~mask], position=position, intensity=1))
 
     raise ValueError(f'calculate_intensity: config {config} is not supported!')
 
@@ -82,10 +87,12 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
     """Calculate a peak's intensity with selected config."""
     x_grid = spectrum.number
     y_grid = (spectrum.intensity - background).flatten()
+    mask = spectrum.clipped.flatten()
 
     # estimate intensity
     value = _estimate_intensity(
         x_grid, y_grid,
+        mask=mask,
         position=position,
         config=config,
     )
@@ -103,7 +110,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
     # show
     if show:
         noise = _estimate_intensity(
-            spectrum.number, (spectrum.deviation ** 2).flatten(),
+            spectrum.number, (spectrum.deviation ** 2).flatten(), mask=mask,
             position=position,
             config=config,
         ) ** (1/2)
@@ -172,6 +179,21 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
                     label='область\nинтегр.',
                 )
 
+        if isinstance(config, ApproxIntensityConfig):
+            plt.plot(
+                x_grid, background + y_grid,
+                linestyle='none', color=config.color,
+                marker='.', markersize=5,
+                label='$s_{k}$',
+            )
+
+            x = np.linspace(min(x_grid), max(x_grid), 101)
+            f = lambda x: config.approx_profile(x, position=position, intensity=value)
+            plt.plot(
+                x, background + f(x),
+                alpha=0.2, color=config.color,
+            )
+
         if ylim:
             plt.ylim(ylim)
 
@@ -203,10 +225,12 @@ def calculate_deviation(spectrum: Spectrum, background: float, position: Number,
     """Calculate a standart deviation of peak's intensity with selected config."""
     x_grid = spectrum.number
     y_grid = (spectrum.deviation ** 2).flatten()
+    mask = spectrum.clipped.flatten()
 
     if isinstance(config, IntegralIntensityConfig):
         value = _estimate_intensity(
             x_grid, y_grid,
+            mask=mask,
             position=position,
             config=config,
         ) ** (1/2)

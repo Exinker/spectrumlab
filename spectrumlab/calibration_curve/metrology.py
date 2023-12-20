@@ -1,6 +1,4 @@
-from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import Literal, TypeAlias, NewType, TYPE_CHECKING
+from typing import NewType
 
 import numpy as np
 from scipy import interpolate
@@ -13,7 +11,6 @@ Intercept = NewType('Intercept', float)
 Slope = NewType('Slope', float)
 
 
-# --------        limits        --------
 class BaseLimit:
 
     def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str):
@@ -45,6 +42,7 @@ class BaseLimit:
         ])
 
 
+# --------        LOD and LOQ        --------
 class LOD(BaseLimit):
     """Limit of Detection (LOD) in emission or absorption."""
 
@@ -99,7 +97,7 @@ def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.0
     ref = 10**(slope*x + intercept)
     predicted = 10**(y)
 
-    mask = (np.abs(ref - predicted) / ref) <= threshold
+    mask = (100*np.abs(ref - predicted) / ref) <= threshold
     value = 10**(np.max(y[mask])) if any(mask) else np.nan
 
     #
@@ -107,6 +105,7 @@ def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.0
         intensity=value,
         coeff=coeff,
     )
+
 
 # --------        dynamic range        --------
 class DynamicRange:
@@ -152,10 +151,6 @@ class DynamicRange:
             f'\tI: {_get_content(values=self.intensity)}',
             f'\tC: {_get_content(values=self.concentration)}',
         ])
-
-    # def __iter__(self):
-    #     for key in ['lb', 'ub']:
-    #         yield getattr(self, key)
 
 
 def estimate_dynamic_range(emulation: Emulation, unicorn: Frame, coeff: tuple[float, float], loq: LOQ, k: float = 3, threshold: float = 0.05) -> DynamicRange:
