@@ -204,7 +204,7 @@ class VoightPeakProfile:
         if show:
             plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            x, y = grid
+            x, y = grid.xvalues, grid.yvalues
             plt.plot(
                 x, y,
                 color='red', linestyle='none', marker='s', markersize=3,
@@ -218,7 +218,7 @@ class VoightPeakProfile:
                 color='black', linestyle=':',
             )
 
-            x, y = grid
+            x, y = grid.xvalues, grid.yvalues
             y_hat = profile(grid.x, **scope_variables)
             plt.plot(
                 x, y - y_hat,
@@ -290,7 +290,7 @@ PeakProfile: TypeAlias = VoightPeakProfile | SelfAbsorptionVoightPeakProfile
 
 # --------        PeakProfile Approximation        --------
 def calculate_approx_fitness(grid: Grid, params: Array) -> float:
-    x, y = grid
+    x, y = grid.xvalues, grid.yvalues
     profile_variables, scope_variables = ApproxVariables.parse_values(params)
 
     y_hat = VoightPeakProfile(**profile_variables)(x, **scope_variables)
@@ -299,7 +299,7 @@ def calculate_approx_fitness(grid: Grid, params: Array) -> float:
 
 
 def _calculate_fitness(grid: Grid, profile: PeakProfile, params: Array) -> float:
-    x, y = grid
+    x, y = grid.xvalues, grid.yvalues
     y_hat = profile(x, *params)
 
     return mse(y, y_hat)
@@ -320,7 +320,7 @@ def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = 
     scope_variables = result.x
 
     #
-    x, y = grid
+    x, y = grid.xvalues, grid.yvalues
     y_hat = profile(x, *scope_variables)
     # error = mse(y, y_hat)
 
@@ -336,7 +336,7 @@ def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = 
 
         plt.title(f'error: {error:.5f}')
 
-        x, y = grid
+        x, y = grid.xvalues, grid.yvalues
         plt.plot(
             x, y,
             color='red', linestyle='none', marker='s', markersize=3,
@@ -350,7 +350,7 @@ def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = 
             color='black', linestyle=':',
         )
 
-        x, y = grid
+        x, y = grid.xvalues, grid.yvalues
         y_hat = profile(grid.x, *scope_variables)
         plt.plot(
             x, y - y_hat,

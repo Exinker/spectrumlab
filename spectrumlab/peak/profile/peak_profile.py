@@ -1,7 +1,6 @@
-
 from collections.abc import Sequence
 from functools import partial
-from typing import overload, TypeAlias
+from typing import overload, Literal, TypeAlias
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +14,7 @@ from spectrumlab.peak.profile.base_variables import BaseVariables, ScopeVariable
 from spectrumlab.peak.profile.base_profile import BaseProfile
 
 
+# --------        voight peak profile        --------
 class VoightPeakProfileVariables(BaseVariables):
 
     def __init__(self, grid: Grid, *args, **kwargs):
@@ -69,6 +69,7 @@ class VoightPeakProfileVariables(BaseVariables):
 class VoightPeakProfile(BaseProfile):
     """Voight peak's profile type."""
 
+
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01) -> None:
         super().__init__()
 
@@ -107,7 +108,7 @@ class VoightPeakProfile(BaseProfile):
     def __repr__(self) -> str:
         cls = self.__class__
 
-        return f'{cls.__name__}(w={self.width:.4f}; a={self.asymmetry:.4f}; r={self.ratio:.4f})'
+        return f'{cls.__name__}({_get_content(self)})'
 
     # --------        fabric        --------
     @classmethod
@@ -145,27 +146,35 @@ class VoightPeakProfile(BaseProfile):
 
         # show
         if show:
-            plt.subplots(figsize=(6, 4), tight_layout=True)
+            fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            x, y = grid
+            x, y = grid.xvalues, grid.yvalues
             plt.plot(
                 x, y,
                 color='red', linestyle='none', marker='s', markersize=3,
                 alpha=1,
             )
 
-            x = np.linspace(min(grid.x), max(grid.x), 1000)
+            x = np.linspace(min(grid.xvalues), max(grid.xvalues), 1000)
             y_hat = profile(x, **scope_variables)
             plt.plot(
                 x, y_hat,
                 color='black', linestyle=':',
             )
 
-            x, y = grid
-            y_hat = profile(grid.x, **scope_variables)
+            x, y = grid.xvalues, grid.yvalues
+            y_hat = profile(grid.xvalues, **scope_variables)
             plt.plot(
                 x, y - y_hat,
                 color='black', linestyle='none', marker='s', markersize=0.5,
+            )
+
+            content = _get_content(profile, sep='\n')
+            plt.text(
+                0.05, 0.95,
+                content,
+                transform=ax.transAxes,
+                ha='left', va='top',
             )
 
             plt.xlabel(r'$number$')
@@ -235,6 +244,16 @@ class EffectedVoightPeakProfile(BaseProfile):
 
 
 PeakProfile: TypeAlias = VoightPeakProfile | EffectedVoightPeakProfile
+
+
+def _get_content(p: PeakProfile, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
+    sign = {-1: '', +1: '+' }.get(np.sign(p.asymmetry)) if is_signed else ''
+
+    return sep.join([
+        f'w={p.width:.4f}',
+        f'a={sign}{p.asymmetry:.4f}',
+        f'r={p.ratio:.4f}',
+    ])
 
 
 # --------        handlers        --------
