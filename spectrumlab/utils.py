@@ -24,13 +24,25 @@ def find(values: Array[float]) -> Array[float]:
     return np.array([i for i, value in enumerate(values) if value])
 
 
-def mse(y: Array[float], y_hat: Array[float]) -> float:
-    """Calculate MSE of observes values y and prodicted values $\hat{y}$."""
+# --------        errors        --------
+def se(y: Array[float], y_hat: Array[float]) -> Array[float]:
+    """Calculate squared error (SE) between true values $y$ and predicted values $\hat{y}$."""
+    assert len(y) == len(y_hat)
 
-    return np.sqrt(np.sum((y - y_hat)**2))
+    return np.square(y - y_hat)
+
+
+def mse(y: Array[float], y_hat: Array[float]) -> float:
+    """Calculate mean squared error (MSE) between true values $y$ and predicted values $\hat{y}$."""
+    assert len(y) == len(y_hat)
+
+    squared_error = se(y, y_hat)
+    return np.sqrt(np.sum(squared_error)) / len(y)
 
 
 def rmse(y: Array[float], y_hat: Array[float]) -> float:
-    """Calculate relative MSE of observes values y and prodicted values $\hat{y}$."""
+    """Calculate relative mean squared error (RMSE) between true values $y$ and predicted values $\hat{y}$."""
+    assert len(y) == len(y_hat)
 
-    return np.sqrt(np.sum(((y - y_hat) / y)**2))
+    squared_error = se(y, y_hat) / np.abs(y)
+    return np.sqrt(np.sum(squared_error)) / len(y)
