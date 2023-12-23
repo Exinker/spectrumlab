@@ -25,24 +25,23 @@ def find(values: Array[float]) -> Array[float]:
 
 
 # --------        errors        --------
-def se(y: Array[float], y_hat: Array[float]) -> Array[float]:
+def se(y: float | Array[float], y_hat: Array[float]) -> Array[float]:
     """Calculate squared error (SE) between true values $y$ and predicted values $\hat{y}$."""
-    assert len(y) == len(y_hat)
 
     return np.square(y - y_hat)
 
 
-def mse(y: Array[float], y_hat: Array[float]) -> float:
+def mse(y: float | Array[float], y_hat: Array[float]) -> float:
     """Calculate mean squared error (MSE) between true values $y$ and predicted values $\hat{y}$."""
-    assert len(y) == len(y_hat)
+    n = len(y_hat)
 
-    squared_error = se(y, y_hat)
-    return np.sqrt(np.sum(squared_error)) / len(y)
+    xi = se(y, y_hat)
+    return np.sqrt(np.sum(xi) / n**2)
 
 
-def rmse(y: Array[float], y_hat: Array[float]) -> float:
+def rmse(y: float | Array[float], y_hat: Array[float]) -> float:
     """Calculate relative mean squared error (RMSE) between true values $y$ and predicted values $\hat{y}$."""
-    assert len(y) == len(y_hat)
+    n = len(y_hat)
 
-    squared_error = se(y, y_hat) / np.abs(y)
-    return np.sqrt(np.sum(squared_error)) / len(y)
+    xi = se(y, y_hat) / np.abs(y)
+    return np.sqrt(np.sum(xi) / n**2)
