@@ -108,7 +108,7 @@ class VoightPeakProfile(BaseProfile):
     def __repr__(self) -> str:
         cls = self.__class__
 
-        return f'{cls.__name__}({_get_content(self)})'
+        return f'{cls.__name__}({get_content(self)})'
 
     # --------        fabric        --------
     @classmethod
@@ -169,7 +169,7 @@ class VoightPeakProfile(BaseProfile):
                 color='black', linestyle='none', marker='s', markersize=0.5,
             )
 
-            content = _get_content(profile, sep='\n')
+            content = get_content(profile, sep='\n')
             plt.text(
                 0.05, 0.95,
                 content,
@@ -246,8 +246,8 @@ class EffectedVoightPeakProfile(BaseProfile):
 PeakProfile: TypeAlias = VoightPeakProfile | EffectedVoightPeakProfile
 
 
-def _get_content(p: PeakProfile, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
-    sign = {-1: '', +1: '+' }.get(np.sign(p.asymmetry)) if is_signed else ''
+def get_content(p: PeakProfile, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
+    sign = {+1: '+' }.get(np.sign(p.asymmetry), '') if is_signed else ''
 
     return sep.join([
         f'w={p.width:.4f}',
@@ -284,7 +284,7 @@ def approx_grid(grid: Grid, profile: VoightPeakProfile, show: bool = False) -> t
     y = grid.yvalues
     y_hat = profile(x=grid.xvalues, **scope_variables)
 
-    error = mse(y, y_hat)
+    error = mse(y, y_hat) / scope_variables['intensity']
 
     # show
     if show:
@@ -320,4 +320,4 @@ def approx_grid(grid: Grid, profile: VoightPeakProfile, show: bool = False) -> t
         plt.show()
 
     #
-    return scope_variables, error  # variables.parse_params(grid=grid, params=)
+    return scope_variables, error
