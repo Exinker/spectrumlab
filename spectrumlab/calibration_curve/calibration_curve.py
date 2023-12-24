@@ -114,14 +114,18 @@ class CalibrationCurve(BaseCalibrationCurve):
 
     # --------        handlers        --------
     def fit(self):
+
+        # fit
         data = self.data.copy()
         data = data[~data['mask']][['concentration', 'intensity']]
         data = data.groupby(level=0, sort=False).mean()
         data = data.map(lambda x: np.log10(x))
 
-        x = data['concentration'].values
-        y = data['intensity'].values
-        slope, intercept = np.polyfit(x, y, deg=1)
+        slope, intercept = np.polyfit(
+            x=data['concentration'].values,
+            y=data['intensity'].values,
+            deg=1,
+        )
 
         # coeff
         self._coeff = intercept, slope
@@ -160,6 +164,14 @@ class CalibrationCurve(BaseCalibrationCurve):
             data = ref.copy()
             data = data.set_index(['probe', 'parallel'])
 
+        color = self._get_color(
+            mask=data['mask'].groupby(level=0, sort=False).mean(),
+            color=COLOR['yellow'] if ref is None else COLOR['green'],
+        )
+        alpha = self._get_alpha(
+            mask=data['mask'].groupby(level=0, sort=False).mean().astype(bool),
+        )
+
         # show
         fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
 
@@ -186,9 +198,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=40,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -231,9 +243,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=20,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -259,9 +271,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=40,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -304,4 +316,21 @@ class CalibrationCurve(BaseCalibrationCurve):
         return np.std(intensity, ddof=1)
 
     def _get_filename(content: str, extension: Literal['png', 'txt']):
+
         return f'calibration_curve ({content}).{extension}'
+
+    def _get_color(self, mask: Series, color: str) -> list[str]:
+        colordict = {
+            True: 'grey',
+            False: color,
+        }
+
+        return list(map(lambda x: colordict[x], mask))
+
+    def _get_alpha(self, mask: Series, alpha: float = .5) -> list[float]:
+        alphadict = {
+            True: .2,
+            False: alpha,
+        }
+
+        return list(map(lambda x: alphadict[x], mask))

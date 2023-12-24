@@ -83,8 +83,8 @@ def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.0
     intercept, slope = coeff
 
     # calibration curve
-    x_grid = data.loc[~data['mask'], 'concentration'].apply(lambda x: np.log10(x))
-    y_grid = data.loc[~data['mask'], 'intensity'].apply(lambda x: np.log10(x))
+    x_grid = data['concentration'].apply(lambda x: np.log10(x))
+    y_grid = data['intensity'].apply(lambda x: np.log10(x))
 
     x = np.linspace(np.min(x_grid), np.max(x_grid), 1_000_000)
     y = interpolate.interp1d(
