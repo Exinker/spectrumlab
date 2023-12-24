@@ -9,13 +9,13 @@ from scipy import interpolate, optimize, signal
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.utils import mse
-from spectrumlab.peak.profile.grid import Grid
-from spectrumlab.peak.profile.base_variables import BaseVariables, ScopeVariables, VoightVariables
-from spectrumlab.peak.profile.base_profile import BaseProfile
+from spectrumlab.peak.shape.grid import Grid
+from spectrumlab.peak.shape.base_variables import BaseVariables, ScopeVariables, VoightVariables
+from spectrumlab.peak.shape.base_shape import BaseShape
 
 
-# --------        voight peak profile        --------
-class VoightPeakProfileVariables(BaseVariables):
+# --------        voight peak shape        --------
+class VoightPeakShapeVariables(BaseVariables):
 
     def __init__(self, grid: Grid, *args, **kwargs):
         super().__init__([
@@ -60,14 +60,14 @@ class VoightPeakProfileVariables(BaseVariables):
     def parse_params(cls, grid: Grid, params: Sequence[float]) -> tuple[VoightVariables, ScopeVariables]:
         assert len(params) == 6
 
-        profile_variables = VoightVariables(*params[:3])
+        shape_variables = VoightVariables(*params[:3])
         scope_variables = ScopeVariables(grid, *params[3:])
 
-        return profile_variables, scope_variables
+        return shape_variables, scope_variables
 
 
-class VoightPeakProfile(BaseProfile):
-    """Voight peak's profile type."""
+class VoightPeakShape(BaseShape):
+    """Voight peak's shape type."""
 
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01) -> None:
@@ -112,25 +112,25 @@ class VoightPeakProfile(BaseProfile):
 
     # --------        fabric        --------
     @classmethod
-    def from_grid(cls, grid: Grid, show: bool = False) -> 'VoightPeakProfile':
+    def from_grid(cls, grid: Grid, show: bool = False) -> 'VoightPeakShape':
 
         def _fitness(grid: Grid, params: Sequence[float]) -> float:
             """Calculate error (fitness) of approximation."""
 
             # variables
-            profile_variables, scope_variables = VoightPeakProfileVariables.parse_params(grid=grid, params=params)
+            shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=params)
 
-            # profile
-            profile = VoightPeakProfile(**profile_variables)
+            # shape
+            shape = VoightPeakShape(**shape_variables)
 
             # 
             return mse(
                 y=grid.yvalues,
-                y_hat=profile(x=grid.xvalues, **scope_variables),
+                y_hat=shape(x=grid.xvalues, **scope_variables),
             )
 
         # variables
-        variables = VoightPeakProfileVariables(grid=grid)
+        variables = VoightPeakShapeVariables(grid=grid)
 
         result = optimize.minimize(
             partial(_fitness, grid),
@@ -139,10 +139,10 @@ class VoightPeakProfile(BaseProfile):
             bounds=variables.bounds,
         )
 
-        profile_variables, scope_variables = VoightPeakProfileVariables.parse_params(grid=grid, params=result.x)
+        shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=result.x)
 
-        # profile
-        profile = cls(**profile_variables)
+        # shape
+        shape = cls(**shape_variables)
 
         # show
         if show:
@@ -156,20 +156,20 @@ class VoightPeakProfile(BaseProfile):
             )
 
             x = np.linspace(min(grid.xvalues), max(grid.xvalues), 1000)
-            y_hat = profile(x, **scope_variables)
+            y_hat = shape(x, **scope_variables)
             plt.plot(
                 x, y_hat,
                 color='black', linestyle=':',
             )
 
             x, y = grid.xvalues, grid.yvalues
-            y_hat = profile(grid.xvalues, **scope_variables)
+            y_hat = shape(grid.xvalues, **scope_variables)
             plt.plot(
                 x, y - y_hat,
                 color='black', linestyle='none', marker='s', markersize=0.5,
             )
 
-            content = get_content(profile, sep='\n')
+            content = get_content(shape, sep='\n')
             plt.text(
                 0.05, 0.95,
                 content,
@@ -184,11 +184,11 @@ class VoightPeakProfile(BaseProfile):
             plt.show()
 
         # 
-        return profile
+        return shape
 
 
-class EffectedVoightPeakProfile(BaseProfile):
-    """Effected voight peak's profile type."""
+class EffectedVoightPeakShape(BaseShape):
+    """Effected voight peak's shape type."""
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01, de: float = 0.25, re: float = 4) -> None:
         super().__init__()
@@ -243,10 +243,10 @@ class EffectedVoightPeakProfile(BaseProfile):
         return signal.convolve(f(x) * 10**(-effect * g(x)), h(x), mode='same') * (x[-1] - x[0])/len(x)
 
 
-PeakProfile: TypeAlias = VoightPeakProfile | EffectedVoightPeakProfile
+PeakShape: TypeAlias = VoightPeakShape | EffectedVoightPeakShape
 
 
-def get_content(p: PeakProfile, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
+def get_content(p: PeakShape, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
     sign = {+1: '+' }.get(np.sign(p.asymmetry), '') if is_signed else ''
 
     return sep.join([
@@ -257,14 +257,14 @@ def get_content(p: PeakProfile, sep: Literal[r'\n', '; '] = '; ', is_signed: boo
 
 
 # --------        handlers        --------
-def approx_grid(grid: Grid, profile: VoightPeakProfile, show: bool = False) -> tuple[ScopeVariables, float]:
-    """Approximate grid by VoightPeakProfile."""
+def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple[ScopeVariables, float]:
+    """Approximate grid by VoightPeakShape."""
 
-    def _fitness(params: Sequence[float], grid: Grid, profile: VoightPeakProfile) -> float:
+    def _fitness(params: Sequence[float], grid: Grid, shape: VoightPeakShape) -> float:
         scope_variables = ScopeVariables(grid, *params)
 
         y = grid.yvalues
-        y_hat = profile(x=grid.xvalues, **scope_variables)
+        y_hat = shape(x=grid.xvalues, **scope_variables)
 
         return mse(y, y_hat)
 
@@ -272,7 +272,7 @@ def approx_grid(grid: Grid, profile: VoightPeakProfile, show: bool = False) -> t
     variables = ScopeVariables(grid=grid)
 
     result = optimize.minimize(
-        partial(_fitness, grid=grid, profile=profile),
+        partial(_fitness, grid=grid, shape=shape),
         variables.initial,
         method='SLSQP',
         bounds=variables.bounds,
@@ -282,7 +282,7 @@ def approx_grid(grid: Grid, profile: VoightPeakProfile, show: bool = False) -> t
 
     #
     y = grid.yvalues
-    y_hat = profile(x=grid.xvalues, **scope_variables)
+    y_hat = shape(x=grid.xvalues, **scope_variables)
 
     error = mse(y, y_hat) / scope_variables['intensity']
 
@@ -300,14 +300,14 @@ def approx_grid(grid: Grid, profile: VoightPeakProfile, show: bool = False) -> t
         )
 
         x = np.linspace(min(grid.xvalues), max(grid.xvalues), 1000)
-        y_hat = profile(x, **scope_variables)
+        y_hat = shape(x, **scope_variables)
         plt.plot(
             x, y_hat,
             color='black', linestyle=':',
         )
 
         x, y = grid.xvalues, grid.yvalues
-        y_hat = profile(x, **scope_variables)
+        y_hat = shape(x, **scope_variables)
         plt.plot(
             x, y - y_hat,
             color='black', linestyle='none', marker='s', markersize=0.5,

@@ -61,8 +61,8 @@ def voigt(x: float | Array[float], x0: float, sigma: float, gamma: float) -> Arr
 
     Params:
         x0: position;
-        sigma: width of Gaussian profile;
-        gamma: width of Lorentzian profile.
+        sigma: width of Gaussian shape;
+        gamma: width of Lorentzian shape.
 
     """
     rx = (x[-1] - x[0]) / 2
@@ -83,7 +83,7 @@ def pvoigt(x: float | Array[float], x0: float, w: float, a: float, r: float) -> 
         a: assymetry;
         r: ratio (in range 0-1).
 
-    A simple asymmetric line shape profile for fitting infrared absorption spectra.
+    A simple asymmetric line shape shape for fitting infrared absorption spectra.
     Aaron L. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """

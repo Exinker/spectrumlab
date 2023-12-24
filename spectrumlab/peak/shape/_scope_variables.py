@@ -2,8 +2,8 @@
 import numpy as np
 
 from spectrumlab.alias import Number
-from spectrumlab.peak.profile.grid import Grid
-from spectrumlab.peak.profile.base_variables import BaseVariables, Variable
+from spectrumlab.peak.shape.grid import Grid
+from spectrumlab.peak.shape.base_variables import BaseVariables, Variable
 
 
 class ScopeVariables(BaseVariables):

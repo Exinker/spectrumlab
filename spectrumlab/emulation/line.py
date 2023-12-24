@@ -11,9 +11,9 @@ from spectrumlab.picture.config import COLOR
 from .curve import gauss, pvoigt
 
 
-# --------        profile        --------
+# --------        shape        --------
 @dataclass(frozen=True)
-class GaussLineProfile:
+class GaussLineShape:
     """Normal distribution with position and standart deviation width."""
     width: Micro
 
@@ -30,15 +30,15 @@ class GaussLineProfile:
 
 
 @dataclass(frozen=True)
-class VoigtLineProfile:
+class VoigtLineShape:
     """
-    A simple asymmetric line shape profile for fitting infrared absorption spectra.
+    A simple asymmetric line shape shape for fitting infrared absorption spectra.
     Aaron L. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """
     width: Micro
     asymmetry: float = field(default=0)  # non asymmetric default
-    ratio: float = field(default=0)  # gauss profile default
+    ratio: float = field(default=0)  # gauss shape default
 
     @overload
     def __call__(self, x: float, position: Micro, intensity: float) -> Array: ...
@@ -52,8 +52,8 @@ class VoigtLineProfile:
 
 
 @dataclass(frozen=True)
-class SelfAbsorptionVoigtLineProfile:
-    """Voigt line shape profile with self-absorption"""
+class SelfAbsorptionVoigtLineShape:
+    """Voigt line shape shape with self-absorption"""
     width: Micro
     asymmetry: float
     ratio: float
@@ -71,7 +71,7 @@ class SelfAbsorptionVoigtLineProfile:
 
 
 @dataclass(frozen=True)
-class SigmoidsLineProfile:
+class SigmoidsLineShape:
     """Time distribution"""
     width: Tuple[float, float]
     power: float
@@ -96,35 +96,35 @@ class SigmoidsLineProfile:
         return f
 
 
-LineProfile = GaussLineProfile | VoigtLineProfile | SelfAbsorptionVoigtLineProfile | SigmoidsLineProfile
+LineShape = GaussLineShape | VoigtLineShape | SelfAbsorptionVoigtLineShape | SigmoidsLineShape
 
 
 # --------        line        --------
 @dataclass(frozen=True)
 class Line:
     """
-    Interface for any line profile function.
+    Interface for any line shape function.
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
       Date: 2013.04.12
     """
-    profile: LineProfile
+    shape: LineShape
 
     @overload
     def __call__(self, x: float, position: Micro, intensity: float) -> Array: ...
     @overload
     def __call__(self, x: Array, position: Micro, intensity: float) -> Array: ...
     def __call__(self, x, position, intensity):
-        return self.profile(x, position, intensity)
+        return self.shape(x, position, intensity)
 
     # --------        fabric        --------
     @classmethod
-    def from_profile(cls, profile: LineProfile) -> 'Line':
-        return cls(profile=profile)
+    def from_shape(cls, shape: LineShape) -> 'Line':
+        return cls(shape=shape)
 
     def show(self, position: Micro, intensity: float, rx: Micro = 100, dx: Micro = .01) -> None:
-        """Show line profile at the range rx with step dx."""
+        """Show line shape at the range rx with step dx."""
 
         plt.style.use('seaborn-whitegrid')
         plt.rcParams.update({
@@ -156,6 +156,6 @@ class Line:
 if __name__ == '__main__':
 
     line = Line(
-        profile=VoigtLineProfile(25, 0, 0),
+        shape=VoigtLineShape(25, 0, 0),
     )
     line.show(position=25, intensity=1)

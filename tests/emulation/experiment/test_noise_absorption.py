@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from spectrumlab.emulation.emulation import emulate_absorbed_spectrum, AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
 from spectrumlab.emulation.experiment import AbsorbedExperimentConfig
 from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
-from spectrumlab.emulation.line import VoigtLineProfile
+from spectrumlab.emulation.line import VoigtLineShape
 
 
 TOLERANCE = 10
@@ -21,16 +21,16 @@ def config() -> AbsorbedSpectrumEmulationConfig:
         device=config.device,
         detector=config.detector,
 
-        line_profile=VoigtLineProfile(
+        line_shape=VoigtLineShape(
             width=config.line_width,  # in micron
             ratio=config.line_ratio,
         ),
-        apparatus_profile=VoigtLineProfile(
+        apparatus_shape=VoigtLineShape(
             width=config.apparatus_width,  # in micron
             asymmetry=config.apparatus_asymmetry,
             ratio=config.apparatus_ratio,
         ),
-        aperture_profile=config.aperture_profile(
+        aperture_shape=config.aperture_shape(
             detector=config.detector,
         ),
 

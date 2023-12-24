@@ -19,10 +19,10 @@ from scipy import integrate, interpolate, signal
 from spectrumlab.alias import Array, Absorbance, MilliSecond, Micro, Percent, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.detector.characteristic.aperture import Aperture, ApertureProfile, ApproximatedApertureProfile, RectangularApertureProfile
+from spectrumlab.emulation.detector.characteristic.aperture import Aperture, ApertureShape, ApproximatedApertureShape, RectangularApertureShape
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise, AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
-from spectrumlab.emulation.line import LineProfile, VoigtLineProfile, Line
+from spectrumlab.emulation.line import LineShape, VoigtLineShape, Line
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum, HighDynamicRangeEmittedSpectrum
 
 
@@ -68,9 +68,9 @@ class EmittedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_profile: LineProfile
-    apparatus_profile: None | LineProfile
-    aperture_profile: ApertureProfile
+    line_shape: LineShape
+    apparatus_shape: None | LineShape
+    aperture_shape: ApertureShape
     spectrum: SpectrumConfig
 
     concentration_ratio: float
@@ -114,9 +114,9 @@ class EmittedSpectrumEmulation(EmulationInterface):
         self.config = config
 
         self.detector = config.detector
-        self.line = Line.from_profile(config.line_profile)
-        self.apparatus = None if config.apparatus_profile is None else Line.from_profile(config.apparatus_profile)
-        self.aperture = Aperture.from_profile(config.aperture_profile)
+        self.line = Line.from_shape(config.line_shape)
+        self.apparatus = None if config.apparatus_shape is None else Line.from_shape(config.apparatus_shape)
+        self.aperture = Aperture.from_shape(config.aperture_shape)
 
         self.position = None
         self.concentration = None
@@ -206,7 +206,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
                     fill_value=np.nan,
                 )
 
-            # peak profile
+            # peak shape
             x_grid = self.x_grid
             self._y_grid = signal.convolve(self._apparatus_line(x_grid), aperture(x_grid, 0), mode='same') * 2*rx/len(x_grid)
 
@@ -226,7 +226,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         I *= (100/detector.config.capacity)  # to percent
 
         # intensity
-        profile_function = interpolate.interp1d(
+        shape_function = interpolate.interp1d(
             self.x_grid,
             self.y_grid,
             kind='linear',
@@ -234,7 +234,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             fill_value=0,
         )
 
-        intensity = I*profile_function((number - position)*detector.config.width)
+        intensity = I*shape_function((number - position)*detector.config.width)
 
         # background
         background = config.background_level
@@ -508,9 +508,9 @@ class AbsorbedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_profile: LineProfile
-    apparatus_profile: LineProfile
-    aperture_profile: ApertureProfile
+    line_shape: LineShape
+    apparatus_shape: LineShape
+    aperture_shape: ApertureShape
     spectrum_base: SpectrumBaseConfig
     spectrum: SpectrumConfig
 
@@ -580,13 +580,13 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         self.detector = config.detector
         self.line = Line(
-            profile=config.line_profile
+            shape=config.line_shape
         )
         self.apparatus = Line(
-            profile=config.apparatus_profile
+            shape=config.apparatus_shape
         )
         self.aperture = Aperture(
-            profile=config.aperture_profile
+            shape=config.aperture_shape
         )
 
         self.position = None
@@ -658,7 +658,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         L = config.concentration_ratio  # path length (concentration coefficient to agreement between theory and emulation)
         D = device.config.dispersion
 
-        # physical line profile
+        # physical line shape
         I = L/D*concentration  # it's divided by D because an amplitude of absorption is independent of dispersion!
 
         physical_line_function = lambda x: (I0 - S0)*10**(
@@ -867,12 +867,12 @@ if __name__ == '__main__':
             device=device,
             detector=detector,
 
-            line_profile=VoigtLineProfile(
+            line_shape=VoigtLineShape(
                 width=2.5*7,
                 ratio=0,
             ),
-            apparatus_profile=None,
-            aperture_profile=ApproximatedApertureProfile(
+            apparatus_shape=None,
+            aperture_shape=ApproximatedApertureShape(
                 detector=detector,
             ),
 
@@ -890,15 +890,15 @@ if __name__ == '__main__':
     #         device=device,
     #         detector=detector,
 
-    #         apparatus_profile=VoigtLineProfile(
+    #         apparatus_shape=VoigtLineShape(
     #             width=26.6,
     #             asymmetry=0,
     #             ratio=0.42,
     #         ),
-    #         aperture_profile=RectangularApertureProfile(
+    #         aperture_shape=RectangularApertureShape(
     #             detector=detector,
     #         ),
-    #         line_profile=VoigtLineProfile(
+    #         line_shape=VoigtLineShape(
     #             width=line_width*device.config.dispersion,  # width(in pm) * dispersion(Micro/pm)
     #             ratio=0.42,
     #         ),

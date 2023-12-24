@@ -12,10 +12,10 @@ from spectrumlab.emulation.curve import rectangular, pvoigt
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 
 
-# --------        profile        --------
+# --------        shape        --------
 @dataclass
-class RectangularApertureProfile:
-    """Rectangular shape aperture profile."""
+class RectangularApertureShape:
+    """Rectangular shape aperture shape."""
     detector: Detector
 
     def __call__(self, x: float | Array[float], n: int) -> Array[float]:
@@ -28,10 +28,10 @@ class RectangularApertureProfile:
 
 
 @dataclass
-class VoigtApertureProfile:
-    """Voigt shape aperture profile.
+class VoigtApertureShape:
+    """Voigt shape aperture shape.
     
-    A simple asymmetric line shape profile for fitting infrared absorption spectra.
+    A simple asymmetric line shape shape for fitting infrared absorption spectra.
     Aaron L. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """
@@ -50,8 +50,8 @@ class VoigtApertureProfile:
 
 
 @dataclass
-class ConvolutionApertureProfile:
-    """Convolution of a rectangular and a pvoigt line shape profile"""
+class ConvolutionApertureShape:
+    """Convolution of a rectangular and a pvoigt line shape shape"""
     detector: Detector
 
     width: Number = field(default=.2)
@@ -90,10 +90,10 @@ class ConvolutionApertureProfile:
         return f
 
 
-# --------        approximated profile        --------
+# --------        approximated shape        --------
 @dataclass
-class ApproximatedApertureProfile:
-    """approximated aperture's profile"""
+class ApproximatedApertureShape:
+    """approximated aperture's shape"""
     detector: Detector
 
     wavelength: Literal[405] = field(default=405)
@@ -108,7 +108,7 @@ class ApproximatedApertureProfile:
             Detector.BLPP369M1: (4.9173, 0, 1.0000),  # (!) bad approximation
             Detector.BLPP2000: (17.9677, 0, 0.4186),
             Detector.BLPP4000: (3.5592, 0, 0.4578),
-        },  # aperture's profile params at 405 nm
+        },  # aperture's shape params at 405 nm
     }
 
     def __post_init__(self):
@@ -143,28 +143,28 @@ class ApproximatedApertureProfile:
         return f
 
 
-ApertureProfile = RectangularApertureProfile | VoigtApertureProfile | ConvolutionApertureProfile | ApproximatedApertureProfile
+ApertureShape = RectangularApertureShape | VoigtApertureShape | ConvolutionApertureShape | ApproximatedApertureShape
 
 
 # --------        aperture        --------
 @dataclass
 class Aperture:
     """
-    Interface for any aperture profile function.
+    Interface for any aperture shape function.
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
       Date: 2014.03.24
     """
-    profile: ApertureProfile
+    shape: ApertureShape
 
     def __call__(self, x: float | Array[float], n: int) -> Array[float]:
-        return self.profile(x, n=n)
+        return self.shape(x, n=n)
 
     # --------        handlers        --------
     @property
     def detector(self) -> Detector:
-        return self.profile.detector
+        return self.shape.detector
 
     def show(self, rx: Micro = 100, dx: Micro = .01, xscale: Number | Micro = Number, yscale: str | None = None) -> None:
         step = self.detector.config.width
@@ -209,8 +209,8 @@ class Aperture:
 
     # --------        fabric        --------
     @classmethod
-    def from_profile(cls, profile: ApertureProfile) -> 'Aperture':
-        return cls(profile=profile)
+    def from_shape(cls, shape: ApertureShape) -> 'Aperture':
+        return cls(shape=shape)
 
 
 if __name__ == '__main__':
@@ -219,9 +219,9 @@ if __name__ == '__main__':
     detector = Detector.S8377_256Q
 
     # aperture
-    # profile = RectangularApertureProfileы(detector=detector)
-    # profile = VoigtApertureProfile(detector=detector, width=1.6, asymmetry=0, ratio=.1)
-    profile = ConvolutionApertureProfile(detector=detector)
+    # shape = RectangularApertureShapeы(detector=detector)
+    # shape = VoigtApertureShape(detector=detector, width=1.6, asymmetry=0, ratio=.1)
+    shape = ConvolutionApertureShape(detector=detector)
 
-    aperture = Aperture(profile=profile)
+    aperture = Aperture(shape=shape)
     aperture.show(xscale=Micro)

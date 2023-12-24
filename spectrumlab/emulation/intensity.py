@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum
 from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, integrate_grid, interpolate_grid
-from spectrumlab.peak.profile import VoightPeakProfile
+from spectrumlab.peak.shape import VoightPeakShape
 
 
 # --------        estimate intensity        --------
@@ -28,9 +28,9 @@ def _estimate_intensity(x_grid: Array, y_grid: Array, mask: Array, position: Num
         )
 
     if isinstance(config, ApproxIntensityConfig):
-        profile = config.approx_profile
+        shape = config.approx_shape
 
-        return np.dot(y_grid[~mask], y_grid[~mask]) / np.dot(y_grid[~mask], profile(x_grid[~mask], position=position, intensity=1))
+        return np.dot(y_grid[~mask], y_grid[~mask]) / np.dot(y_grid[~mask], shape(x_grid[~mask], position=position, intensity=1))
 
     raise ValueError(f'calculate_intensity: config {config} is not supported!')
 
@@ -188,7 +188,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
             )
 
             x = np.linspace(min(x_grid), max(x_grid), 101)
-            f = lambda x: config.approx_profile(x, position=position, intensity=value)
+            f = lambda x: config.approx_shape(x, position=position, intensity=value)
             plt.plot(
                 x, background + f(x),
                 alpha=0.2, color=config.color,

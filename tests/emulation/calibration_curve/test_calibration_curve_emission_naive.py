@@ -6,7 +6,7 @@ import numpy as np
 from spectrumlab.emulation.calibration_curve.calibration_curve import CalibrationCurve, CalibrationCurveConfig
 from spectrumlab.emulation.emulation import fetch_emulation, Emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
 from spectrumlab.emulation.experiment import EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulation.line import VoigtLineProfile
+from spectrumlab.emulation.line import VoigtLineShape
 
 
 @pytest.fixture(scope='module')
@@ -21,13 +21,13 @@ def emulation(config: ExperimentConfig) -> Emulation:
             device=config.device,
             detector=config.detector,
 
-            line_profile=VoigtLineProfile(
+            line_shape=VoigtLineShape(
                 width=config.line_width,
                 asymmetry=config.line_asymmetry,
                 ratio=config.line_ratio,
             ),
-            apparatus_profile=None,
-            aperture_profile=config.aperture_profile(
+            apparatus_shape=None,
+            aperture_shape=config.aperture_shape(
                 detector=config.detector,
             ),
 

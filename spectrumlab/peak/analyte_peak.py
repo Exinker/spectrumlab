@@ -227,7 +227,7 @@ class AnalytePeak(BasePeak):
             # draw intensity
             x = self.space(kind='index')
             x_hat = self.space(kind='wavelength')
-            y_hat = config.approx_profile(x=x, **config.approx_params)
+            y_hat = config.approx_shape(x=x, **config.approx_params)
             ax.plot(
                 x_hat, y_hat,
                 color='red',
@@ -236,7 +236,7 @@ class AnalytePeak(BasePeak):
             # x = self.index[self.mask]
             # y = self.value[self.mask]
             # x_hat = self.wavelength[self.mask]
-            # y_hat = config.approx_profile(x=x, **config.approx_params)
+            # y_hat = config.approx_shape(x=x, **config.approx_params)
             # ax.scatter(
             #     x_hat, y - y_hat,
             #     marker='s', s=5, facecolors='#000000', edgecolors='#000000',
@@ -246,7 +246,7 @@ class AnalytePeak(BasePeak):
             x = self.index[self.mask]
             y = self.value[self.mask]
             x_hat = self.wavelength[self.mask]
-            y_hat = config.approx_profile(x=x, **config.approx_params)
+            y_hat = config.approx_shape(x=x, **config.approx_params)
             ax.plot(
                 x_hat, y - y_hat,
                 color='black', linestyle=':',

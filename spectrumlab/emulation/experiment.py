@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 from spectrumlab.alias import Array, Frame, Micro
-from spectrumlab.emulation.detector.characteristic.aperture import ApertureProfile, RectangularApertureProfile
+from spectrumlab.emulation.detector.characteristic.aperture import ApertureShape, RectangularApertureShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
@@ -28,7 +28,7 @@ class BaseEmittedExperimentConfig:
     line_asymmetry: float
     line_ratio: float
 
-    aperture_profile: ApertureProfile
+    aperture_shape: ApertureShape
 
     # --------        intensity config        --------
     intensity: IntensityConfig
@@ -118,7 +118,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
             line_asymmetry=float(parser.get('line', 'asymmetry')),
             line_ratio=float(parser.get('line', 'ratio')),
 
-            aperture_profile=RectangularApertureProfile,
+            aperture_shape=RectangularApertureShape,
 
             # --------        position config        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,
@@ -242,7 +242,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
             apparatus_asymmetry=float(parser.get('apparatus', 'asymmetry')),
             apparatus_ratio=float(parser.get('apparatus', 'ratio')),
 
-            aperture_profile=RectangularApertureProfile,
+            aperture_shape=RectangularApertureShape,
 
             # --------        position config        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,
