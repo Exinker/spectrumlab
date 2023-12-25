@@ -21,15 +21,8 @@ def config() -> AbsorbedSpectrumEmulationConfig:
         device=config.device,
         detector=config.detector,
 
-        line_shape=VoigtLineShape(
-            width=config.line_width,  # in micron
-            ratio=config.line_ratio,
-        ),
-        apparatus_shape=VoigtLineShape(
-            width=config.apparatus_width,  # in micron
-            asymmetry=config.apparatus_asymmetry,
-            ratio=config.apparatus_ratio,
-        ),
+        line_shape=config.line_shape,
+        apparatus_shape=config.apparatus_shape,
         aperture_shape=config.aperture_shape(
             detector=config.detector,
         ),

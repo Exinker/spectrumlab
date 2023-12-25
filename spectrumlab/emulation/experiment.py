@@ -9,6 +9,8 @@ from spectrumlab.emulation.detector.characteristic.aperture import ApertureShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
+from spectrumlab.emulation.line import LineShape, VoigtLineShape
+
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -24,10 +26,7 @@ class BaseEmittedExperimentConfig:
     n_numbers: int
     n_frames: int
 
-    line_width: Micro
-    line_asymmetry: float
-    line_ratio: float
-
+    apparatus_shape: VoigtLineShape
     aperture_shape: ApertureShape
 
     # --------        intensity config        --------
@@ -114,10 +113,11 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
             n_numbers=int(parser.get('spectrum', 'n_numbers')),
             n_frames=int(parser.get('spectrum', 'n_frames')),
 
-            line_width=float(parser.get('line', 'width')),
-            line_asymmetry=float(parser.get('line', 'asymmetry')),
-            line_ratio=float(parser.get('line', 'ratio')),
-
+            apparatus_shape=VoigtLineShape(
+                width=float(parser.get('apparatus', 'width')),
+                asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                ratio=float(parser.get('apparatus', 'ratio')),
+            ),
             aperture_shape=RectangularApertureShape,
 
             # --------        position config        --------
@@ -146,28 +146,24 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
 class EmittedExperimentConfig(BaseEmittedExperimentConfig):
     '''Experiment's config.'''
 
-    def __init__(self, *args, apparatus_width: Micro, apparatus_asymmetry: float, apparatus_ratio: float, **kwargs):
+    def __init__(self, *args, line_shape: VoigtLineShape, **kwargs):
         super().__init__(*args, **kwargs)
 
         # --------        emulation config        --------
-        self.apparatus_width = apparatus_width
-        self.apparatus_asymmetry = apparatus_asymmetry
-        self.apparatus_ratio = apparatus_ratio
+        self.line_shape = line_shape
 
 
 class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
     '''Experiment's config.'''
 
-    def __init__(self, *args, base_level: float, base_n_frames: int, apparatus_width: Micro, apparatus_asymmetry: float, apparatus_ratio: float, scattering_ratio: float, **kwargs):
+    def __init__(self, *args, base_level: float, base_n_frames: int, line_shape: VoigtLineShape, scattering_ratio: float, **kwargs):
         super().__init__(*args, **kwargs)
 
         # --------        emulation config        --------
         self.base_level = base_level
         self.base_n_frames = base_n_frames
 
-        self.apparatus_width = apparatus_width
-        self.apparatus_asymmetry = apparatus_asymmetry
-        self.apparatus_ratio = apparatus_ratio
+        self.line_shape = line_shape
 
         self.scattering_ratio = scattering_ratio
 
@@ -234,14 +230,16 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
             base_level=base_level,
             base_n_frames=base_n_frames,
 
-            line_width=float(parser.get('line', 'width')),
-            line_asymmetry=0,
-            line_ratio=float(parser.get('line', 'ratio')),
-
-            apparatus_width=float(parser.get('apparatus', 'width')),
-            apparatus_asymmetry=float(parser.get('apparatus', 'asymmetry')),
-            apparatus_ratio=float(parser.get('apparatus', 'ratio')),
-
+            line_shape = VoigtLineShape(
+                width=float(parser.get('line', 'width')),
+                asymmetry=0,
+                ratio=float(parser.get('line', 'ratio')),
+            ),
+            apparatus_shape=VoigtLineShape(
+                width=float(parser.get('apparatus', 'width')),
+                asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                ratio=float(parser.get('apparatus', 'ratio')),
+            ),
             aperture_shape=RectangularApertureShape,
 
             # --------        position config        --------

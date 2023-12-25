@@ -68,8 +68,8 @@ class EmittedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_shape: LineShape
-    apparatus_shape: None | LineShape
+    line_shape: None | LineShape
+    apparatus_shape: LineShape
     aperture_shape: ApertureShape
     spectrum: SpectrumConfig
 
@@ -114,8 +114,8 @@ class EmittedSpectrumEmulation(EmulationInterface):
         self.config = config
 
         self.detector = config.detector
-        self.line = Line.from_shape(config.line_shape)
-        self.apparatus = None if config.apparatus_shape is None else Line.from_shape(config.apparatus_shape)
+        self.line = None if config.line_shape is None else Line.from_shape(config.line_shape)
+        self.apparatus = Line.from_shape(config.apparatus_shape)
         self.aperture = Aperture.from_shape(config.aperture_shape)
 
         self.position = None
@@ -189,15 +189,13 @@ class EmittedSpectrumEmulation(EmulationInterface):
             rx = config.rx
 
             # physical line function
-            self._physical_line = lambda x: line(x, 0, 1)
+            if line is not None:
+                self._physical_line = lambda x: line(x, 0, 1)
 
             # apparatus line function
             x_grid = self.x_grid
 
-            if apparatus is None:
-                self._apparatus_line = self._physical_line
-
-            else:
+            if line is not None:
                 self._apparatus_line = interpolate.interp1d(
                     x_grid,
                     signal.convolve(self._physical_line(x_grid), apparatus(x_grid, 0, 1), mode='same') * 2*rx/len(x_grid),
@@ -205,6 +203,9 @@ class EmittedSpectrumEmulation(EmulationInterface):
                     bounds_error=False,
                     fill_value=np.nan,
                 )
+
+            else:
+                self._apparatus_line = lambda x: apparatus(x, 0, 1)
 
             # peak shape
             x_grid = self.x_grid

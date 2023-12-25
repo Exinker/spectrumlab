@@ -21,12 +21,8 @@ def emulation(config: ExperimentConfig) -> Emulation:
             device=config.device,
             detector=config.detector,
 
-            line_shape=VoigtLineShape(
-                width=config.line_width,
-                asymmetry=config.line_asymmetry,
-                ratio=config.line_ratio,
-            ),
-            apparatus_shape=None,
+            line_shape=None,
+            apparatus_shape=config.apparatus_shape,
             aperture_shape=config.aperture_shape(
                 detector=config.detector,
             ),
