@@ -1,11 +1,13 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Frame, Series
+from spectrumlab.emulation.spectrum import Spectrum
 from spectrumlab.picture.config import COLOR, ALPHA
 
 from .exceptions import FitError
@@ -338,3 +340,61 @@ class CalibrationCurve(BaseCalibrationCurve):
     def _get_filename(content: str, extension: Literal['png', 'txt']):
 
         return f'calibration_curve ({content}).{extension}'
+
+
+# --------        handlers        --------
+def calibrate_spectra(spectra: Frame, handler: Callable[[Spectrum], float], show: bool = False) -> CalibrationCurve:
+
+    # blank
+    index = spectra[spectra.index.get_level_values(0) == 'blank'].index
+    blank = pd.DataFrame(
+        data={'concentration': None, 'intensity': None, 'mask': False},
+        columns=['concentration', 'intensity', 'mask'],
+        index=index,
+    )
+
+    for i, j in index:
+        spectrum = spectra.loc[(i,j), 'spectrum']
+        concentration = spectra.loc[(i,j), 'concentration']
+        intensity = handler(spectrum=spectrum)
+
+        #
+        blank.loc[(0,j), 'concentration'] = concentration
+        blank.loc[(0,j), 'intensity'] = intensity
+        blank.loc[(0,j), 'mask'] = any(spectrum.clipped)
+
+    # loq
+    loq = 10 * blank['intensity'].std(ddof=1)
+
+    # data
+    index = spectra.drop(index='blank').index
+    data = pd.DataFrame(
+        data={'concentration': None, 'intensity': None, 'mask': False},
+        columns=['concentration', 'intensity', 'mask'],
+        index=index,
+    )
+    for i, j in index:
+        spectrum = spectra.loc[(i,j), 'spectrum']
+        concentration = spectra.loc[(i,j), 'concentration']
+        intensity = handler(spectrum=spectrum)
+
+        #
+        data.loc[(i,j), 'concentration'] = concentration
+        data.loc[(i,j), 'intensity'] = intensity
+
+        is_traced = data.loc[(i,j), 'intensity'] < loq
+        is_clipped = any(spectrum.clipped)
+        data.loc[(i,j), 'mask'] = is_traced or is_clipped
+
+    # calibration curve
+    calibration_curve = CalibrationCurve(
+        data=data,
+        blank=blank,
+    )
+
+    #
+    if show:
+        calibration_curve.show()
+    
+    #
+    return calibration_curve

@@ -148,6 +148,7 @@ class AnalytePeak(BasePeak):
 
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), verbose: bool = False) -> None:
         is_filling = ax is not None
+        ylim = None
 
         if not is_filling:
             fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
@@ -231,6 +232,9 @@ class AnalytePeak(BasePeak):
                 color='red',
             )
 
+            if np.any(y_hat > 100):
+                ylim = [-10, 110]
+
             # x = self.index[self.mask]
             # y = self.value[self.mask]
             # x_hat = self.wavelength[self.mask]
@@ -250,6 +254,10 @@ class AnalytePeak(BasePeak):
                 color='black', linestyle=':',
                 alpha=.75,
             )
+
+        if not is_filling:
+            if ylim is not None:
+                ax.set_ylim(ylim)
 
         # verbose
         if verbose:

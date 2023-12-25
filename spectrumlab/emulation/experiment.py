@@ -19,7 +19,7 @@ warnings.filterwarnings('ignore')
 @dataclass
 class BaseEmittedExperimentConfig:
 
-    # --------        emulation config        --------
+    # --------        emulation        --------
     device: Device
     detector: Detector
 
@@ -29,22 +29,25 @@ class BaseEmittedExperimentConfig:
     apparatus_shape: VoigtLineShape
     aperture_shape: ApertureShape
 
-    # --------        intensity config        --------
+    # --------        position        --------
+    position: float
+
+    # --------        intensity        --------
     intensity: IntensityConfig
 
     # --------        calibration curve config        --------
+    n_blanks: int
     n_probes: int
     n_parallels: int
 
-    position: float
+    concentration_base: float = field(default=10_000)
+    concentration_blank: float = field(default=0)
+    concentration_ratio: float = field(default=1)
 
     ref: Array[float] | None = field(default=None)
 
     # --------        others        --------
     background_level: float = field(default=0)
-    concentration_blank: float = field(default=0)
-    concentration_base: float = field(default=10_000)
-    concentration_ratio: float = field(default=1)
 
     @property
     def concentrations(self) -> tuple[float]:
@@ -58,7 +61,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def from_ini(cls, filedir: str, filename: str, n_probes: int = 18, n_parallels: int = 5) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 
         def _get_device(parser: ConfigParser) -> Device:
             kind = parser.get('device', 'kind')
@@ -105,7 +108,6 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
         detector = _get_detector(parser)
         ref = _get_ref(parser)
 
-        #
         return EmittedExperimentConfigNaive(
             device=device,
             detector=detector,
@@ -120,26 +122,27 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
             ),
             aperture_shape=RectangularApertureShape,
 
-            # --------        position config        --------
+            # --------        position        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,
 
-            # --------        intensity config        --------
+            # --------        intensity        --------
             intensity=IntegralIntensityConfig(
                 kind=InterpolationKind.LINEAR,
                 interval=3,
             ),
 
-            # --------        calibration curve config        --------
-            n_probes=n_probes,
-            n_parallels=n_parallels,
+            # --------        calibration curve        --------
+            n_blanks=n_blanks or int(parser.get('calibration-curve', 'n_blanks')),
+            n_probes=n_probes or int(parser.get('calibration-curve', 'n_probes')),
+            n_parallels=n_parallels or int(parser.get('calibration-curve', 'n_parallels')),
 
+            concentration_blank=float(parser.get('calibration-curve', 'concentration_blank')),
+            concentration_base=float(parser.get('calibration-curve', 'concentration_base')),
+            concentration_ratio=10**(float(parser.get('calibration-curve', 'concentration_ratio'))),
             ref=ref,
 
             # --------        others        --------
             background_level=float(parser.get('others', 'background_level')),
-            concentration_blank=float(parser.get('others', 'concentration_blank')),
-            concentration_base=float(parser.get('others', 'concentration_base')),
-            concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
         )
 
 
@@ -168,7 +171,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
         self.scattering_ratio = scattering_ratio
 
     @classmethod
-    def from_ini(cls, filedir: str, filename: str, n_probes: int = 18, n_parallels: int = 5) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 
         def _get_device(parser: ConfigParser) -> Device:
             kind = parser.get('device', 'kind')
@@ -242,25 +245,27 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
             ),
             aperture_shape=RectangularApertureShape,
 
-            # --------        position config        --------
+            # --------        position        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,
 
-            # --------        intensity config        --------
+            # --------        intensity        --------
             intensity=IntegralIntensityConfig(
                 kind=InterpolationKind.LINEAR,
                 interval=3,
             ),
 
-            # --------        calibration curve config        --------
-            n_probes=n_probes,
-            n_parallels=n_parallels,
+            # --------        calibration curve        --------
+            n_blanks=n_blanks or int(parser.get('calibration-curve', 'n_blanks')),
+            n_probes=n_probes or int(parser.get('calibration-curve', 'n_probes')),
+            n_parallels=n_parallels or int(parser.get('calibration-curve', 'n_parallels')),
+
+            concentration_blank=float(parser.get('calibration-curve', 'concentration_blank')),
+            concentration_base=float(parser.get('calibration-curve', 'concentration_base')),
+            concentration_ratio=10**(float(parser.get('calibration-curve', 'concentration_ratio'))),
 
             ref=ref,
 
             # --------        others        --------
             background_level=float(parser.get('others', 'background_level')),
-            concentration_blank=float(parser.get('others', 'concentration_blank')),
-            concentration_base=float(parser.get('others', 'concentration_base')),
-            concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
             scattering_ratio=float(parser.get('others', 'scattering_ratio')),
         )
