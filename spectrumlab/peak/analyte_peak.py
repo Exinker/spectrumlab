@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -6,16 +5,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-from spectrumlab.alias import Array, Number, Percent
+from spectrumlab.alias import Array, Number
+from spectrumlab.calibration_curve import CalibrationCurve
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.line.line import Line
 from spectrumlab.peak.base_peak import BasePeak
-from spectrumlab.peak.blink_peak import BlinkPeak, DraftBlinkPeakConfig, draft_blinks
-from spectrumlab.peak.concentration import ConcentrationConfig
+from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, calculate_intensity
-from spectrumlab.peak.position import PositionConfig, calculate_position
+from spectrumlab.peak.position import PositionConfig, InterpolationPositionConfig, calculate_position
 from spectrumlab.picture.config import COLOR
-from spectrumlab.spectrum.mask import MaskConfig
 from spectrumlab.spectrum.spectrum import Spectrum
 
 
@@ -26,7 +24,8 @@ class AnalytePeakConfig:
 
     position: PositionConfig
     intensity: IntensityConfig
-    concentration: ConcentrationConfig
+
+    calibration_curve: CalibrationCurve | None = field(default=None)
 
 
 class AnalytePeak(BasePeak):
@@ -46,6 +45,7 @@ class AnalytePeak(BasePeak):
         if autocalculate:
             self.position
             self.intensity
+            self.concentration
 
     @property
     def wavelength(self):
@@ -74,8 +74,8 @@ class AnalytePeak(BasePeak):
         return self._position
 
     def calculate_position(self, config: PositionConfig | None = None) -> Number:
-        """Estimate peak's position."""
-        config = self.config.position if config is None else config
+        """Calculate peak's position."""
+        config = config or self.config.position
 
         return calculate_position(self, config=config)
 
@@ -88,8 +88,8 @@ class AnalytePeak(BasePeak):
         return self._intensity
 
     def calculate_intensity(self, config: IntensityConfig | None = None) -> float:
-        """Estimate peak's intensity."""
-        config = self.config.intensity if config is None else config
+        """Calculate peak's intensity."""
+        config = config or self.config.intensity
 
         return calculate_intensity(self, config=config)
 
@@ -97,12 +97,18 @@ class AnalytePeak(BasePeak):
     @property
     def concentration(self) -> float:
         if self._concentration is None:
-            self._concentration = self.estimate_concentration()
+            self._concentration = self.calculate_concentration()
 
         return self._concentration
 
-    def estimate_concentration(self, config: ConcentrationConfig | None = None) -> float:
-        raise NotImplementedError
+    def calculate_concentration(self, calibration_curve: CalibrationCurve | None = None) -> float:
+        """Calculate peak's concentration."""
+        calibration_curve = calibration_curve or self.config.calibration_curve
+
+        if calibration_curve is None:
+            return np.nan
+
+        return calibration_curve.predict(self.intensity)
 
     # --------            cursor            --------
     @property
@@ -115,7 +121,7 @@ class AnalytePeak(BasePeak):
         return self._cursor
 
     def estimate_cursor(self) -> Number:
-        """Find peak's cursor."""
+        """Estimate peak's cursor."""
         line = self.config.line
 
         return abs(self.wavelength - line.wavelength).argmin()
@@ -132,7 +138,7 @@ class AnalytePeak(BasePeak):
         )(number)
 
     def space(self, kind: Literal['index', 'wavelength'] = 'wavelength', n_points: int = 1000) -> Array:
-        """Transform index or wavelength to space."""
+        """Transform index or wavelength to space (n_points grid)."""
         left, right = self.minima
 
         if kind == 'wavelength':
@@ -277,19 +283,17 @@ class AnalytePeak(BasePeak):
 # --------        gather analyte peak        --------
 @dataclass
 class GatherAnalytePeakConfig:
-    line: Line
 
-    mask: MaskConfig
-    position: PositionConfig
-    intensity: IntensityConfig
-    concentration: ConcentrationConfig
+    noise_level: int = field(default=5)
+    position: PositionConfig = field(default_factory=InterpolationPositionConfig)
+    intensity: IntensityConfig = field(default_factory=IntegralIntensityConfig)
 
     except_edges: bool | None = field(default=False)
     autocalculate: bool | None = field(default=False)
     # window: int | None = field(default=None)  # FIXME: добавить размер вырезаемого участка спектра
 
 
-def gather_analyte_peak(spectrum: Spectrum, noise: Noise, config: GatherAnalytePeakConfig, show: bool = False, verbose: bool = False) -> AnalytePeak:
+def gather_analyte_peak(line: Line, spectrum: Spectrum, noise: Noise, config: GatherAnalytePeakConfig, verbose: bool = False, show: bool = False) -> AnalytePeak:
     """Interface to gather a peak with selected config.
 
     Author: Vaschenko Pavel
@@ -307,7 +311,7 @@ def gather_analyte_peak(spectrum: Spectrum, noise: Noise, config: GatherAnalyteP
             except_sloped_peak=False,
             except_edges=False,
 
-            noise_level=config.mask.noise_level,
+            noise_level=config.noise_level,
         ),
     )
 
@@ -318,7 +322,7 @@ def gather_analyte_peak(spectrum: Spectrum, noise: Noise, config: GatherAnalyteP
     minima = [0, spectrum.n_numbers-1]
     maxima = []
 
-    cursor = abs(spectrum.wavelength - config.line.wavelength).argmin()
+    cursor = abs(spectrum.wavelength - line.wavelength).argmin()
 
     for blink in blinks:
         left, right = blink.minima
@@ -352,10 +356,9 @@ def gather_analyte_peak(spectrum: Spectrum, noise: Noise, config: GatherAnalyteP
         spectrum=spectrum,
         mask=mask,
         config=AnalytePeakConfig(
-            line=config.line,
+            line=line,
             position=config.position,
             intensity=config.intensity,
-            concentration=config.concentration,
         ),
 
         except_edges=config.except_edges,
