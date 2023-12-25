@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Frame, Series
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.config import COLOR, ALPHA
 
 from .exceptions import FitError
 from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol
@@ -52,6 +52,22 @@ class BaseCalibrationCurve(ABC):
     @abstractmethod
     def _get_filename(extension: Literal['png', 'txt']) -> str:
         pass
+
+    def _get_color(self, mask: Series, color: str) -> list[str]:
+        mapping = {
+            True: 'grey',
+            False: color,
+        }
+
+        return list(map(lambda x: mapping[x], mask))
+
+    def _get_alpha(self, mask: Series, alpha: float) -> list[float]:
+        mapping = {
+            True: ALPHA['is_not_active'],
+            False: alpha,
+        }
+
+        return list(map(lambda x: mapping[x], mask))
 
 
 class CalibrationCurve(BaseCalibrationCurve):
@@ -116,9 +132,12 @@ class CalibrationCurve(BaseCalibrationCurve):
     def fit(self):
 
         # fit
+        mask = self.data['mask'].groupby(level=0, sort=False).max()
+
         data = self.data.copy()
-        data = data[~data['mask']][['concentration', 'intensity']]
+        data = data[['concentration', 'intensity']]
         data = data.groupby(level=0, sort=False).mean()
+        data = data[~mask]
         data = data.map(lambda x: np.log10(x))
 
         slope, intercept = np.polyfit(
@@ -165,11 +184,12 @@ class CalibrationCurve(BaseCalibrationCurve):
             data = data.set_index(['probe', 'parallel'])
 
         color = self._get_color(
-            mask=data['mask'].groupby(level=0, sort=False).mean(),
+            mask=data['mask'].groupby(level=0, sort=False).max().astype(bool),
             color=COLOR['yellow'] if ref is None else COLOR['green'],
         )
         alpha = self._get_alpha(
-            mask=data['mask'].groupby(level=0, sort=False).mean().astype(bool),
+            mask=data['mask'].groupby(level=0, sort=False).max().astype(bool),
+            alpha=ALPHA['probe'],
         )
 
         # show
@@ -189,7 +209,7 @@ class CalibrationCurve(BaseCalibrationCurve):
             marker='s',
             facecolors='none',
             edgecolors=[0, 0, 0, 0],
-            alpha=.2,
+            alpha=ALPHA['parallel'],
         )
 
         x = data['concentration'].groupby(level=0, sort=False).mean()
@@ -221,7 +241,7 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             color='black',
             linestyle=':',
-            alpha=.5,
+            alpha=ALPHA['default'],
         )
 
         plt.xscale('log')
@@ -318,19 +338,3 @@ class CalibrationCurve(BaseCalibrationCurve):
     def _get_filename(content: str, extension: Literal['png', 'txt']):
 
         return f'calibration_curve ({content}).{extension}'
-
-    def _get_color(self, mask: Series, color: str) -> list[str]:
-        colordict = {
-            True: 'grey',
-            False: color,
-        }
-
-        return list(map(lambda x: colordict[x], mask))
-
-    def _get_alpha(self, mask: Series, alpha: float = .5) -> list[float]:
-        alphadict = {
-            True: .2,
-            False: alpha,
-        }
-
-        return list(map(lambda x: alphadict[x], mask))

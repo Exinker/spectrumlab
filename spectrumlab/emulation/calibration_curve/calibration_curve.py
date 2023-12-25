@@ -11,7 +11,7 @@ from spectrumlab.alias import Frame, Series, Number
 from spectrumlab.calibration_curve import BaseCalibrationCurve, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
 from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.config import COLOR, ALPHA
 
 from .metrology import DynamicRange, estimate_deviation, estimate_dynamic_range
 from .exceptions import EmulationError
@@ -118,7 +118,16 @@ class CalibrationCurve(BaseCalibrationCurve):
         if random_state is not None:
             np.random.seed(random_state)
 
-        # emulate curve
+        # emulate blank
+        emulation = emulation.setup(position=self._position, concentration=self.config.concentration_blank)
+
+        deviation = estimate_deviation(
+            emulation=emulation,
+            config=config.intensity_config,
+        )
+        loq = 10 * deviation
+
+        # emulate data
         data = pd.DataFrame(
             data={'concentration': None, 'intensity': None, 'mask': False},
             columns=['concentration', 'intensity', 'mask'],
@@ -144,7 +153,10 @@ class CalibrationCurve(BaseCalibrationCurve):
                     position=position,
                     config=config.intensity_config,
                 )
-                data.loc[(i,j), 'mask'] = any(spectrum.clipped)
+
+                is_traced = data.loc[(i,j), 'intensity'] < loq
+                is_clipped = any(spectrum.clipped)
+                data.loc[(i,j), 'mask'] = is_traced or is_clipped
 
             # unicorn
             spectrum = emulation.run(is_noised=False, is_clipped=config.is_clipped)
@@ -261,6 +273,15 @@ class CalibrationCurve(BaseCalibrationCurve):
             data = ref.copy()
             data = data.set_index(['probe', 'parallel'])
 
+        color = self._get_color(
+            mask=data['mask'].groupby(level=0, sort=False).max().astype(bool),
+            color=COLOR['yellow'] if ref is None else COLOR['green'],
+        )
+        alpha = self._get_alpha(
+            mask=data['mask'].groupby(level=0, sort=False).max().astype(bool),
+            alpha=ALPHA['probe'],
+        )
+
         # show
         fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
 
@@ -275,7 +296,7 @@ class CalibrationCurve(BaseCalibrationCurve):
         plt.plot(
             x, y,
             color='black', linestyle='none', marker='s', markersize=2,
-            alpha=.5,
+            alpha=ALPHA['default'],
             label='theoretical',
         )
 
@@ -287,7 +308,7 @@ class CalibrationCurve(BaseCalibrationCurve):
             marker='s',
             facecolors='none',
             edgecolors=[0, 0, 0, 0],
-            alpha=.2,
+            alpha=ALPHA['parallel'],
         )
 
         x = data['concentration'].groupby(level=0, sort=False).mean()
@@ -296,9 +317,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=40,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -319,7 +340,7 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             color='black',
             linestyle=':',
-            alpha=.5,
+            alpha=ALPHA['default'],
         )
 
         plt.xscale('log')
@@ -340,7 +361,7 @@ class CalibrationCurve(BaseCalibrationCurve):
         plt.plot(
             x, y,
             color='black', linestyle='none', marker='s', markersize=2,
-            alpha=.5,
+            alpha=ALPHA['default'],
             label='theoretical',
         )
 
@@ -353,9 +374,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=20,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -376,7 +397,7 @@ class CalibrationCurve(BaseCalibrationCurve):
         plt.plot(
             x, y,
             color='black', linestyle='none', marker='s', markersize=2,
-            alpha=.5,
+            alpha=ALPHA['default'],
             label='theoretical',
         )
 
@@ -389,9 +410,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=40,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
