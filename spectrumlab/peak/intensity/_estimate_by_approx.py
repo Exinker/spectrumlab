@@ -40,17 +40,17 @@ class Variables:
 
     def _init_voight_shape(self):
         peak = self.peak
-        config = peak.settings.intensityConfig
+        config = peak.config.intensity
 
         # shape
-        emission_shape = config.approx_shape.emission_shape
+        shape = config.approx_shape
 
         background = 0
         position = peak.position
         delta = self.delta + 1e-10
         intensity = approx_peak_by_tail(
             peak=peak,
-            shape=emission_shape,
+            shape=shape,
         )
 
         self._keys = ('background', 'position', 'intensity')
@@ -64,7 +64,7 @@ class Variables:
     def _init_effected_voight_shape(self):
         peak = self.peak
 
-        config = peak.settings.intensityConfig
+        config = peak.config.intensity
 
         # shape
         emission_shape = config.approx_shape.emission_shape
@@ -175,7 +175,7 @@ class Variables:
 
 
 def approx_peak_by_tail(peak: 'AnalytePeak', shape: PeakShape) -> float:
-    """Approximate a analyte peak with selected shape on the tail"""
+    """Approximate the analyte peak with selected shape on the tail"""
 
     # index
     index = peak.tail
@@ -193,7 +193,7 @@ def approx_peak_by_tail(peak: 'AnalytePeak', shape: PeakShape) -> float:
 
 
 def approx_peak(peak: 'AnalytePeak', shape: PeakShape, delta: float = 1, by_tail: bool = False, show: bool = False) -> dict:
-    """Approximate a analyte peak with selected shape."""
+    """Approximate the analyte peak with selected shape."""
 
     def _fitness(params: Sequence[float], shape: PeakShape, variables: Variables) -> float:
         """Interface to calculate a fitness of approximation of a analyte peak by any shape"""
@@ -257,14 +257,14 @@ def estimate_intensity_by_approx(peak: 'AnalytePeak', config: ApproxIntensityCon
     """Estimate analyte peak's intensity by approximation."""
 
     # approx
-    if not config.approx_params:  # FIXME (2023): это нужно?
-        config.approx_params = approx_peak(
-            peak=peak,
-            shape=config.approx_shape,
-            delta=config.delta,
-            by_tail=config.by_tail,
-            show=show,
-        )
+    # if not config.approx_params:  # FIXME (2023): это нужно?
+    config.approx_params = approx_peak(
+        peak=peak,
+        shape=config.approx_shape,
+        delta=config.delta,
+        by_tail=config.by_tail,
+        show=show,
+    )
 
     value = config.approx_params['intensity']
 

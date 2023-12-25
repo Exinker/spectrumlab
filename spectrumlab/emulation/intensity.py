@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum
 from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, integrate_grid, interpolate_grid
-from spectrumlab.peak.shape import VoightPeakShape
 
 
 # --------        estimate intensity        --------
@@ -21,10 +20,7 @@ def _estimate_intensity(x_grid: Array, y_grid: Array, mask: Array, position: Num
             x_grid, y_grid,
             position=position,
             interval=config.interval,
-            kind={
-                InterpolationKind.NEAREST: 'nearest',
-                InterpolationKind.LINEAR: 'linear',
-            }.get(config.kind),
+            kind=config.kind,
         )
 
     if isinstance(config, ApproxIntensityConfig):

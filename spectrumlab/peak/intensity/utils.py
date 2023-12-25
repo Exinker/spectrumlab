@@ -17,7 +17,10 @@ def interpolate_grid(x_grid: Array[float], y_grid: Array[float], kind: Interpola
 
     return interpolate.interp1d(
         x_grid, y_grid,
-        kind=kind,
+        kind={
+            InterpolationKind.NEAREST: 'nearest',
+            InterpolationKind.LINEAR: 'linear',
+        }.get(kind),
         bounds_error=False,
         fill_value=0,
     )

@@ -12,7 +12,7 @@ from spectrumlab.line.line import Line
 from spectrumlab.peak.base_peak import BasePeak
 from spectrumlab.peak.blink_peak import BlinkPeak, DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.concentration import ConcentrationConfig
-from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, ApproxIntensityConfig, calculate_intensity
+from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, calculate_intensity
 from spectrumlab.peak.position import PositionConfig, calculate_position
 from spectrumlab.picture.config import COLOR
 from spectrumlab.spectrum.mask import MaskConfig
@@ -47,73 +47,6 @@ class AnalytePeak(BasePeak):
             self.position
             self.intensity
 
-    def __repr__(self):
-        cls = self.__class__
-
-        content = '; '.join([
-            f'{self.config.line.nickname}',
-            f'intensity: {self.intensity:.4f} %',
-        ])
-        return f'{cls.__name__}({content})'
-
-    # --------            position            --------
-    def calculate_position(self, config: PositionConfig | None = None) -> Number:
-        """Estimate peak's position."""
-        config = self.config.position if config is None else config
-
-        return calculate_position(self, config=config)
-
-    @property
-    def position(self) -> Number:
-        if self._position is None:
-            self._position = self.calculate_position()
-
-        return self._position
-
-    # --------            intensity            --------
-    def calculate_intensity(self, config: IntensityConfig | None = None) -> float:
-        """Estimate peak's intensity."""
-        config = self.config.intensity if config is None else config
-
-        return calculate_intensity(self, config=config)
-
-    @property
-    def intensity(self) -> float:
-        if self._intensity is None:
-            self._intensity = self.calculate_intensity()
-
-        return self._intensity
-
-    # --------            concentration            --------
-    def estimate_concentration(self, config: ConcentrationConfig | None = None) -> float:
-        # raise NotImplementedError
-
-        return 0
-
-    @property
-    def concentration(self) -> float:
-        if self._concentration is None:
-            self._concentration = self.estimate_concentration()
-
-        return self._concentration
-
-    # --------            cursor            --------
-    def estimate_cursor(self) -> Number:
-        """Find peak's cursor."""
-        line = self.config.line
-
-        return abs(self.wavelength - line.wavelength).argmin()
-
-    @property
-    def cursor(self) -> Number:
-        """Find peak's cursor (number of amount's maximum)."""
-
-        if self._cursor is None:
-            self._cursor = self.estimate_cursor()
-
-        return self._cursor
-
-    # --------            other            --------
     @property
     def wavelength(self):
         return self.spectrum.wavelength[self.index]
@@ -132,8 +65,64 @@ class AnalytePeak(BasePeak):
 
         return mask[self.index]
 
+    # --------            position            --------
+    @property
+    def position(self) -> Number:
+        if self._position is None:
+            self._position = self.calculate_position()
+
+        return self._position
+
+    def calculate_position(self, config: PositionConfig | None = None) -> Number:
+        """Estimate peak's position."""
+        config = self.config.position if config is None else config
+
+        return calculate_position(self, config=config)
+
+    # --------            intensity            --------
+    @property
+    def intensity(self) -> float:
+        if self._intensity is None:
+            self._intensity = self.calculate_intensity()
+
+        return self._intensity
+
+    def calculate_intensity(self, config: IntensityConfig | None = None) -> float:
+        """Estimate peak's intensity."""
+        config = self.config.intensity if config is None else config
+
+        return calculate_intensity(self, config=config)
+
+    # --------            concentration            --------
+    @property
+    def concentration(self) -> float:
+        if self._concentration is None:
+            self._concentration = self.estimate_concentration()
+
+        return self._concentration
+
+    def estimate_concentration(self, config: ConcentrationConfig | None = None) -> float:
+        raise NotImplementedError
+
+    # --------            cursor            --------
+    @property
+    def cursor(self) -> Number:
+        """Find peak's cursor (number of amount's maximum)."""
+
+        if self._cursor is None:
+            self._cursor = self.estimate_cursor()
+
+        return self._cursor
+
+    def estimate_cursor(self) -> Number:
+        """Find peak's cursor."""
+        line = self.config.line
+
+        return abs(self.wavelength - line.wavelength).argmin()
+
+    # --------            handlers            --------
     def transform(self, number: float | Array) -> float | Array:
-        """transform from a number to wavelength"""
+        """Transform from a number to wavelength."""
 
         return interpolate.interp1d(
             self.number, self.wavelength,
@@ -143,6 +132,7 @@ class AnalytePeak(BasePeak):
         )(number)
 
     def space(self, kind: Literal['index', 'wavelength'] = 'wavelength', n_points: int = 1000) -> Array:
+        """Transform index or wavelength to space."""
         left, right = self.minima
 
         if kind == 'wavelength':
@@ -150,7 +140,6 @@ class AnalytePeak(BasePeak):
 
         return np.linspace(left, right, n_points)
 
-    # --------            show            --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), verbose: bool = False) -> None:
         is_filling = ax is not None
 
@@ -172,7 +161,7 @@ class AnalytePeak(BasePeak):
             # draw peak
             x = self.wavelength
             y = self.value
-            if config.method == 'nearest':
+            if config.kind == InterpolationKind.NEAREST:
                 ax.step(
                     x, y,
                     where='mid',
@@ -180,7 +169,7 @@ class AnalytePeak(BasePeak):
                     marker='.', markersize=5,
                     label='$s_{k}$',
                 )
-            if config.method == 'linear':
+            if config.kind == InterpolationKind.LINEAR:
                 ax.plot(
                     x, y,
                     linestyle='-', linewidth=1, color=COLOR.get('blue', '#000000'), alpha=.75,
@@ -194,7 +183,10 @@ class AnalytePeak(BasePeak):
             )
             f = interpolate.interp1d(
                 self.wavelength, self.value,
-                kind=config.method,
+                kind={
+                    InterpolationKind.NEAREST: 'nearest',
+                    InterpolationKind.LINEAR: 'linear',
+                }.get(config.kind),
                 bounds_error=False,
                 fill_value=0,
             )
@@ -271,13 +263,23 @@ class AnalytePeak(BasePeak):
         if not is_filling:
             plt.show()
 
+# --------        private        --------
+    def __repr__(self):
+        cls = self.__class__
+
+        content = '; '.join([
+            f'{self.config.line.nickname}',
+            f'intensity: {self.intensity:.4f}',
+        ])
+        return f'{cls.__name__}({content})'
+
 
 # --------        gather analyte peak        --------
 @dataclass
 class GatherAnalytePeakConfig:
     line: Line
 
-    maskConfig: MaskConfig
+    mask: MaskConfig
     position: PositionConfig
     intensity: IntensityConfig
     concentration: ConcentrationConfig
@@ -294,7 +296,6 @@ def gather_analyte_peak(spectrum: Spectrum, noise: Noise, config: GatherAnalyteP
      Email: vaschenko@vmk.ru
       Date: 2016.04.09
     """
-
     assert spectrum.n_times == 1, 'kinetics spectra are not supported yet!'
 
     # blinks
@@ -306,14 +307,16 @@ def gather_analyte_peak(spectrum: Spectrum, noise: Noise, config: GatherAnalyteP
             except_sloped_peak=False,
             except_edges=False,
 
-            noise_level=config.maskConfig.noise_level,
+            noise_level=config.mask.noise_level,
         ),
     )
 
-    # mask overlapped blinks
+    # mask
+    mask = np.full(spectrum.shape, True)
+
+    # mask / overlapped blinks
     minima = [0, spectrum.n_numbers-1]
     maxima = []
-    mask = np.full(spectrum.shape, True)
 
     cursor = abs(spectrum.wavelength - config.line.wavelength).argmin()
 
@@ -337,6 +340,9 @@ def gather_analyte_peak(spectrum: Spectrum, noise: Noise, config: GatherAnalyteP
 
             else:
                 mask[blink.number] = False  # маскируем мешающий blink
+
+    # mask / clipped counts
+    mask[spectrum.clipped] = False
 
     # gather peak
     peak = AnalytePeak(

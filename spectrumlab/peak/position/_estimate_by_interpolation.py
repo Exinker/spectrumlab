@@ -17,7 +17,7 @@ class InterpolationPositionConfig:
 
 def estimate_position_by_interpolation(peak: 'AnalytePeak', config: InterpolationPositionConfig) -> Number:
     """Estimate analyte peak's position by interpolation."""
-    line = peak.settings.line
+    line = peak.config.line
 
     value = interpolate.interp1d(
         peak.wavelength, peak.number,

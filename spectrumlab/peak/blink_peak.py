@@ -2,6 +2,7 @@
 from dataclasses import dataclass, field
 from typing import Iterator, Sequence
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from spectrumlab.emulation.noise import Noise
@@ -146,6 +147,13 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
     for maximum, pair in zip(maxima, pairs):
         left, right = pair  # left and right index of peak
 
+        # correct maxima / TODO: check it!
+        if spectrum.clipped[maximum]:
+            index = np.arange(left, right+1)
+            index = index[spectrum.clipped[index]]
+
+            maxima = np.mean(index).astype(int).item()
+
         # check n_counts
         n_counts = right - left + 1
 
@@ -155,7 +163,7 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
         if n_counts > config.n_counts_max:
             continue
 
-        # check amplitude value
+        # check blink's amplitude
         amplitude = spectrum.intensity[maximum] - (spectrum.intensity[left] + spectrum.intensity[right])/2  # от среднего значения на границах до максимума
         deviation = (noise(spectrum.intensity[maximum])**2 + .25*noise(spectrum.intensity[left])**2 + .25*noise(spectrum.intensity[right])**2)**0.5
 
@@ -167,7 +175,7 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
             if any(spectrum.clipped[left:right+1]):
                 continue
 
-        # check slope
+        # check blink's slope
         if config.except_sloped_peak:
             slope = abs(spectrum.intensity[left] - spectrum.intensity[right]) / amplitude
 
