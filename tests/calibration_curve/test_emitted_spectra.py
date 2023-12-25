@@ -2,6 +2,7 @@ import os
 import pytest
 from functools import partial
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -13,7 +14,7 @@ from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import Spectrum
 from spectrumlab.line.line import Line
 from spectrumlab.peak.analyte_peak import GatherAnalytePeakConfig, gather_analyte_peak
-from spectrumlab.peak.intensity import IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig
+from spectrumlab.peak.intensity import AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig
 from spectrumlab.peak.position import InterpolationPositionConfig
 from spectrumlab.peak.shape import VoightPeakShape
 
@@ -90,68 +91,102 @@ def calculate_intensity(*args, **kwargs):
     return inner
 
 
-@pytest.mark.filterwarnings
-def test_calculate_intensity_by_integral(config: ExperimentConfig, spectra: Frame):
+class TestCalibrationCurve:
+    tolerance = 1e-2
 
-    # calibrate
-    calibration_curve = calibrate_spectra(
-        spectra=spectra,
-        handler=calculate_intensity(
-            line=Line(
-                id=0,
-                symbol='NA',
-                wavelength=config.position,
-            ),
-            noise=EmittedSpectrumNoise(
-                detector=config.detector,
-                n_frames=config.n_frames,
-            ),
-            config=GatherAnalytePeakConfig(
-                noise_level=5,
-                position=InterpolationPositionConfig(),
-                intensity=IntegralIntensityConfig(
-                    interval=3,
-                    kind=InterpolationKind.LINEAR,
+    @pytest.mark.filterwarnings
+    def test_calculate_intensity_by_amplitude(self, config: ExperimentConfig, spectra: Frame):
+
+        # calibrate
+        calibration_curve = calibrate_spectra(
+            spectra=spectra,
+            handler=calculate_intensity(
+                line=Line(
+                    id=0,
+                    symbol='NA',
+                    wavelength=config.position,
+                ),
+                noise=EmittedSpectrumNoise(
+                    detector=config.detector,
+                    n_frames=config.n_frames,
+                ),
+                config=GatherAnalytePeakConfig(
+                    noise_level=5,
+                    position=InterpolationPositionConfig(),
+                    intensity=AmplitudeIntensityConfig(),
                 ),
             ),
-        ),
-    )
+        )
 
-    assert calibration_curve.coeff[1]
+        #
+        intercept, slope = calibration_curve.coeff
+        assert np.abs(slope - 1) < self.tolerance
 
+    @pytest.mark.filterwarnings
+    def test_calculate_intensity_by_integral(self, config: ExperimentConfig, spectra: Frame):
 
-@pytest.mark.filterwarnings
-def test_calculate_intensity_by_approx(config: ExperimentConfig, spectra: Frame):
-    detector = config.detector
-    apparatus_shape = config.apparatus_shape
-
-    # calibrate
-    calibration_curve = calibrate_spectra(
-        spectra=spectra,
-        handler=calculate_intensity(
-            line=Line(
-                id=0,
-                symbol='',
-                wavelength=25,
-            ),
-            noise=EmittedSpectrumNoise(
-                detector=config.detector,
-                n_frames=config.n_frames,
-            ),
-            config=GatherAnalytePeakConfig(
-                noise_level=5,
-                position=InterpolationPositionConfig(),
-                intensity=ApproxIntensityConfig(
-                    approx_shape=VoightPeakShape(
-                        width=apparatus_shape.width/detector.config.width,
-                        asymmetry=apparatus_shape.asymmetry,
-                        ratio=apparatus_shape.ratio,
-                        rx=25,
+        # calibrate
+        calibration_curve = calibrate_spectra(
+            spectra=spectra,
+            handler=calculate_intensity(
+                line=Line(
+                    id=0,
+                    symbol='NA',
+                    wavelength=config.position,
+                ),
+                noise=EmittedSpectrumNoise(
+                    detector=config.detector,
+                    n_frames=config.n_frames,
+                ),
+                config=GatherAnalytePeakConfig(
+                    noise_level=5,
+                    position=InterpolationPositionConfig(),
+                    intensity=IntegralIntensityConfig(
+                        interval=3,
+                        kind=InterpolationKind.LINEAR,
                     ),
-                    delta=0,
                 ),
             ),
-        ),
-    )
+        )
 
-    assert True
+        #
+        intercept, slope = calibration_curve.coeff
+        assert np.abs(slope - 1) < self.tolerance
+
+    @pytest.mark.filterwarnings
+    def test_calculate_intensity_by_approx(self, config: ExperimentConfig, spectra: Frame):
+        detector = config.detector
+        apparatus_shape = config.apparatus_shape
+
+        # calibrate
+        calibration_curve = calibrate_spectra(
+            spectra=spectra,
+            handler=calculate_intensity(
+                line=Line(
+                    id=0,
+                    symbol='',
+                    wavelength=25,
+                ),
+                noise=EmittedSpectrumNoise(
+                    detector=config.detector,
+                    n_frames=config.n_frames,
+                ),
+                config=GatherAnalytePeakConfig(
+                    noise_level=5,
+                    position=InterpolationPositionConfig(),
+                    intensity=ApproxIntensityConfig(
+                        approx_shape=VoightPeakShape(
+                            width=apparatus_shape.width/detector.config.width,
+                            asymmetry=apparatus_shape.asymmetry,
+                            ratio=apparatus_shape.ratio,
+                            rx=25,
+                        ),
+                        delta=0,
+                    ),
+                ),
+            ),
+        )
+
+        #
+        intercept, slope = calibration_curve.coeff
+        assert np.abs(slope - 1) < self.tolerance

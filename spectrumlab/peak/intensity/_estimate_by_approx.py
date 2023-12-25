@@ -1,4 +1,3 @@
-
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import partial
@@ -10,6 +9,7 @@ from scipy.optimize import minimize
 
 from spectrumlab.utils import mse
 from spectrumlab.peak.shape import PeakShape, VoightPeakShape, EffectedVoightPeakShape
+
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
