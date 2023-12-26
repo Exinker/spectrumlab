@@ -1,4 +1,10 @@
+"""
+Spectral lines for emulation with given line shape.
 
+Author: Vaschenko Pavel
+ Email: vaschenko@vmk.ru
+  Date: 2013.04.12
+"""
 from dataclasses import dataclass, field
 from typing import Tuple, overload
 
@@ -7,14 +13,14 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 
 from spectrumlab.alias import Array, Micro
+from spectrumlab.emulation.curve import gauss, pvoigt
 from spectrumlab.picture.config import COLOR
-from .curve import gauss, pvoigt
 
 
 # --------        shape        --------
 @dataclass(frozen=True)
-class GaussLineShape:
-    """Normal distribution with position and standart deviation width."""
+class NormalLineShape:
+    """Gauss (or normal) distribution with standart deviation `width`."""
     width: Micro
 
     @overload
@@ -53,7 +59,7 @@ class VoigtLineShape:
 
 @dataclass(frozen=True)
 class SelfAbsorptionVoigtLineShape:
-    """Voigt line shape shape with self-absorption"""
+    """`VoigtLineShape` with self-absorption."""
     width: Micro
     asymmetry: float
     ratio: float
@@ -72,21 +78,21 @@ class SelfAbsorptionVoigtLineShape:
 
 @dataclass(frozen=True)
 class SigmoidsLineShape:
-    """Time distribution"""
+    """Time intensity distribution."""
     width: Tuple[float, float]
     power: float
 
     @overload
-    def __call__(self, x: float, position: Micro, intensity: float) -> Array: ...
+    def __call__(self, t: float, position: float, intensity: float) -> Array: ...
     @overload
-    def __call__(self, x: Array, position: Micro, intensity: float) -> Array: ...
-    def __call__(self, x, position, intensity):
+    def __call__(self, t: Array, position: float, intensity: float) -> Array: ...
+    def __call__(self, t, position, intensity):
         w = self.width
         p = self.power
 
-        F = lambda x: ( (4/np.pi) * (np.arctan(-w[0]*(x - position)) + np.pi/2) * (1/(1 + np.exp(-w[1]*(x - position)))) )**p
-        F = F(x) / integrate.quad(
-            lambda x: F(x),
+        F = lambda t: ( (4/np.pi) * (np.arctan(-w[0]*(t - position)) + np.pi/2) * (1/(1 + np.exp(-w[1]*(t - position)))) )**p
+        F = F(t) / integrate.quad(
+            lambda t: F(t),
             a=position-1e+3,
             b=position+1e+3,
         )[0]  # normalization
@@ -96,7 +102,7 @@ class SigmoidsLineShape:
         return f
 
 
-LineShape = GaussLineShape | VoigtLineShape | SelfAbsorptionVoigtLineShape | SigmoidsLineShape
+LineShape = NormalLineShape | VoigtLineShape | SelfAbsorptionVoigtLineShape | SigmoidsLineShape
 
 
 # --------        line        --------
@@ -118,43 +124,38 @@ class Line:
     def __call__(self, x, position, intensity):
         return self.shape(x, position, intensity)
 
-    # --------        fabric        --------
-    @classmethod
-    def from_shape(cls, shape: LineShape) -> 'Line':
-        return cls(shape=shape)
-
+    # --------        handlers        --------
     def show(self, position: Micro, intensity: float, rx: Micro = 100, dx: Micro = .01) -> None:
-        """Show line shape at the range rx with step dx."""
+        """Show line shape at the range `rx` with step `dx`."""
 
-        plt.style.use('seaborn-whitegrid')
-        plt.rcParams.update({
-            'figure.figsize': (10, 5),
-            'font.size': 14,
-        })
-        plt.figure(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        #
         x = np.arange(-rx, rx+dx, dx)
         f = lambda x: self(
             x=x,
             position=position,
             intensity=intensity,
         )
+        plt.plot(
+            x, f(x),
+            color=COLOR['blue'],
+            label=r'$I(x)$',
+        )
 
-        #
-        plt.plot(x, f(x), color=COLOR['blue'], label=r'$\mathcal{F}(x)$')
-
-        plt.title('Line function')
-        plt.xlabel(r'$x, \mu$')
-        plt.ylabel('Intensity')
-
+        plt.xlabel(r'$x$ [$\mu$]')
+        plt.ylabel(r'$I$ $[\%]$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
+
         plt.show()
+
+    # --------        fabric        --------
+    @classmethod
+    def from_shape(cls, shape: LineShape) -> 'Line':
+        return cls(shape=shape)
 
 
 if __name__ == '__main__':
-
     line = Line(
         shape=VoigtLineShape(25, 0, 0),
     )

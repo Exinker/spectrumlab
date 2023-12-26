@@ -178,7 +178,7 @@ class VoightPeakShape(BaseShape):
             )
 
             plt.xlabel(r'$number$')
-            plt.ylabel(r'$I, \%$')
+            plt.ylabel(r'$I$ [$\%$]')
             plt.grid(color='grey', linestyle=':')
 
             plt.show()
@@ -314,7 +314,7 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
         )
 
         plt.xlabel(r'$number$')
-        plt.ylabel(r'$I, \%$')
+        plt.ylabel(r'$I$ [$\%$]')
         plt.grid(color='grey', linestyle=':')
 
         plt.show()

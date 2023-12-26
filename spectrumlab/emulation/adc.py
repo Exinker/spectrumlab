@@ -1,4 +1,12 @@
+"""
+Analog-to-digital converter (ADC) for emulation.
+
+Author: Vaschenko Pavel
+ Email: vaschenko@vmk.ru
+  Date: 2023.02.01
+"""
 from dataclasses import dataclass, field
+from typing import Literal
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,6 +19,7 @@ class ADC:
     resolution: int
     log: bool = field(default=False)
 
+    # --------        handlers        --------
     def quantize(self, y: Array[float], show: bool = False) -> Array[float]:
         if self.log:
             y = np.log2(y)
@@ -54,26 +63,35 @@ class ADC:
 
 
 if __name__ == '__main__':
-    resolution = 3
-    kind = 'sin'
+    def _calculate_y(x: Array[float], kind: Literal['sin', 'linear', 'cubic']) -> Array[float]:
+        if kind == 'sin':
+            return np.sin(x)
+        if kind == 'linear':
+            return 1 + x
+        if kind == 'cubic':
+            return .1 + 0.01*x**2
 
-    match kind:
-        case 'sin':
-            x = np.linspace(0, 4*np.pi, 1000)
-            y = np.sin(x)
-        case 'linear':
-            x = np.linspace(0, 40, 1000)
-            y = 1 + x
-        case 'cubic':
-            x = np.linspace(0, 40, 1000)
-            y = 1 + 0.01*x**2
-        case _:
-            raise ValueError(f'kind: {kind} is not supported!')
+        raise ValueError(f'kind: {kind} is not supported!')
 
-    y_hat = ADC(resolution).quantize(y)
+    x = np.linspace(-2*np.pi, +2*np.pi, 1000)
+    y = _calculate_y(x, kind='sin')
+    y_hat = ADC(
+        resolution=4,
+    ).quantize(y)
 
-    plt.plot(x, y)
-    plt.plot(x, y_hat)
-    plt.plot(x, y - y_hat)
+    plt.plot(
+        x, y,
+        label=r'$y$',
+    )
+    plt.plot(
+        x, y_hat,
+        label=r'$\hat{y}$',
+    )
+    plt.plot(
+        x, y - y_hat,
+        label=r'error',
+    )
     plt.grid(color='grey', linestyle=':')
+    plt.legend()
+
     plt.show()

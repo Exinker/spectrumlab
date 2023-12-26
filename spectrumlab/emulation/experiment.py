@@ -1,3 +1,10 @@
+"""
+Data types for emulation experiment of .
+
+Author: Vaschenko Pavel
+ Email: vaschenko@vmk.ru
+  Date: 2023.12.26
+"""
 import os
 from configparser import ConfigParser
 from dataclasses import dataclass, field
@@ -35,7 +42,7 @@ class BaseEmittedExperimentConfig:
     # --------        intensity        --------
     intensity: IntensityConfig
 
-    # --------        calibration curve config        --------
+    # --------        calibration curve        --------
     n_blanks: int
     n_probes: int
     n_parallels: int
@@ -55,11 +62,12 @@ class BaseEmittedExperimentConfig:
 
 
 class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
-    '''Experiment's config (naive).'''
+    '''Emitted spectra (naive) experiment's config.'''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    # --------        fabric        --------
     @classmethod
     def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 
@@ -147,22 +155,20 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
 
 
 class EmittedExperimentConfig(BaseEmittedExperimentConfig):
-    '''Experiment's config.'''
+    '''Emitted spectra experiment's config.'''
 
     def __init__(self, *args, line_shape: VoigtLineShape, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # --------        emulation config        --------
         self.line_shape = line_shape
 
 
 class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
-    '''Experiment's config.'''
+    '''Absorbed spectra experiment's config.'''
 
     def __init__(self, *args, base_level: float, base_n_frames: int, line_shape: VoigtLineShape, scattering_ratio: float, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # --------        emulation config        --------
         self.base_level = base_level
         self.base_n_frames = base_n_frames
 
@@ -170,6 +176,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
 
         self.scattering_ratio = scattering_ratio
 
+    # --------        fabric        --------
     @classmethod
     def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 

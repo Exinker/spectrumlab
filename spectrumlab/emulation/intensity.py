@@ -204,9 +204,9 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
             ha='left', va='top',
         )
 
-        plt.xlabel('number')
+        plt.xlabel(r'number')
         plt.ylabel({
-            EmittedSpectrum: r'$I, \%$',
+            EmittedSpectrum: r'$I$ [$\%$]',
             AbsorbedSpectrum: r'$A$',
         }.get(type(spectrum)))
         plt.grid(color='grey', linestyle=':')

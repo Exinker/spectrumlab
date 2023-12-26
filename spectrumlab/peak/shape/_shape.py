@@ -226,7 +226,7 @@ class VoightPeakShape:
             )
 
             plt.xlabel(r'$number$')
-            plt.ylabel(r'$I, \%$')
+            plt.ylabel(r'$I$ [$\%$]')
             plt.grid(color='grey', linestyle=':')
 
             plt.show()
@@ -358,7 +358,7 @@ def calculate_approx_scope(grid: Grid, shape: VoightPeakShape, show: bool = Fals
         )
 
         plt.xlabel(r'$number$')
-        plt.ylabel(r'$I, \%$')
+        plt.ylabel(r'$I$ [$\%$]')
         plt.grid(color='grey', linestyle=':')
 
         plt.show()

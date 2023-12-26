@@ -8,7 +8,7 @@ from scipy import interpolate
 from spectrumlab.alias import Array, Number
 from spectrumlab.calibration_curve import CalibrationCurve
 from spectrumlab.emulation.noise import Noise
-from spectrumlab.line import Line
+from spectrumlab.line.line import Line
 from spectrumlab.peak.base_peak import BasePeak
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, calculate_intensity
@@ -269,8 +269,8 @@ class AnalytePeak(BasePeak):
             )
 
         # set axes
-        ax.set_xlabel(r'$\lambda, nm$')
-        ax.set_ylabel(r'$I, \%$')
+        ax.set_xlabel(r'$\lambda$ [$nm$]')
+        ax.set_ylabel(r'$I$ [$\%$]')
 
         ax.grid(color='grey', linestyle=':')
 
