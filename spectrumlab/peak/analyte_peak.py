@@ -8,7 +8,7 @@ from scipy import interpolate
 from spectrumlab.alias import Array, Number
 from spectrumlab.calibration_curve import CalibrationCurve
 from spectrumlab.emulation.noise import Noise
-from spectrumlab.line.line import Line
+from spectrumlab.line import Line
 from spectrumlab.peak.base_peak import BasePeak
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, calculate_intensity

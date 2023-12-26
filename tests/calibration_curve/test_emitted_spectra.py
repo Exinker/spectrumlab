@@ -12,7 +12,7 @@ from spectrumlab.emulation.emulation import fetch_emulation, EmittedSpectrumEmul
 from spectrumlab.emulation.experiment import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import Spectrum
-from spectrumlab.line.line import Line
+from spectrumlab.line import Line
 from spectrumlab.peak.analyte_peak import GatherAnalytePeakConfig, gather_analyte_peak
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig
 from spectrumlab.peak.position import InterpolationPositionConfig
