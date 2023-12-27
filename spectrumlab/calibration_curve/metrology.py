@@ -28,6 +28,7 @@ class BaseLimit:
 
         return 10**((np.log10(self.intensity) - intercept) / slope)
 
+    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
         return f'{cls.__name__}({self.concentration})'
@@ -45,29 +46,53 @@ class BaseLimit:
 # --------        LOD and LOQ        --------
 class LOD(BaseLimit):
     """Limit of Detection (LOD) in emission or absorption."""
+    k_default = 3
 
     def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
         super().__init__(intensity, coeff=coeff, info=info)
 
+    # --------        handle        --------
+    @staticmethod
+    def calculate_intensity(mean: float, deviation: float, k: float) -> float:
+        return mean + k*deviation
+
+    # --------        fabric        --------
     @classmethod
-    def from_deviation(cls, deviation: float, coeff: tuple[Intercept, Slope], k: float = 3) -> 'LOD':
+    def from_blank(cls, blank: Frame, coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOD':
+        k = k or cls.k_default
+        mean = blank['intensity'].mean()
+        deviation = blank['intensity'].std(ddof=1)
+
         return cls(
-            intensity=k*deviation,
+            intensity=cls.calculate_intensity(mean, deviation, k=k),
             coeff=coeff,
+            info=f'k: {k}',
         )
 
 
 class LOQ(BaseLimit):
     """Limit of Quantity (LOQ) in emission or absorption."""
+    k_default = 10
 
     def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
         super().__init__(intensity, coeff=coeff, info=info)
 
+    # --------        handle        --------
+    @staticmethod
+    def calculate_intensity(mean: float, deviation: float, k: float) -> float:
+        return mean + k*deviation
+
+    # --------        fabric        --------
     @classmethod
-    def from_deviation(cls, deviation: float, coeff: tuple[Intercept, Slope], k: float = 10) -> 'LOQ':
+    def from_blank(cls, blank: Frame, coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOQ':
+        k = k or cls.k_default
+        mean = blank['intensity'].mean()
+        deviation = blank['intensity'].std(ddof=1)
+
         return cls(
-            intensity=k*deviation,
+            intensity=cls.calculate_intensity(mean, deviation, k=k),
             coeff=coeff,
+            info=f'k: {k}',
         )
 
 

@@ -93,7 +93,18 @@ class CalibrationCurve(BaseCalibrationCurve):
 
     @property
     def blank(self) -> Frame:
-        return self._blank
+        if isinstance(self._blank, Frame):
+            return self._blank
+
+        #
+        print('blank: blank is not found!')  # FIXME: add exception!
+
+        index = self.data.index[self.data['concentration'] == 0]
+        if index.empty:
+            print('blank: min concentration of data is not zero!')  # FIXME: add exception!
+            index = self.data.index[self.data['concentration'] == min(self.data['concentration'])]
+
+        return self.data[index]
 
     @property
     def coeff(self) -> tuple[Intercept, Slope]:
@@ -152,14 +163,14 @@ class CalibrationCurve(BaseCalibrationCurve):
         self._coeff = intercept, slope
 
         # limits
-        blank_deviation = self._calculate_blank_deviation()
+        blank = self.blank
 
-        self._lod = LOD.from_deviation(
-            deviation=blank_deviation,
+        self._lod = LOD.from_blank(
+            blank=blank,
             coeff=self.coeff,
         )
-        self._loq = LOQ.from_deviation(
-            deviation=blank_deviation,
+        self._loq = LOQ.from_blank(
+            blank=blank,
             coeff=self.coeff,
         )
         self._lol = estimate_lol(
@@ -321,22 +332,6 @@ class CalibrationCurve(BaseCalibrationCurve):
         plt.show()
 
     # --------        private        --------
-    def _calculate_blank_deviation(self) -> float:
-
-        if self.blank is None:
-            print('blank: blank is not found!')  # FIXME: add exception!
-
-            index = self.data.index[self.data['concentration'] == 0]
-            if index.empty:
-                print('blank: min concentration of data is not zero!')  # FIXME: add exception!
-                index = self.data.index[self.data['concentration'] == min(self.data['concentration'])]
-            intensity = self.data.loc[index, 'intensity'].values
-
-        else:
-            intensity = self.blank.loc[0, 'intensity'].values
-
-        return np.std(intensity, ddof=1)
-
     def _get_filename(content: str, extension: Literal['png', 'txt']):
 
         return f'calibration_curve ({content}).{extension}'
@@ -364,7 +359,11 @@ def calibrate_spectra(spectra: Frame, handler: Callable[[Spectrum], float], show
         blank.loc[(0,j), 'mask'] = any(spectrum.clipped)
 
     # loq
-    loq = 10 * blank['intensity'].std(ddof=1)
+    loq = LOQ.calculate_intensity(
+        mean=blank['intensity'].mean(),
+        deviation=blank['intensity'].std(ddof=1),
+        k=10,
+    )
 
     # data
     index = spectra.drop(index='blank').index
