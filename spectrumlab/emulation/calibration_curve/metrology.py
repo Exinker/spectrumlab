@@ -5,14 +5,37 @@ import numpy as np
 from spectrumlab.calibration_curve import Intercept, Slope, LOQ, LOL, DynamicRange
 from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
 from spectrumlab.emulation.intensity import calculate_intensity
-from spectrumlab.peak.intensity import IntegralIntensityConfig
+from spectrumlab.peak.intensity import IntensityConfig
 
 
 # --------        deviation        --------
 EstimateDeviationKind: TypeAlias = Literal['theoretical', 'emulational']
 
+def estimate_blank_mean(emulation: Emulation, config: IntensityConfig, n_parallels: int = 20, kind: EstimateDeviationKind = 'theoretical') -> float:
+    n_numbers = emulation.config.spectrum.n_numbers
+    background_level = emulation.config.background_level
+    emulation = emulation.setup(position=n_numbers//2, concentration=0)
 
-def estimate_deviation(emulation: Emulation, config: IntegralIntensityConfig, n_parallels: int = 10, kind: EstimateDeviationKind = 'theoretical') -> float:
+    match kind:
+        case 'theoretical':
+            return 0
+
+        case 'emulational':
+            intensity = []
+            for _ in range(n_parallels):
+                value = calculate_intensity(
+                    spectrum=emulation.run(),
+                    background=background_level,
+                    position=n_numbers//2,
+                    config=config,
+                )
+                intensity.append(value)
+            return np.mean(intensity).item()
+
+    raise TypeError(f'LimitsKind: {kind} is not supported yet!')
+
+
+def estimate_blank_deviation(emulation: Emulation, config: IntensityConfig, n_parallels: int = 20, kind: EstimateDeviationKind = 'theoretical') -> float:
     """Calculate intensity deviation."""
     n_numbers = emulation.config.spectrum.n_numbers
     background_level = emulation.config.background_level
