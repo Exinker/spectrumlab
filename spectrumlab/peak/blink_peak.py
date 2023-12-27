@@ -113,7 +113,7 @@ class BlinkPeak(BasePeak):
 # --------        draft blink peaks        --------
 @dataclass(frozen=True, slots=True)
 class DraftBlinkPeakConfig:
-    n_counts_min: int = field(default=2)
+    n_counts_min: int = field(default=1)
     n_counts_max: int = field(default=500)
 
     except_clipped_peak: bool = field(default=True)

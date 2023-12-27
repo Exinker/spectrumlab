@@ -232,7 +232,7 @@ class AnalytePeak(BasePeak):
                 color='red',
             )
 
-            if np.any(y_hat > 100):
+            if np.any(self.spectrum.clipped):
                 ylim = [-10, 110]
 
             # x = self.index[self.mask]
@@ -310,7 +310,11 @@ def gather_analyte_peak(line: Line, spectrum: Spectrum, noise: Noise, config: Ga
     """
     assert spectrum.n_times == 1, 'kinetics spectra are not supported yet!'
 
-    # blinks
+    cursor = abs(spectrum.wavelength - line.wavelength).argmin()
+    minima = [0, spectrum.n_numbers-1]
+    maxima = []
+
+    # mask
     blinks = draft_blinks(
         spectrum=spectrum,
         noise=noise,
@@ -323,37 +327,32 @@ def gather_analyte_peak(line: Line, spectrum: Spectrum, noise: Noise, config: Ga
         ),
     )
 
-    # mask
+    is_found = False
     mask = np.full(spectrum.shape, True)
-
-    # mask / overlapped blinks
-    minima = [0, spectrum.n_numbers-1]
-    maxima = []
-
-    cursor = abs(spectrum.wavelength - line.wavelength).argmin()
-
     for blink in blinks:
         left, right = blink.minima
 
-        # попадает ли cursor между blink.minima
-        distance = map(abs, (left - cursor, right - cursor))
-
-        condition = all(map(lambda x: x > 2, distance))
-        if condition:  # если расстояние от линии до blink больше 2х отсчетов
-            if blink.include(cursor):  # линия находится внутри этого blink (линия без самопоглощения)
+        is_far = (np.abs(left - cursor) > 2) and (np.abs(right - cursor) > 2)  # расстояние от cursor до blink больше 2х отсчетов
+        if is_far:
+            if blink.include(cursor):  # cursor находится внутри этого blink (линия без самопоглощения)
+                is_found = True
                 maxima.append(blink.maxima[0])
 
             else:
-                mask[blink.number] = False  # маскируем мешающий blink
+                mask[blink.number] = False
 
-        else:  # если расстояние меньше 2х отсчетов, то нужно проверить не шум ли это
-            if blink.amplitude > 5 * blink.deviation:  # этот blink достаточную амплитуду, чтобы считаться частью линии (линия с самопоглощением)
+        else:
+            if blink.amplitude > 100 * blink.deviation:  # этот blink достаточную амплитуду, чтобы считаться частью линии (линия с самопоглощением)
+                is_found = True
                 maxima.append(blink.maxima[0])
 
             else:
-                mask[blink.number] = False  # маскируем мешающий blink
+                mask[blink.number] = False
 
-    # mask / clipped counts
+    if not is_found:
+        mask = np.full(spectrum.shape, True)
+
+    # mask clipped counts
     mask[spectrum.clipped] = False
 
     # gather peak
