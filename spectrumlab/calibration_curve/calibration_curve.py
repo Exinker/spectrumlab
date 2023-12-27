@@ -166,11 +166,11 @@ class CalibrationCurve(BaseCalibrationCurve):
         blank = self.blank
 
         self._lod = LOD.from_blank(
-            blank=blank,
+            data=blank,
             coeff=self.coeff,
         )
         self._loq = LOQ.from_blank(
-            blank=blank,
+            data=blank,
             coeff=self.coeff,
         )
         self._lol = estimate_lol(
@@ -359,7 +359,7 @@ def calibrate_spectra(spectra: Frame, handler: Callable[[Spectrum], float], show
         blank.loc[(0,j), 'mask'] = any(spectrum.clipped)
 
     # loq
-    loq = LOQ.calculate_intensity(
+    loq = LOQ.calculate(
         mean=blank['intensity'].mean(),
         deviation=blank['intensity'].std(ddof=1),
         k=10,

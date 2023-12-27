@@ -121,11 +121,12 @@ class CalibrationCurve(BaseCalibrationCurve):
         # emulate blank
         emulation = emulation.setup(position=self._position, concentration=self.config.concentration_blank)
 
+        mean = 0  # FIXME: ?
         deviation = estimate_deviation(
             emulation=emulation,
             config=config.intensity_config,
         )
-        loq = 10 * deviation
+        loq = LOQ.calculate(mean, deviation, k=10)
 
         # emulate data
         data = pd.DataFrame(
@@ -228,17 +229,24 @@ class CalibrationCurve(BaseCalibrationCurve):
         # calculate limits
         emulation = emulation.setup(position=self._position, concentration=self.config.concentration_blank)
 
+        mean = 0  # FIXME: ?
         deviation = estimate_deviation(
             emulation=emulation,
             config=config.intensity_config,
         )
 
-        self._lod = LOD.from_deviation(
-            deviation=deviation,
+        self._lod = LOD.from_json(
+            data={
+                'mean': mean,
+                'deviation': deviation,
+            },
             coeff=self.coeff,
         )
-        self._loq = LOQ.from_deviation(
-            deviation=deviation,
+        self._loq = LOD.from_json(
+            data={
+                'mean': mean,
+                'deviation': deviation,
+            },
             coeff=self.coeff,
         )
         self._lol = estimate_lol(
