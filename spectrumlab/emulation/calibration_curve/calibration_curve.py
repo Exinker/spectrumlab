@@ -9,11 +9,11 @@ from tqdm import tqdm
 
 from spectrumlab.alias import Frame, Series, Number
 from spectrumlab.calibration_curve import BaseCalibrationCurve, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
-from spectrumlab.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
+from spectrumlab.emulation import Emulation
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
 from spectrumlab.picture.config import COLOR, ALPHA
 
-from .metrology import DynamicRange, estimate_deviation, estimate_dynamic_range
+from .metrology import DynamicRange, estimate_blank_mean, estimate_blank_deviation, estimate_dynamic_range
 from .exceptions import EmulationError
 
 
@@ -44,6 +44,20 @@ class CalibrationCurve(BaseCalibrationCurve):
         self._loq = None
         self._lol = None
         self._dynamic_range = None
+
+    @property
+    def position(self) -> Number:
+        if self._position is None:
+            raise EmulationError('Setup the calibration curve before!')
+
+        return self._position
+
+    @property
+    def concentrations(self) -> tuple[float]:
+        if self._concentrations is None:
+            raise EmulationError('Setup the calibration curve before!')
+
+        return self._concentrations
 
     @property
     def data(self) -> tuple[float, float]:
@@ -109,24 +123,25 @@ class CalibrationCurve(BaseCalibrationCurve):
         emulation = self.emulation
         config = self.config
 
-        if any(item is None for item in [self._position, self._concentrations]):
-            raise EmulationError('Setup the calibration curve before!')
-        position = self._position
-        concentrations = self._concentrations
+        position = self.position
+        concentrations = self.concentrations
 
         # set random state
         if random_state is not None:
             np.random.seed(random_state)
 
         # emulate blank
-        emulation = emulation.setup(position=self._position, concentration=self.config.concentration_blank)
-
-        mean = 0  # FIXME: ?
-        deviation = estimate_deviation(
-            emulation=emulation,
-            config=config.intensity_config,
+        loq = LOQ.calculate(
+            mean=estimate_blank_mean(
+                emulation=emulation,
+                config=config.intensity_config,
+            ),
+            deviation=estimate_blank_deviation(
+                emulation=emulation,
+                config=config.intensity_config,
+            ),
+            k=10,
         )
-        loq = LOQ.calculate(mean, deviation, k=10)
 
         # emulate data
         data = pd.DataFrame(
@@ -227,10 +242,11 @@ class CalibrationCurve(BaseCalibrationCurve):
         self._coeff = intercept, slope  # update coeff
 
         # calculate limits
-        emulation = emulation.setup(position=self._position, concentration=self.config.concentration_blank)
-
-        mean = 0  # FIXME: ?
-        deviation = estimate_deviation(
+        mean = estimate_blank_mean(
+            emulation=emulation,
+            config=config.intensity_config,
+        )
+        deviation = estimate_blank_deviation(
             emulation=emulation,
             config=config.intensity_config,
         )

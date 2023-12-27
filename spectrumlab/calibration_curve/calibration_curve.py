@@ -354,14 +354,14 @@ def calibrate_spectra(spectra: Frame, handler: Callable[[Spectrum], float], show
         intensity = handler(spectrum=spectrum)
 
         #
-        blank.loc[(0,j), 'concentration'] = concentration
-        blank.loc[(0,j), 'intensity'] = intensity
-        blank.loc[(0,j), 'mask'] = any(spectrum.clipped)
+        blank.loc[(i,j), 'concentration'] = concentration
+        blank.loc[(i,j), 'intensity'] = intensity
+        blank.loc[(i,j), 'mask'] = any(spectrum.clipped)
 
-    # loq
+    values = blank['intensity'].values.astype(float)
     loq = LOQ.calculate(
-        mean=blank['intensity'].mean(),
-        deviation=blank['intensity'].std(ddof=1),
+        mean=np.nanmean(values),
+        deviation=np.nanstd(values, ddof=1),
         k=10,
     )
 
