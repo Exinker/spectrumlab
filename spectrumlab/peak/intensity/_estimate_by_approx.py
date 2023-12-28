@@ -1,4 +1,3 @@
-
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import partial
@@ -9,7 +8,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
 from spectrumlab.utils import mse
-from spectrumlab.peak.profile import PeakProfile, VoightPeakProfile, EffectedVoightPeakProfile
+from spectrumlab.peak.shape import PeakShape, VoightPeakShape, EffectedVoightPeakShape
+
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class Variables:
 
     peak: 'AnalytePeak'
-    profile: PeakProfile
+    shape: PeakShape
 
     delta: float = field(default=1)
     by_tail: bool = field(default=False)
@@ -30,27 +30,27 @@ class Variables:
     _values: tuple[float] = field(init=False, repr=False)  # values
 
     def __post_init__(self):
-        profile = self.profile
+        shape = self.shape
 
-        if isinstance(profile, VoightPeakProfile):
-            self._init_voight_profile()
+        if isinstance(shape, VoightPeakShape):
+            self._init_voight_shape()
 
-        if isinstance(profile, EffectedVoightPeakProfile):
-            self._init_effected_voight_profile()
+        if isinstance(shape, EffectedVoightPeakShape):
+            self._init_effected_voight_shape()
 
-    def _init_voight_profile(self):
+    def _init_voight_shape(self):
         peak = self.peak
-        config = peak.settings.intensityConfig
+        config = peak.config.intensity
 
-        # profile
-        emission_profile = config.approx_profile.emission_profile
+        # shape
+        shape = config.approx_shape
 
         background = 0
         position = peak.position
         delta = self.delta + 1e-10
         intensity = approx_peak_by_tail(
             peak=peak,
-            profile=emission_profile,
+            shape=shape,
         )
 
         self._keys = ('background', 'position', 'intensity')
@@ -61,14 +61,14 @@ class Variables:
             (0, np.inf),
         )
 
-    def _init_effected_voight_profile(self):
+    def _init_effected_voight_shape(self):
         peak = self.peak
 
-        config = peak.settings.intensityConfig
+        config = peak.config.intensity
 
-        # profile
-        emission_profile = config.approx_profile.emission_profile
-        absorption_profile = config.approx_profile.absorption_profile
+        # shape
+        emission_shape = config.approx_shape.emission_shape
+        absorption_shape = config.approx_shape.absorption_shape
 
         # initial
         background = 0
@@ -76,16 +76,16 @@ class Variables:
         delta = self.delta + 1e-10
         intensity = approx_peak_by_tail(
             peak=peak,
-            profile=emission_profile,
+            shape=emission_shape,
         )
         absorption = 0
 
         # 
         to_restrict = False  # np.mean(peak.value[peak.index[peak.mask]]) < 2  # FIXME: restrict constant
 
-        if absorption_profile is None:
+        if absorption_shape is None:
             self._keys = ('background', 'position', 'intensity', 'absorption', 'width_absorption', 'ratio_absorption')
-            self._initial = (background, position, intensity, absorption, emission_profile.width, emission_profile.ratio)
+            self._initial = (background, position, intensity, absorption, emission_shape.width, emission_shape.ratio)
             self._bounds = (
                 (-1e-10, +1e-10),  # FIXME: нужно разобраться с пределами у фона!
                 (position - delta, position + delta),
@@ -174,8 +174,8 @@ class Variables:
         }
 
 
-def approx_peak_by_tail(peak: 'AnalytePeak', profile: PeakProfile) -> float:
-    """Approximate a analyte peak with selected profile on the tail"""
+def approx_peak_by_tail(peak: 'AnalytePeak', shape: PeakShape) -> float:
+    """Approximate the analyte peak with selected shape on the tail"""
 
     # index
     index = peak.tail
@@ -184,7 +184,7 @@ def approx_peak_by_tail(peak: 'AnalytePeak', profile: PeakProfile) -> float:
     # intensity
     x = peak.number[index]
     y = peak.value[index]
-    y_hat = profile(x=x, **{'position': peak.position, 'intensity': 1})
+    y_hat = shape(x=x, **{'position': peak.position, 'intensity': 1})
 
     intensity = np.dot(y,y) / np.dot(y_hat,y)
 
@@ -192,23 +192,23 @@ def approx_peak_by_tail(peak: 'AnalytePeak', profile: PeakProfile) -> float:
     return intensity
 
 
-def approx_peak(peak: 'AnalytePeak', profile: PeakProfile, delta: float = 1, by_tail: bool = False, show: bool = False) -> dict:
-    """Approximate a analyte peak with selected profile."""
+def approx_peak(peak: 'AnalytePeak', shape: PeakShape, delta: float = 1, by_tail: bool = False, show: bool = False) -> dict:
+    """Approximate the analyte peak with selected shape."""
 
-    def _fitness(params: Sequence[float], profile: PeakProfile, variables: Variables) -> float:
-        """Interface to calculate a fitness of approximation of a analyte peak by any profile"""
+    def _fitness(params: Sequence[float], shape: PeakShape, variables: Variables) -> float:
+        """Interface to calculate a fitness of approximation of a analyte peak by any shape"""
         x, y = variables.x, variables.y
 
         return mse(
             y=y,
-            y_hat=profile(x=x, **variables.parse_values(values=params)),
+            y_hat=shape(x=x, **variables.parse_values(values=params)),
         )
 
     #
-    variables = Variables(peak=peak, profile=profile, delta=delta, by_tail=by_tail)
+    variables = Variables(peak=peak, shape=shape, delta=delta, by_tail=by_tail)
 
     result = minimize(
-        partial(_fitness, profile=profile, variables=variables),
+        partial(_fitness, shape=shape, variables=variables),
         variables.initial,
         method='SLSQP',
         bounds=variables.bounds,
@@ -228,11 +228,11 @@ def approx_peak(peak: 'AnalytePeak', profile: PeakProfile, delta: float = 1, by_
 
         left, right = peak.minima
         x = np.linspace(left, right, 1000)
-        y_hat = profile(x, **variables.get_values())
+        y_hat = shape(x, **variables.get_values())
         plt.plot(x, y_hat, color='red')
 
         x, y = peak.number, peak.value
-        y_hat = profile(x, **variables.get_values())
+        y_hat = shape(x, **variables.get_values())
         plt.plot(x, y - y_hat, color='black', linestyle=':')
 
         plt.grid()
@@ -243,7 +243,7 @@ def approx_peak(peak: 'AnalytePeak', profile: PeakProfile, delta: float = 1, by_
 
 @dataclass
 class ApproxIntensityConfig:
-    approx_profile: PeakProfile
+    approx_shape: PeakShape
     approx_params: dict = field(default_factory=dict)
     delta: float = field(default=1)  # deviation of peak's position
     by_tail: bool = field(default=False)  # use tail for approximation
@@ -257,14 +257,14 @@ def estimate_intensity_by_approx(peak: 'AnalytePeak', config: ApproxIntensityCon
     """Estimate analyte peak's intensity by approximation."""
 
     # approx
-    if not config.approx_params:  # FIXME (2023): это нужно?
-        config.approx_params = approx_peak(
-            peak=peak,
-            profile=config.approx_profile,
-            delta=config.delta,
-            by_tail=config.by_tail,
-            show=show,
-        )
+    # if not config.approx_params:  # FIXME (2023): это нужно?
+    config.approx_params = approx_peak(
+        peak=peak,
+        shape=config.approx_shape,
+        delta=config.delta,
+        by_tail=config.by_tail,
+        show=show,
+    )
 
     value = config.approx_params['intensity']
 

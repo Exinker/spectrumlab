@@ -30,7 +30,7 @@ def _correct_position(value: Number, coeff: Sequence[float]) -> Number:
 
     FIXME: fix self-absorption peak correction
     FIXME: fix clipped peak correction
-    FIXME: autocalculate from peak profile
+    FIXME: autocalculate from peak shape
     """
 
     # calculate deviation

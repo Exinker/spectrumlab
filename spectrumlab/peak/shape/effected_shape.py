@@ -14,8 +14,8 @@ from scipy import interpolate, optimize, signal
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.utils import mse
-from spectrumlab.peak.profile.grid import Grid
-from spectrumlab.peak.profile.peak_profile import VoightPeakProfile
+from spectrumlab.peak.shape.grid import Grid
+from spectrumlab.peak.shape.peak_shape import VoightPeakShape
 
 
 @dataclass
@@ -29,7 +29,7 @@ class AbsorbedEffect:
         asymmetry = self.asymmetry
         ratio = self.ratio
 
-        x = np.arange(-self.profile.rx, self.profile.rx+self.profile.dx, self.profile.dx)
+        x = np.arange(-self.shape.rx, self.shape.rx+self.shape.dx, self.shape.dx)
 
         f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
         g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
@@ -54,7 +54,7 @@ class Effect:
 
 
 @dataclass
-class EffectedVoightPeakProfile(VoightPeakProfile):
+class EffectedVoightPeakShape(VoightPeakShape):
     width: Number
     asymmetry: float
     ratio: float
@@ -98,7 +98,7 @@ class EffectedVoightPeakProfile(VoightPeakProfile):
 
     # --------        fabric        --------
     @classmethod
-    def from_emulation(cls, emulation: Emulation, position: Number, concentrations: tuple[float]) -> 'EffectedVoightPeakProfile':
+    def from_emulation(cls, emulation: Emulation, position: Number, concentrations: tuple[float]) -> 'EffectedVoightPeakShape':
 
         frames = []
         for i, concentration in enumerate(tqdm(concentrations)):
@@ -131,14 +131,14 @@ class EffectedVoightPeakProfile(VoightPeakProfile):
 #         ratio=ratio,
 #     )
 
-#     profile = EffectedVoightPeakProfile(
+#     shape = EffectedVoightPeakShape(
 #         width=width,
 #         asymmetry=asymmetry,
 #         ratio=ratio,
 #         effect=effect,
 #         dy=dy,
 #     )
-#     profile_hat = EffectedVoightPeakProfile(
+#     shape_hat = EffectedVoightPeakShape(
 #         width=width,
 #         asymmetry=asymmetry,
 #         ratio=ratio,
@@ -154,14 +154,14 @@ class EffectedVoightPeakProfile(VoightPeakProfile):
 #     errors = []
 #     for effect_value in effect_values:
 #         x = np.linspace(-10, 10, 200)
-#         y = profile(x, position=0, intensity=1, effect_value=effect_value)
+#         y = shape(x, position=0, intensity=1, effect_value=effect_value)
 #         plt.plot(
 #             x, y,
 #             color='black', linestyle='-', linewidth=1,
 #         )
 
 #         x = np.linspace(-10, 10, 200)
-#         y_hat = profile_hat(x, position=0, intensity=1, effect_value=effect_value)
+#         y_hat = shape_hat(x, position=0, intensity=1, effect_value=effect_value)
 #         plt.plot(
 #             x, y_hat,
 #             color='red', linestyle=':', linewidth=1,

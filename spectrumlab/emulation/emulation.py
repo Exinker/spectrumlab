@@ -19,10 +19,10 @@ from scipy import integrate, interpolate, signal
 from spectrumlab.alias import Array, Absorbance, MilliSecond, Micro, Percent, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.detector.characteristic.aperture import Aperture, ApertureProfile, ApproximatedApertureProfile, RectangularApertureProfile
+from spectrumlab.emulation.detector.characteristic.aperture import Aperture, ApertureShape, RectangularApertureShape
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise, AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
-from spectrumlab.emulation.line import LineProfile, VoigtLineProfile, Line
+from spectrumlab.emulation.line import LineShape, VoigtLineShape, Line
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum, HighDynamicRangeEmittedSpectrum
 
 
@@ -68,9 +68,9 @@ class EmittedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_profile: LineProfile
-    apparatus_profile: None | LineProfile
-    aperture_profile: ApertureProfile
+    line_shape: None | LineShape
+    apparatus_shape: LineShape
+    aperture_shape: ApertureShape
     spectrum: SpectrumConfig
 
     concentration_ratio: float
@@ -114,9 +114,9 @@ class EmittedSpectrumEmulation(EmulationInterface):
         self.config = config
 
         self.detector = config.detector
-        self.line = Line.from_profile(config.line_profile)
-        self.apparatus = None if config.apparatus_profile is None else Line.from_profile(config.apparatus_profile)
-        self.aperture = Aperture.from_profile(config.aperture_profile)
+        self.line = None if config.line_shape is None else Line.from_shape(config.line_shape)
+        self.apparatus = Line.from_shape(config.apparatus_shape)
+        self.aperture = Aperture.from_shape(config.aperture_shape)
 
         self.position = None
         self.concentration = None
@@ -189,15 +189,13 @@ class EmittedSpectrumEmulation(EmulationInterface):
             rx = config.rx
 
             # physical line function
-            self._physical_line = lambda x: line(x, 0, 1)
+            if line is not None:
+                self._physical_line = lambda x: line(x, 0, 1)
 
             # apparatus line function
             x_grid = self.x_grid
 
-            if apparatus is None:
-                self._apparatus_line = self._physical_line
-
-            else:
+            if line is not None:
                 self._apparatus_line = interpolate.interp1d(
                     x_grid,
                     signal.convolve(self._physical_line(x_grid), apparatus(x_grid, 0, 1), mode='same') * 2*rx/len(x_grid),
@@ -206,7 +204,10 @@ class EmittedSpectrumEmulation(EmulationInterface):
                     fill_value=np.nan,
                 )
 
-            # peak profile
+            else:
+                self._apparatus_line = lambda x: apparatus(x, 0, 1)
+
+            # peak shape
             x_grid = self.x_grid
             self._y_grid = signal.convolve(self._apparatus_line(x_grid), aperture(x_grid, 0), mode='same') * 2*rx/len(x_grid)
 
@@ -226,7 +227,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         I *= (100/detector.config.capacity)  # to percent
 
         # intensity
-        profile_function = interpolate.interp1d(
+        shape_function = interpolate.interp1d(
             self.x_grid,
             self.y_grid,
             kind='linear',
@@ -234,7 +235,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             fill_value=0,
         )
 
-        intensity = I*profile_function((number - position)*detector.config.width)
+        intensity = I*shape_function((number - position)*detector.config.width)
 
         # background
         background = config.background_level
@@ -247,10 +248,11 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
             x = self._x_grid
 
-            plt.plot(
-                x/detector.config.width + position, background + I*self._physical_line(x),
-                label=r'$I(\lambda)$',
-            )
+            if self._physical_line is not None:
+                plt.plot(
+                    x/detector.config.width + position, background + I*self._physical_line(x),
+                    label=r'$I(\lambda)$',
+                )
             plt.plot(
                 x/detector.config.width + position, background + I*self._apparatus_line(x),
                 label=r'$I^{F}(\lambda)$',
@@ -269,8 +271,8 @@ class EmittedSpectrumEmulation(EmulationInterface):
             else:
                 plt.ylim(ylim)
 
-            plt.xlabel('$k$')
-            plt.ylabel('I, %')
+            plt.xlabel(r'number')
+            plt.ylabel(r'$I$ $[\%]$')
 
             plt.grid(color='grey', linestyle=':')
             plt.legend()
@@ -288,12 +290,12 @@ class EmittedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number | Sequence[Number], concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
+    def setup(self, position: Number | Sequence[Number], concentration: float, environment: Array[Percent] | None = None, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
         """Setup emulation of emitted spectrum."""
         self.position = position
         self.concentration = concentration
 
-        #
+        # setup intensity
         if isinstance(position, (int, float)):
             self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
 
@@ -302,6 +304,11 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 self._get_intensity(number=self.number, position=x, concentration=concentration, show=show, ylim=ylim)
                 for x in position
             ])
+
+        # add spectral environment
+        if isinstance(environment, Sequence):
+            assert (environment.ndim == 1) and (environment.shape[-1] == self.config.spectrum.n_numbers)
+            self._intensity += environment
 
         #
         return self    
@@ -341,9 +348,9 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
             )
 
-            plt.xlabel('number')
+            plt.xlabel(r'number')
             plt.ylabel({
-                EmittedSpectrum: r'$I, \%$',
+                EmittedSpectrum: r'$I$ [$\%$]',
                 AbsorbedSpectrum: r'$A$',
             }.get(type(spectrum)))
             plt.grid(color='grey', linestyle=':')
@@ -387,6 +394,14 @@ class HighDynamicRangeMode:
     tau: tuple[MilliSecond, ...]  # tuple of exposures
     method: Literal['naive', 'weighted'] = 'weighted'
 
+    # --------        handlers        --------
+    def items(self) -> tuple[int, MilliSecond]:
+        """Generate tuples of n_frames and tau."""
+
+        for n_frames, tau in zip(self.n_frames, self.tau):
+                yield n_frames, tau
+
+    # --------        private        --------
     def __post_init__(self):
         assert self._validate(), f'{self} is not valid!'
 
@@ -395,12 +410,6 @@ class HighDynamicRangeMode:
         total = sum([n_frames * tau for n_frames, tau in self.items()])
 
         return abs(total - self.total) <= tol
-
-    def items(self) -> tuple[int, MilliSecond]:
-        """Generate tuples of n_frames and tau."""
-
-        for n_frames, tau in zip(self.n_frames, self.tau):
-                yield n_frames, tau
 
 
 def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, intensity: Array, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> HighDynamicRangeEmittedSpectrum:
@@ -476,9 +485,9 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
             )
             plt.xlim([spectrum.number.min()-1, spectrum.number.max()+1])
 
-            plt.xlabel('number')
+            plt.xlabel(r'number')
             plt.ylabel({
-                EmittedSpectrum: r'$I, \%$',
+                EmittedSpectrum: r'$I$ [$\%$]',
                 AbsorbedSpectrum: r'$A$',
             }.get(type(spectrum)))
             plt.grid(color='grey', linestyle=':')
@@ -508,9 +517,9 @@ class AbsorbedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_profile: LineProfile
-    apparatus_profile: LineProfile
-    aperture_profile: ApertureProfile
+    line_shape: LineShape
+    apparatus_shape: LineShape
+    aperture_shape: ApertureShape
     spectrum_base: SpectrumBaseConfig
     spectrum: SpectrumConfig
 
@@ -580,13 +589,13 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         self.detector = config.detector
         self.line = Line(
-            profile=config.line_profile
+            shape=config.line_shape
         )
         self.apparatus = Line(
-            profile=config.apparatus_profile
+            shape=config.apparatus_shape
         )
         self.aperture = Aperture(
-            profile=config.aperture_profile
+            shape=config.aperture_shape
         )
 
         self.position = None
@@ -637,6 +646,13 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         return self._number
 
     # --------        intensity        --------
+    @property
+    def intensity(self) -> Array:
+        if self._intensity is None:
+            raise Exception('setup the emulation before!')
+
+        return self._intensity
+
     def _get_intensity(self, number: Array, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> Array:
         config = self.config
         number = self.number
@@ -658,7 +674,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         L = config.concentration_ratio  # path length (concentration coefficient to agreement between theory and emulation)
         D = device.config.dispersion
 
-        # physical line profile
+        # physical line shape
         I = L/D*concentration  # it's divided by D because an amplitude of absorption is independent of dispersion!
 
         physical_line_function = lambda x: (I0 - S0)*10**(
@@ -716,8 +732,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
                 step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=r'$s_{k}$',  # f'spectrum'
             )
 
-            plt.xlabel('$k$')
-            plt.ylabel('I, %')
+            plt.xlabel(r'number')
+            plt.ylabel(r'$I$ $[\%]$')
 
             plt.grid(color='grey', linestyle=':')
             plt.legend(loc='lower right')
@@ -741,8 +757,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             else:
                 plt.ylim(ylim)
 
-            plt.xlabel('$k$')
-            plt.ylabel('A')
+            plt.xlabel(r'number')
+            plt.ylabel(r'$A$')
 
             plt.grid(color='grey', linestyle=':')
             plt.legend(loc='upper right')
@@ -752,13 +768,6 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         # return intensity
         return intensity
-
-    @property
-    def intensity(self) -> Array:
-        if self._intensity is None:
-            raise Exception('setup the emulation before!')
-
-        return self._intensity
 
     # --------        handlers        --------
     def setup(self, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
@@ -808,9 +817,9 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
                 y2=spectrum.intensity,
                 step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
             )
-            plt.xlabel('number')
+            plt.xlabel(r'number')
             plt.ylabel({
-                EmittedSpectrum: r'$I, \%$',
+                EmittedSpectrum: r'$I$ [$\%$]',
                 AbsorbedSpectrum: r'$A$',
             }.get(type(spectrum)))
             plt.grid(color='grey', linestyle=':')
@@ -835,7 +844,7 @@ def fetch_emulation(config: AbsorbedSpectrumEmulationConfig) -> AbsorbedSpectrum
 def fetch_emulation(config, mode=None):
 
     if isinstance(config, EmittedSpectrumEmulationConfig):
-        if mode is None:
+        if isinstance(mode, type(None)):
             return EmittedSpectrumEmulation(config=config)
 
         if isinstance(mode, HighDynamicRangeMode):
@@ -861,18 +870,19 @@ if __name__ == '__main__':
     # detector
     detector = Detector.BLPP2000
 
-    # emitted spectrum emulation
+    # emulation
     emulation = fetch_emulation(
         config=EmittedSpectrumEmulationConfig(
             device=device,
             detector=detector,
 
-            line_profile=VoigtLineProfile(
-                width=2.5*7,
-                ratio=0,
+            line_shape=None,
+            apparatus_shape=VoigtLineShape(
+                width=2.5*detector.config.width,
+                asymmetry=0,
+                ratio=0.1,
             ),
-            apparatus_profile=None,
-            aperture_profile=ApproximatedApertureProfile(
+            aperture_shape=RectangularApertureShape(
                 detector=detector,
             ),
 
@@ -883,47 +893,10 @@ if __name__ == '__main__':
             background_level=0,
         ),
     )
-
-    # # absorbed spectrum emulation
-    # emulation = fetch_emulation(
-    #     config=AbsorbedSpectrumEmulationConfig(
-    #         device=device,
-    #         detector=detector,
-
-    #         apparatus_profile=VoigtLineProfile(
-    #             width=26.6,
-    #             asymmetry=0,
-    #             ratio=0.42,
-    #         ),
-    #         aperture_profile=RectangularApertureProfile(
-    #             detector=detector,
-    #         ),
-    #         line_profile=VoigtLineProfile(
-    #             width=line_width*device.config.dispersion,  # width(in pm) * dispersion(Micro/pm)
-    #             ratio=0.42,
-    #         ),
-
-    #         spectrum_base=SpectrumBaseConfig(
-    #             level=22.8,
-    #             n_frames=200,
-    #         ),
-    #         spectrum=SpectrumConfig(
-    #             n_numbers=20,
-    #         ),
-    #         concentration_ratio=1,  # concentration coefficient
-    #         background_level=0,
-    #         scattering_ratio=0,
-    #     ),
-    # )
-
-    # setup emulation
-    position = 10
-    concentration = 100
     emulation = emulation.setup(
-        position=position,
-        concentration=concentration,
+        position=10,
+        concentration=100,
         show=True,
-        # ylim=(-1, 1),
     )
 
     # spectrum

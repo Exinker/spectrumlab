@@ -2,35 +2,26 @@ import os
 import pytest
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from spectrumlab.emulation.emulation import emulate_absorbed_spectrum, AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
-from spectrumlab.emulation.experiment import AbsorbedExperimentConfig
+from spectrumlab.emulation.experiment import AbsorbedExperimentConfig as ExperimentConfig
 from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
-from spectrumlab.emulation.line import VoigtLineProfile
-
-
-TOLERANCE = 10
 
 
 @pytest.fixture(scope='module')
 def config() -> AbsorbedSpectrumEmulationConfig:
-    config = AbsorbedExperimentConfig.from_ini(filedir=os.path.dirname(__file__), filename='config_absorption.ini')
+    config = ExperimentConfig.from_ini(
+        filedir=os.path.join('.', 'tests', 'emulation', 'ini'),
+        filename='config_absorption_Ag338.289_I.ini',
+    )
 
     return AbsorbedSpectrumEmulationConfig(
         device=config.device,
         detector=config.detector,
 
-        line_profile=VoigtLineProfile(
-            width=config.line_width,  # in micron
-            ratio=config.line_ratio,
-        ),
-        apparatus_profile=VoigtLineProfile(
-            width=config.apparatus_width,  # in micron
-            asymmetry=config.apparatus_asymmetry,
-            ratio=config.apparatus_ratio,
-        ),
-        aperture_profile=config.aperture_profile(
+        line_shape=config.line_shape,
+        apparatus_shape=config.apparatus_shape,
+        aperture_shape=config.aperture_shape(
             detector=config.detector,
         ),
 
@@ -57,6 +48,7 @@ def config() -> AbsorbedSpectrumEmulationConfig:
     ],
 )
 def test_absorbed_noise_vs_value(n_times: int, n_numbers: int, config: AbsorbedSpectrumEmulationConfig) -> None:
+    tolerance = 0.1
     number = np.arange(n_numbers)
     value = np.logspace(-3, np.log10(2), n_numbers)
 
@@ -89,4 +81,4 @@ def test_absorbed_noise_vs_value(n_times: int, n_numbers: int, config: AbsorbedS
     emulated_noise = np.std(spectrum.intensity, ddof=1, axis=0)
 
     #
-    assert np.all(100*(theoretical_noise - emulated_noise) / theoretical_noise <= TOLERANCE)
+    assert np.all((theoretical_noise - emulated_noise) / theoretical_noise <= tolerance)

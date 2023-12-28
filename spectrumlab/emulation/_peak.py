@@ -7,15 +7,15 @@ import matplotlib.pyplot as plt
 from scipy import integrate, interpolate, signal
 
 from spectrumlab.alias import Array, Number, Micro, Percent
-from spectrumlab.emulation.detector.characteristic.aperture import Aperture, RectangularApertureProfile
+from spectrumlab.emulation.detector.characteristic.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.line import Line, VoigtLineProfile
+from spectrumlab.emulation.line import Line, VoigtLineShape
 from spectrumlab.picture.config import COLOR
 
 # ----------------    peak    ----------------
 @dataclass
 class Peak:
-    """Convolution of a line and a aperture shape profiles
+    """Convolution of a line and a aperture shape shapes
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
@@ -60,7 +60,7 @@ class Peak:
 
 @dataclass(frozen=True)
 class _Peak:
-    """Convolution (slow and accurate) of a line and a aperture shape profiles
+    """Convolution (slow and accurate) of a line and a aperture shape shapes
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
@@ -145,20 +145,20 @@ if __name__ == '__main__':
 
     peak = Peak(
         line=Line(
-            profile=VoigtLineProfile(width, asymmetry, ratio),
+            shape=VoigtLineShape(width, asymmetry, ratio),
         ),
         aperture=Aperture(
-            profile=RectangularApertureProfile(
+            shape=RectangularApertureShape(
                 detector=detector,
             ),
         ),
     )
     # peak = _Peak(
     #     line=Line(
-    #         profile=VoigtLineProfile(width, asymmetry, ratio),
+    #         shape=VoigtLineShape(width, asymmetry, ratio),
     #     ),
     #     aperture=Aperture(
-    #         profile=RectangularApertureProfile(
+    #         shape=RectangularApertureShape(
     #             detector=detector,
     #         ),
     #     ),

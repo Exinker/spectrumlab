@@ -1,12 +1,14 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Frame, Series
-from spectrumlab.picture.config import COLOR
+from spectrumlab.emulation.spectrum import Spectrum
+from spectrumlab.picture.config import COLOR, ALPHA
 
 from .exceptions import FitError
 from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol
@@ -53,6 +55,22 @@ class BaseCalibrationCurve(ABC):
     def _get_filename(extension: Literal['png', 'txt']) -> str:
         pass
 
+    def _get_color(self, mask: Series, color: str) -> list[str]:
+        mapping = {
+            True: 'grey',
+            False: color,
+        }
+
+        return list(map(lambda x: mapping[x], mask))
+
+    def _get_alpha(self, mask: Series, alpha: float) -> list[float]:
+        mapping = {
+            True: ALPHA['is_not_active'],
+            False: alpha,
+        }
+
+        return list(map(lambda x: mapping[x], mask))
+
 
 class CalibrationCurve(BaseCalibrationCurve):
 
@@ -75,7 +93,18 @@ class CalibrationCurve(BaseCalibrationCurve):
 
     @property
     def blank(self) -> Frame:
-        return self._blank
+        if isinstance(self._blank, Frame):
+            return self._blank
+
+        #
+        print('blank: blank is not found!')  # FIXME: add exception!
+
+        index = self.data.index[self.data['concentration'] == 0]
+        if index.empty:
+            print('blank: min concentration of data is not zero!')  # FIXME: add exception!
+            index = self.data.index[self.data['concentration'] == min(self.data['concentration'])]
+
+        return self.data[index]
 
     @property
     def coeff(self) -> tuple[Intercept, Slope]:
@@ -114,27 +143,34 @@ class CalibrationCurve(BaseCalibrationCurve):
 
     # --------        handlers        --------
     def fit(self):
+
+        # fit
+        mask = self.data['mask'].groupby(level=0, sort=False).max()
+
         data = self.data.copy()
-        data = data[~data['mask']][['concentration', 'intensity']]
+        data = data[['concentration', 'intensity']]
         data = data.groupby(level=0, sort=False).mean()
+        data = data[~mask]
         data = data.map(lambda x: np.log10(x))
 
-        x = data['concentration'].values
-        y = data['intensity'].values
-        slope, intercept = np.polyfit(x, y, deg=1)
+        slope, intercept = np.polyfit(
+            x=data['concentration'].values,
+            y=data['intensity'].values,
+            deg=1,
+        )
 
         # coeff
         self._coeff = intercept, slope
 
         # limits
-        blank_deviation = self._calculate_blank_deviation()
+        blank = self.blank
 
-        self._lod = LOD.from_deviation(
-            deviation=blank_deviation,
+        self._lod = LOD.from_blank(
+            data=blank,
             coeff=self.coeff,
         )
-        self._loq = LOQ.from_deviation(
-            deviation=blank_deviation,
+        self._loq = LOQ.from_blank(
+            data=blank,
             coeff=self.coeff,
         )
         self._lol = estimate_lol(
@@ -160,6 +196,15 @@ class CalibrationCurve(BaseCalibrationCurve):
             data = ref.copy()
             data = data.set_index(['probe', 'parallel'])
 
+        color = self._get_color(
+            mask=data['mask'].groupby(level=0, sort=False).max().astype(bool),
+            color=COLOR['yellow'] if ref is None else COLOR['green'],
+        )
+        alpha = self._get_alpha(
+            mask=data['mask'].groupby(level=0, sort=False).max().astype(bool),
+            alpha=ALPHA['probe'],
+        )
+
         # show
         fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
 
@@ -177,7 +222,7 @@ class CalibrationCurve(BaseCalibrationCurve):
             marker='s',
             facecolors='none',
             edgecolors=[0, 0, 0, 0],
-            alpha=.2,
+            alpha=ALPHA['parallel'],
         )
 
         x = data['concentration'].groupby(level=0, sort=False).mean()
@@ -186,9 +231,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=40,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -209,7 +254,7 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             color='black',
             linestyle=':',
-            alpha=.5,
+            alpha=ALPHA['default'],
         )
 
         plt.xscale('log')
@@ -231,9 +276,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=20,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -259,9 +304,9 @@ class CalibrationCurve(BaseCalibrationCurve):
             x, y,
             s=40,
             marker='s',
-            facecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            edgecolors=COLOR['yellow'] if ref is None else COLOR['green'],
-            alpha=.5,
+            facecolors=color,
+            edgecolors=color,
+            alpha=alpha,
             label='emulated' if ref is None else 'recorded',
         )
 
@@ -287,21 +332,68 @@ class CalibrationCurve(BaseCalibrationCurve):
         plt.show()
 
     # --------        private        --------
-    def _calculate_blank_deviation(self) -> float:
-
-        if self.blank is None:
-            print('blank: blank is not found!')  # FIXME: add exception!
-
-            index = self.data.index[self.data['concentration'] == 0]
-            if index.empty:
-                print('blank: min concentration of data is not zero!')  # FIXME: add exception!
-                index = self.data.index[self.data['concentration'] == min(self.data['concentration'])]
-            intensity = self.data.loc[index, 'intensity'].values
-
-        else:
-            intensity = self.blank.loc[0, 'intensity'].values
-
-        return np.std(intensity, ddof=1)
-
     def _get_filename(content: str, extension: Literal['png', 'txt']):
+
         return f'calibration_curve ({content}).{extension}'
+
+
+# --------        handlers        --------
+def calibrate_spectra(spectra: Frame, handler: Callable[[Spectrum], float], show: bool = False) -> CalibrationCurve:
+
+    # blank
+    index = spectra[spectra.index.get_level_values(0) == 'blank'].index
+    blank = pd.DataFrame(
+        data={'concentration': None, 'intensity': None, 'mask': False},
+        columns=['concentration', 'intensity', 'mask'],
+        index=index,
+    )
+
+    for i, j in index:
+        spectrum = spectra.loc[(i,j), 'spectrum']
+        concentration = spectra.loc[(i,j), 'concentration']
+        intensity = handler(spectrum=spectrum)
+
+        #
+        blank.loc[(i,j), 'concentration'] = concentration
+        blank.loc[(i,j), 'intensity'] = intensity
+        blank.loc[(i,j), 'mask'] = any(spectrum.clipped)
+
+    values = blank['intensity'].values.astype(float)
+    loq = LOQ.calculate(
+        mean=np.nanmean(values),
+        deviation=np.nanstd(values, ddof=1),
+        k=10,
+    )
+
+    # data
+    index = spectra.drop(index='blank').index
+    data = pd.DataFrame(
+        data={'concentration': None, 'intensity': None, 'mask': False},
+        columns=['concentration', 'intensity', 'mask'],
+        index=index,
+    )
+    for i, j in index:
+        spectrum = spectra.loc[(i,j), 'spectrum']
+        concentration = spectra.loc[(i,j), 'concentration']
+        intensity = handler(spectrum=spectrum)
+
+        #
+        data.loc[(i,j), 'concentration'] = concentration
+        data.loc[(i,j), 'intensity'] = intensity
+
+        is_traced = data.loc[(i,j), 'intensity'] < loq
+        is_clipped = any(spectrum.clipped)
+        data.loc[(i,j), 'mask'] = is_traced or is_clipped
+
+    # calibration curve
+    calibration_curve = CalibrationCurve(
+        data=data,
+        blank=blank,
+    )
+
+    #
+    if show:
+        calibration_curve.show()
+    
+    #
+    return calibration_curve

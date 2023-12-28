@@ -6,7 +6,7 @@ from typing import Iterator
 import numpy as np
 
 from spectrumlab.alias import Number
-from spectrumlab.peak.profile.grid import Grid
+from spectrumlab.peak.shape.grid import Grid
 
 
 @dataclass
@@ -101,7 +101,7 @@ class VoightVariables(BaseVariables):
             Variable('ratio', 0.1, (0, 1), ratio),
         ])
 
-        self.name = 'profile'
+        self.name = 'shape'
 
 
 if __name__ == '__main__':

@@ -1,14 +1,14 @@
-
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from spectrumlab.peak.intensity.utils import integrate_grid, InterpolationKind
 
+
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 
 
-@dataclass
+@dataclass(frozen=True)
 class IntegralIntensityConfig:
     interval: float = field(default=3)
     kind: InterpolationKind = field(default=InterpolationKind.LINEAR)

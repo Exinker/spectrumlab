@@ -1,12 +1,10 @@
 """
-Data types for emulated absorbtion and emitted spectra.
+Data types for emulation emission or absorbtion spectra.
 
 Author: Vaschenko Pavel
  Email: vaschenko@vmk.ru
   Date: 2022.08.24
-
 """
-
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import overload, Literal, TypeAlias
@@ -49,6 +47,54 @@ class BaseSpectrum(ABC):
 
         assert self.intensity.shape == self.clipped.shape
 
+    @property
+    def n_times(self):
+        if self.intensity.ndim == 1:
+            return 1
+        return self.intensity.shape[0]
+
+    @property
+    def time(self):
+        return np.arange(self.n_times)
+
+    @property
+    def n_numbers(self):
+        if self.intensity.ndim == 1:
+            return self.intensity.shape[0]
+        return self.intensity.shape[1]
+
+    @property
+    def index(self):
+        """internal index of spectrum."""
+        return np.arange(self.n_numbers)
+
+    @property
+    def number(self):
+        """external index of spectrum."""
+        if self._number is None:
+            self._number = self.index
+
+        return self._number
+
+    @property
+    def shape(self):
+        return self.intensity.shape
+
+    @property
+    def wavelength(self):
+        if self._wavelength is None:
+            self._wavelength = np.arange(self.n_numbers)
+
+        return self._wavelength
+
+    @property
+    def clipped(self):
+        if self._clipped is None:
+            self._clipped = np.full(self.shape, False)
+
+        return self._clipped
+
+    # --------        private        --------
     def __repr__(self):
         if self.intensity.ndim == 1:
             n_times, n_numbers = 1, self.shape[-1]
@@ -127,54 +173,7 @@ class BaseSpectrum(ABC):
     def __rsub__(self, other: float | Array):
         return self - other
 
-    @property
-    def n_times(self):
-        if self.intensity.ndim == 1:
-            return 1
-        return self.intensity.shape[0]
-
-    @property
-    def time(self):
-        return np.arange(self.n_times)
-
-    @property
-    def n_numbers(self):
-        if self.intensity.ndim == 1:
-            return self.intensity.shape[0]
-        return self.intensity.shape[1]
-
-    @property
-    def index(self):
-        """internal index of spectrum."""
-        return np.arange(self.n_numbers)
-
-    @property
-    def number(self):
-        """external index of spectrum."""
-        if self._number is None:
-            self._number = self.index
-
-        return self._number
-
-    @property
-    def shape(self):
-        return self.intensity.shape
-
-    @property
-    def wavelength(self):
-        if self._wavelength is None:
-            self._wavelength = np.arange(self.n_numbers)
-
-        return self._wavelength
-
-    @property
-    def clipped(self):
-        if self._clipped is None:
-            self._clipped = np.full(self.shape, False)
-
-        return self._clipped
-
-    # --------        show        --------
+    # --------        handlers        --------
     @abstractmethod
     def show(self, canvas, yscale):
         pass
@@ -185,6 +184,36 @@ class EmittedSpectrum(BaseSpectrum):
     def __init__(self, intensity: Array, deviation: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, detector: Detector | None = None):
         super().__init__(intensity=intensity, deviation=deviation, wavelength=wavelength, number=number, clipped=clipped, detector=detector)
 
+    # --------        handlers        --------
+    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), yscale: Percent | Electron = Percent) -> None:
+        is_filling = ax is not None
+
+        if not is_filling:
+            fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
+
+        # draw integral spectrum
+        x = self.wavelength
+        y = self.intensity
+        ax.step(
+            x, y,
+            where='mid',
+            color='black',
+        )
+
+        # set axes
+        ax.set_xlabel(r'$\lambda$ [$nm$]')
+        ax.set_ylabel(
+            r'$I$ [$\bar{e}$]' if yscale is Electron else r'$I$ [$\%$]'
+        )
+
+        ax.grid(
+            color='grey', linestyle=':',
+        )
+
+        if not is_filling:
+            plt.show()
+
+    # --------        private        --------
     def __add__(self, other: float | Array):
         cls = self.__class__
 
@@ -208,35 +237,6 @@ class EmittedSpectrum(BaseSpectrum):
             clipped=self.clipped,
             detector=self.detector,
         )
-
-    # # --------        show        --------
-    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), yscale: Percent | Electron = Percent) -> None:
-        is_filling = ax is not None
-
-        if not is_filling:
-            fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
-
-        # draw integral spectrum
-        x = self.wavelength
-        y = self.intensity
-        ax.step(
-            x, y,
-            where='mid',
-            color='black',
-        )
-
-        # set axes
-        ax.set_xlabel(r'$\lambda, nm$')
-        ax.set_ylabel(
-            r'$I, \bar{e}$' if yscale is Electron else r'$I, \%$'
-        )
-
-        ax.grid(
-            color='grey', linestyle=':',
-        )
-
-        if not is_filling:
-            plt.show()
 
 
 class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
@@ -296,6 +296,7 @@ class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
         #
         self.shorts = shorts
 
+    # --------        private        --------
     @overload
     def __getitem__(self, index: int | slice): ...
     """get spectrum at selected time or times"""
@@ -320,23 +321,7 @@ class AbsorbedSpectrum(BaseSpectrum):
 
         self.base = base
 
-    @overload
-    def __getitem__(self, index: int | slice): ...
-    """get spectrum at selected time or times"""
-    @overload
-    def __getitem__(self, index: tuple[slice | Array, slice | Array]): ...
-    """get spectrum at selected times and numbers"""
-    def __getitem__(self, index):
-        raise NotImplementedError
-
-    def __add__(self, other: float | Array):
-        return NotImplemented
-
-    def __sub__(self, other: float | Array):
-        return NotImplemented
-
-
-    # # --------        show        --------
+    # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), yscale: Absorbance = Absorbance) -> None:
         is_filling = ax is not None
 
@@ -353,7 +338,7 @@ class AbsorbedSpectrum(BaseSpectrum):
         )
 
         # set axes
-        ax.set_xlabel(r'$\lambda, nm$')
+        ax.set_xlabel(r'$\lambda$ [$nm$]')
         ax.set_ylabel(r'$A$')
 
         ax.grid(
@@ -362,6 +347,22 @@ class AbsorbedSpectrum(BaseSpectrum):
 
         if not is_filling:
             plt.show()
+
+    # --------        private        --------
+    @overload
+    def __getitem__(self, index: int | slice): ...
+    """get spectrum at selected time or times"""
+    @overload
+    def __getitem__(self, index: tuple[slice | Array, slice | Array]): ...
+    """get spectrum at selected times and numbers"""
+    def __getitem__(self, index):
+        raise NotImplementedError
+
+    def __add__(self, other: float | Array):
+        return NotImplemented
+
+    def __sub__(self, other: float | Array):
+        return NotImplemented
 
 
 Spectrum: TypeAlias = EmittedSpectrum | HighDynamicRangeEmittedSpectrum | AbsorbedSpectrum

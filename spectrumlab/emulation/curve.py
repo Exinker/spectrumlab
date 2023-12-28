@@ -1,4 +1,3 @@
-
 from functools import partial
 
 import numpy as np
@@ -9,7 +8,7 @@ from spectrumlab.utils import mse
 
 
 def gauss(x: float | Array[float], x0: float, w: float) -> Array[float]:
-    """Normal distribution with position x0 and unit intensity.
+    """Gauss (or normal) distribution with position `x0` and unit intensity.
 
     Params:
         x0: position;
@@ -22,7 +21,7 @@ def gauss(x: float | Array[float], x0: float, w: float) -> Array[float]:
 
 
 def lanczos(x: float | Array[float], x0: float, a: int = 2) -> Array[float]:
-    """Lanczos distribution with position x0
+    """Lanczos distribution with position `x0`.
     
     Params:
         x0: position;
@@ -36,7 +35,7 @@ def lanczos(x: float | Array[float], x0: float, a: int = 2) -> Array[float]:
 
 
 def rectangular(x: float | Array[float], x0: float, w: float) -> Array[float]:
-    """Rectangular distribution with position x0 and unit intensity.
+    """Rectangular distribution with position `x0` and unit intensity.
 
     Params:
         x0: position;
@@ -57,12 +56,12 @@ def rectangular(x: float | Array[float], x0: float, w: float) -> Array[float]:
 
 
 def voigt(x: float | Array[float], x0: float, sigma: float, gamma: float) -> Array[float]:
-    """Voigt distribution with position x0 and unit intensity.
+    """Voigt distribution with position `x0` and unit intensity.
 
     Params:
         x0: position;
-        sigma: width of Gaussian profile;
-        gamma: width of Lorentzian profile.
+        sigma: width of Gaussian shape;
+        gamma: width of Lorentzian shape.
 
     """
     rx = (x[-1] - x[0]) / 2
@@ -75,7 +74,7 @@ def voigt(x: float | Array[float], x0: float, sigma: float, gamma: float) -> Arr
 
 
 def pvoigt(x: float | Array[float], x0: float, w: float, a: float, r: float) -> Array[float]:
-    """Pseudo-Voigt distribution with position x0 and unit intensity.
+    """Pseudo-Voigt distribution with position `x0` and unit intensity.
 
     Params:
         x0: position;
@@ -83,7 +82,7 @@ def pvoigt(x: float | Array[float], x0: float, w: float, a: float, r: float) -> 
         a: assymetry;
         r: ratio (in range 0-1).
 
-    A simple asymmetric line shape profile for fitting infrared absorption spectra.
+    A simple asymmetric line shape shape for fitting infrared absorption spectra.
     Aaron L. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """
@@ -98,7 +97,7 @@ def pvoigt(x: float | Array[float], x0: float, w: float, a: float, r: float) -> 
 
 # --------        utils        --------
 def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tuple[float, float, float]:
-    """Approximate voigt function by psevdo-voigt (pvoigt) function."""
+    """Approximate `voigt` function by psevdo-voigt (`pvoigt`) function."""
 
     def func(x: float, x0: float, y: Array[float], params) -> float:
         y_hat = pvoigt(x, x0, *params)

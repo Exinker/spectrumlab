@@ -2,12 +2,12 @@
 from dataclasses import dataclass, asdict
 
 from spectrumlab.alias import Number
-from spectrumlab.peak.profile.scope_variables import ScopeVariables
+from spectrumlab.peak.shape.scope_variables import ScopeVariables
 
 
 @dataclass
 class Scope:
-    """PeakProfile's scope type."""
+    """PeakShape's scope type."""
     position: Number
     intensity: float
     background: float

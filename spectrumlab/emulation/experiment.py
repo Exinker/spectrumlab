@@ -1,3 +1,10 @@
+"""
+Data types for emulation experiment of .
+
+Author: Vaschenko Pavel
+ Email: vaschenko@vmk.ru
+  Date: 2023.12.26
+"""
 import os
 from configparser import ConfigParser
 from dataclasses import dataclass, field
@@ -5,10 +12,12 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 from spectrumlab.alias import Array, Frame, Micro
-from spectrumlab.emulation.detector.characteristic.aperture import ApertureProfile, RectangularApertureProfile
+from spectrumlab.emulation.detector.characteristic.aperture import ApertureShape, RectangularApertureShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
+from spectrumlab.emulation.line import LineShape, VoigtLineShape
+
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -17,35 +26,35 @@ warnings.filterwarnings('ignore')
 @dataclass
 class BaseEmittedExperimentConfig:
 
-    # --------        emulation config        --------
+    # --------        emulation        --------
     device: Device
     detector: Detector
 
     n_numbers: int
     n_frames: int
 
-    line_width: Micro
-    line_asymmetry: float
-    line_ratio: float
+    apparatus_shape: VoigtLineShape
+    aperture_shape: ApertureShape
 
-    aperture_profile: ApertureProfile
+    # --------        position        --------
+    position: float
 
-    # --------        intensity config        --------
+    # --------        intensity        --------
     intensity: IntensityConfig
 
-    # --------        calibration curve config        --------
+    # --------        calibration curve        --------
+    n_blanks: int
     n_probes: int
     n_parallels: int
 
-    position: float
+    concentration_base: float = field(default=10_000)
+    concentration_blank: float = field(default=0)
+    concentration_ratio: float = field(default=1)
 
     ref: Array[float] | None = field(default=None)
 
     # --------        others        --------
     background_level: float = field(default=0)
-    concentration_blank: float = field(default=0)
-    concentration_base: float = field(default=10_000)
-    concentration_ratio: float = field(default=1)
 
     @property
     def concentrations(self) -> tuple[float]:
@@ -53,13 +62,14 @@ class BaseEmittedExperimentConfig:
 
 
 class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
-    '''Experiment's config (naive).'''
+    '''Emitted spectra (naive) experiment's config.'''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: str, filename: str, n_probes: int = 18, n_parallels: int = 5) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 
         def _get_device(parser: ConfigParser) -> Device:
             kind = parser.get('device', 'kind')
@@ -106,7 +116,6 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
         detector = _get_detector(parser)
         ref = _get_ref(parser)
 
-        #
         return EmittedExperimentConfigNaive(
             device=device,
             detector=detector,
@@ -114,65 +123,62 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
             n_numbers=int(parser.get('spectrum', 'n_numbers')),
             n_frames=int(parser.get('spectrum', 'n_frames')),
 
-            line_width=float(parser.get('line', 'width')),
-            line_asymmetry=float(parser.get('line', 'asymmetry')),
-            line_ratio=float(parser.get('line', 'ratio')),
+            apparatus_shape=VoigtLineShape(
+                width=float(parser.get('apparatus', 'width')),
+                asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                ratio=float(parser.get('apparatus', 'ratio')),
+            ),
+            aperture_shape=RectangularApertureShape,
 
-            aperture_profile=RectangularApertureProfile,
-
-            # --------        position config        --------
+            # --------        position        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,
 
-            # --------        intensity config        --------
+            # --------        intensity        --------
             intensity=IntegralIntensityConfig(
                 kind=InterpolationKind.LINEAR,
                 interval=3,
             ),
 
-            # --------        calibration curve config        --------
-            n_probes=n_probes,
-            n_parallels=n_parallels,
+            # --------        calibration curve        --------
+            n_blanks=n_blanks or int(parser.get('calibration-curve', 'n_blanks')),
+            n_probes=n_probes or int(parser.get('calibration-curve', 'n_probes')),
+            n_parallels=n_parallels or int(parser.get('calibration-curve', 'n_parallels')),
 
+            concentration_blank=float(parser.get('calibration-curve', 'concentration_blank')),
+            concentration_base=float(parser.get('calibration-curve', 'concentration_base')),
+            concentration_ratio=10**(float(parser.get('calibration-curve', 'concentration_ratio'))),
             ref=ref,
 
             # --------        others        --------
             background_level=float(parser.get('others', 'background_level')),
-            concentration_blank=float(parser.get('others', 'concentration_blank')),
-            concentration_base=float(parser.get('others', 'concentration_base')),
-            concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
         )
 
 
 class EmittedExperimentConfig(BaseEmittedExperimentConfig):
-    '''Experiment's config.'''
+    '''Emitted spectra experiment's config.'''
 
-    def __init__(self, *args, apparatus_width: Micro, apparatus_asymmetry: float, apparatus_ratio: float, **kwargs):
+    def __init__(self, *args, line_shape: VoigtLineShape, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # --------        emulation config        --------
-        self.apparatus_width = apparatus_width
-        self.apparatus_asymmetry = apparatus_asymmetry
-        self.apparatus_ratio = apparatus_ratio
+        self.line_shape = line_shape
 
 
 class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
-    '''Experiment's config.'''
+    '''Absorbed spectra experiment's config.'''
 
-    def __init__(self, *args, base_level: float, base_n_frames: int, apparatus_width: Micro, apparatus_asymmetry: float, apparatus_ratio: float, scattering_ratio: float, **kwargs):
+    def __init__(self, *args, base_level: float, base_n_frames: int, line_shape: VoigtLineShape, scattering_ratio: float, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # --------        emulation config        --------
         self.base_level = base_level
         self.base_n_frames = base_n_frames
 
-        self.apparatus_width = apparatus_width
-        self.apparatus_asymmetry = apparatus_asymmetry
-        self.apparatus_ratio = apparatus_ratio
+        self.line_shape = line_shape
 
         self.scattering_ratio = scattering_ratio
 
+    # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: str, filename: str, n_probes: int = 18, n_parallels: int = 5) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 
         def _get_device(parser: ConfigParser) -> Device:
             kind = parser.get('device', 'kind')
@@ -234,35 +240,39 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
             base_level=base_level,
             base_n_frames=base_n_frames,
 
-            line_width=float(parser.get('line', 'width')),
-            line_asymmetry=0,
-            line_ratio=float(parser.get('line', 'ratio')),
+            line_shape = VoigtLineShape(
+                width=float(parser.get('line', 'width')),
+                asymmetry=0,
+                ratio=float(parser.get('line', 'ratio')),
+            ),
+            apparatus_shape=VoigtLineShape(
+                width=float(parser.get('apparatus', 'width')),
+                asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                ratio=float(parser.get('apparatus', 'ratio')),
+            ),
+            aperture_shape=RectangularApertureShape,
 
-            apparatus_width=float(parser.get('apparatus', 'width')),
-            apparatus_asymmetry=float(parser.get('apparatus', 'asymmetry')),
-            apparatus_ratio=float(parser.get('apparatus', 'ratio')),
-
-            aperture_profile=RectangularApertureProfile,
-
-            # --------        position config        --------
+            # --------        position        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,
 
-            # --------        intensity config        --------
+            # --------        intensity        --------
             intensity=IntegralIntensityConfig(
                 kind=InterpolationKind.LINEAR,
                 interval=3,
             ),
 
-            # --------        calibration curve config        --------
-            n_probes=n_probes,
-            n_parallels=n_parallels,
+            # --------        calibration curve        --------
+            n_blanks=n_blanks or int(parser.get('calibration-curve', 'n_blanks')),
+            n_probes=n_probes or int(parser.get('calibration-curve', 'n_probes')),
+            n_parallels=n_parallels or int(parser.get('calibration-curve', 'n_parallels')),
+
+            concentration_blank=float(parser.get('calibration-curve', 'concentration_blank')),
+            concentration_base=float(parser.get('calibration-curve', 'concentration_base')),
+            concentration_ratio=10**(float(parser.get('calibration-curve', 'concentration_ratio'))),
 
             ref=ref,
 
             # --------        others        --------
             background_level=float(parser.get('others', 'background_level')),
-            concentration_blank=float(parser.get('others', 'concentration_blank')),
-            concentration_base=float(parser.get('others', 'concentration_base')),
-            concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
             scattering_ratio=float(parser.get('others', 'scattering_ratio')),
         )

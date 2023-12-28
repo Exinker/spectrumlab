@@ -15,11 +15,11 @@ from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.emulation import Emulation
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.utils import mse
-from spectrumlab.peak.profile.grid import Grid
-from spectrumlab.peak.profile.peak_profile import VoightPeakProfile
+from spectrumlab.peak.shape.grid import Grid
+from spectrumlab.peak.shape.peak_shape import VoightPeakShape
 
 
-class EmulatedPeakProfile(VoightPeakProfile):
+class EmulatedPeakShape(VoightPeakShape):
 
     def __init__(self, emulation: Emulation, position: Number, concentrations: tuple[float]) -> None:
         super().__init__()

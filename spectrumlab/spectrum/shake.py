@@ -78,7 +78,7 @@ def shake_up(spectrum: EmittedSpectrum, n_iters: int, show: bool = False) -> tup
                 )
 
             ax_left.set_xlabel(r'$number$')
-            ax_left.set_ylabel(r'$I, \%$')
+            ax_left.set_ylabel(r'$I$ [$\%$]')
             ax_left.grid(color='grey', linestyle=':') 
 
             ax_mid.plot(offset, color='black')

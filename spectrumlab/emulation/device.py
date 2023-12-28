@@ -1,10 +1,17 @@
+"""
+Device for emulation.
+
+Author: Vaschenko Pavel
+ Email: vaschenko@vmk.ru
+  Date: 2023.02.01
+"""
 from dataclasses import dataclass
 from enum import Enum
 
 
 @dataclass(frozen=True)
 class DeviceConfig:
-    '''Device config'''
+    '''Device config.'''
     name: str
     dispersion: float  # reciprocal linear dispersion (in nm/mm) of nm
 
@@ -13,19 +20,18 @@ class DeviceConfig:
         dispersion = self.dispersion
 
         content = f'{type(self).__name__}: {name}\n\treciprocal linear dispersion: {dispersion:.4f} nm/mm'
-
         return content
 
 
 @dataclass(frozen=False)
 class DynamicDeviceConfig:
-    '''Dynamic Device config'''
+    '''Device config (not frozen).'''
     name: str
     dispersion: float  # reciprocal linear dispersion (in nm/mm) of nm
 
 
 class Device(Enum):
-    '''Enums with devices config'''
+    '''Enums with devices config.'''
 
     COLIBRI2 = DeviceConfig(
         name='Колибри-2',

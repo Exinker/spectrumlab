@@ -1,5 +1,5 @@
 """
-Detector noise dependence for any reason.
+Detector noise for any emulation.
 
 Author: Vaschenko Pavel
  Email: vaschenko@vmk.ru
@@ -17,14 +17,13 @@ from spectrumlab.alias import Array, Electron, Percent, Absorbance
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 
 
-# --------        config        --------
+# --------        noise        --------
 @dataclass
 class NoiseConfig:
     detector: Detector = field(default=Detector.BLPP2000)
     n_frames: int = field(default=1)
 
 
-# --------        noise        --------
 class BaseNoise(ABC):
     """Base noise dependence type."""
 

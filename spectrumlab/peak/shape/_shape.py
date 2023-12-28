@@ -12,7 +12,7 @@ from scipy import interpolate, optimize, signal
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.utils import mse
-from spectrumlab.peak.profile.grid import Grid
+from spectrumlab.peak.shape.grid import Grid
 
 
 @dataclass
@@ -90,7 +90,7 @@ class ApproxVariables:
     
     def __init__(self, grid: Grid, *args, **kwargs):
         self.data = {
-            'profile': VoightVariables(),
+            'shape': VoightVariables(),
             'scope': ScopeVariables(grid, *args, **kwargs),
         }
         self._values = None
@@ -129,14 +129,14 @@ class ApproxVariables:
     @staticmethod
     def parse_values(values: Sequence[float]) -> tuple[Mapping[str, float], Mapping[str, float]]:
 
-        profile_variables = {key: value for key, value in zip(VoightVariables._keys, values[:3])}  # TODO: refactor!
+        shape_variables = {key: value for key, value in zip(VoightVariables._keys, values[:3])}  # TODO: refactor!
         scope_variables = {key: value for key, value in zip(ScopeVariables._keys, values[3:])}  # TODO: refactor!
 
-        return profile_variables, scope_variables
+        return shape_variables, scope_variables
 
 
 @dataclass
-class VoightPeakProfile:
+class VoightPeakShape:
     width: float
     asymmetry: float
     ratio: float
@@ -183,7 +183,7 @@ class VoightPeakProfile:
 
     # --------        handlers        --------
     @classmethod
-    def from_grid(cls, grid: Grid, position: float | None = None, intensity: float | None = None, background: float | None = None, full: bool = False, show: bool = False) -> 'VoightPeakProfile':
+    def from_grid(cls, grid: Grid, position: float | None = None, intensity: float | None = None, background: float | None = None, full: bool = False, show: bool = False) -> 'VoightPeakShape':
 
         #
         variables = ApproxVariables(grid, position=position, intensity=intensity, background=background)
@@ -195,16 +195,16 @@ class VoightPeakProfile:
             bounds=variables.bounds,
         )
 
-        profile_variables, scope_variables = ApproxVariables.parse_values(result.x)
+        shape_variables, scope_variables = ApproxVariables.parse_values(result.x)
 
         #
-        profile = VoightPeakProfile(**profile_variables)
+        shape = VoightPeakShape(**shape_variables)
 
         #
         if show:
             plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            x, y = grid
+            x, y = grid.xvalues, grid.yvalues
             plt.plot(
                 x, y,
                 color='red', linestyle='none', marker='s', markersize=3,
@@ -212,60 +212,60 @@ class VoightPeakProfile:
             )
 
             x = np.linspace(min(grid.x), max(grid.x), 1000)
-            y_hat = profile(x, **scope_variables)
+            y_hat = shape(x, **scope_variables)
             plt.plot(
                 x, y_hat,
                 color='black', linestyle=':',
             )
 
-            x, y = grid
-            y_hat = profile(grid.x, **scope_variables)
+            x, y = grid.xvalues, grid.yvalues
+            y_hat = shape(grid.x, **scope_variables)
             plt.plot(
                 x, y - y_hat,
                 color='black', linestyle='none', marker='s', markersize=0.5,
             )
 
             plt.xlabel(r'$number$')
-            plt.ylabel(r'$I, \%$')
+            plt.ylabel(r'$I$ [$\%$]')
             plt.grid(color='grey', linestyle=':')
 
             plt.show()
 
         #
         if full:
-            return profile, *scope_variables.values()
+            return shape, *scope_variables.values()
 
-        return profile
+        return shape
 
 
 @dataclass
-class SelfAbsorptionVoightPeakProfile:
-    emission_profile: VoightPeakProfile
-    absorption_profile: VoightPeakProfile | None = field(default=None)
+class SelfAbsorptionVoightPeakShape:
+    emission_shape: VoightPeakShape
+    absorption_shape: VoightPeakShape | None = field(default=None)
 
     lim: float = field(default=100)  # границы построения интерполяции
 
     def __call__(self, x: float | Array, position: float, intensity: float, absorption: float = 0, background: float = 0, width_absorption: float = 2, ratio_absorption: float = 0) -> Array:
         """Interpolate by grip."""
 
-        profile = self.emission_profile
+        shape = self.emission_shape
         F_emission = interpolate.interp1d(
-            profile.x,
-            profile.f,
+            shape.x,
+            shape.f,
             kind='linear',
             bounds_error=False,
             fill_value=0,
         )
 
-        profile = VoightPeakProfile(
+        shape = VoightPeakShape(
             width=width_absorption,
             asymmetry=0,
             ratio=ratio_absorption,
             lim=200,
         )
         F_absorption = interpolate.interp1d(
-            profile.x,
-            profile.f,
+            shape.x,
+            shape.f,
             kind='linear',
             bounds_error=False,
             fill_value=0,
@@ -279,40 +279,40 @@ class SelfAbsorptionVoightPeakProfile:
         cls = self.__class__
 
         content = '\n'.join([
-            f'\temission: {self.emission_profile}',
-            f'\tabsorption: {self.absorption_profile}',
+            f'\temission: {self.emission_shape}',
+            f'\tabsorption: {self.absorption_shape}',
         ])
         return f'{cls.__name__}({content})'
 
 
-PeakProfile: TypeAlias = VoightPeakProfile | SelfAbsorptionVoightPeakProfile
+PeakShape: TypeAlias = VoightPeakShape | SelfAbsorptionVoightPeakShape
 
 
-# --------        PeakProfile Approximation        --------
+# --------        PeakShape Approximation        --------
 def calculate_approx_fitness(grid: Grid, params: Array) -> float:
-    x, y = grid
-    profile_variables, scope_variables = ApproxVariables.parse_values(params)
+    x, y = grid.xvalues, grid.yvalues
+    shape_variables, scope_variables = ApproxVariables.parse_values(params)
 
-    y_hat = VoightPeakProfile(**profile_variables)(x, **scope_variables)
-
-    return mse(y, y_hat)
-
-
-def _calculate_fitness(grid: Grid, profile: PeakProfile, params: Array) -> float:
-    x, y = grid
-    y_hat = profile(x, *params)
+    y_hat = VoightPeakShape(**shape_variables)(x, **scope_variables)
 
     return mse(y, y_hat)
 
 
-def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = False) -> tuple[float, float, float, float]:
+def _calculate_fitness(grid: Grid, shape: PeakShape, params: Array) -> float:
+    x, y = grid.xvalues, grid.yvalues
+    y_hat = shape(x, *params)
+
+    return mse(y, y_hat)
+
+
+def calculate_approx_scope(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple[float, float, float, float]:
     """"""
 
     #
     variables = ScopeVariables(grid=grid)
 
     result = optimize.minimize(
-        partial(_calculate_fitness, grid, profile),
+        partial(_calculate_fitness, grid, shape),
         variables.initial,
         method='SLSQP',
         bounds=variables.bounds,
@@ -320,8 +320,8 @@ def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = 
     scope_variables = result.x
 
     #
-    x, y = grid
-    y_hat = profile(x, *scope_variables)
+    x, y = grid.xvalues, grid.yvalues
+    y_hat = shape(x, *scope_variables)
     # error = mse(y, y_hat)
 
     intensity = scope_variables[1]
@@ -336,7 +336,7 @@ def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = 
 
         plt.title(f'error: {error:.5f}')
 
-        x, y = grid
+        x, y = grid.xvalues, grid.yvalues
         plt.plot(
             x, y,
             color='red', linestyle='none', marker='s', markersize=3,
@@ -344,21 +344,21 @@ def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = 
         )
 
         x = np.linspace(min(grid.x), max(grid.x), 1000)
-        y_hat = profile(x, *scope_variables)
+        y_hat = shape(x, *scope_variables)
         plt.plot(
             x, y_hat,
             color='black', linestyle=':',
         )
 
-        x, y = grid
-        y_hat = profile(grid.x, *scope_variables)
+        x, y = grid.xvalues, grid.yvalues
+        y_hat = shape(grid.x, *scope_variables)
         plt.plot(
             x, y - y_hat,
             color='black', linestyle='none', marker='s', markersize=0.5,
         )
 
         plt.xlabel(r'$number$')
-        plt.ylabel(r'$I, \%$')
+        plt.ylabel(r'$I$ [$\%$]')
         plt.grid(color='grey', linestyle=':')
 
         plt.show()
@@ -368,12 +368,12 @@ def calculate_approx_scope(grid: Grid, profile: VoightPeakProfile, show: bool = 
 
 
 # --------        utils        --------
-def find_fwhm(profile: VoightPeakProfile) -> float:
-    """Find full width at half maximum (FWHM) for given profile."""
-    f = partial(profile, position=0, intensity=1, background=0)
+def find_fwhm(shape: VoightPeakShape) -> float:
+    """Find full width at half maximum (FWHM) for given shape."""
+    f = partial(shape, position=0, intensity=1, background=0)
 
     fwhm = 0
-    for x0, bounds in zip([-1, 1], [[(-10*profile.width, 0)], [(0, +10*profile.width)]]):
+    for x0, bounds in zip([-1, 1], [[(-10*shape.width, 0)], [(0, +10*shape.width)]]):
         res = optimize.minimize(
             lambda x: mse(f(0)/2, f(x)),
             x0=x0,

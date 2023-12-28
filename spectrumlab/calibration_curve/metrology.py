@@ -1,4 +1,4 @@
-from typing import NewType
+from typing import Mapping, NewType
 
 import numpy as np
 from scipy import interpolate
@@ -28,6 +28,7 @@ class BaseLimit:
 
         return 10**((np.log10(self.intensity) - intercept) / slope)
 
+    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
         return f'{cls.__name__}({self.concentration})'
@@ -45,29 +46,73 @@ class BaseLimit:
 # --------        LOD and LOQ        --------
 class LOD(BaseLimit):
     """Limit of Detection (LOD) in emission or absorption."""
+    k_default = 3
 
     def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
         super().__init__(intensity, coeff=coeff, info=info)
 
+    # --------        handle        --------
+    @staticmethod
+    def calculate(mean: float, deviation: float, k: float) -> float:
+        return mean + k*deviation
+
+    # --------        fabric        --------
     @classmethod
-    def from_deviation(cls, deviation: float, coeff: tuple[Intercept, Slope], k: float = 3) -> 'LOD':
+    def from_json(cls, data: Mapping[str, float], coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOD':
+        k = k or cls.k_default
+
         return cls(
-            intensity=k*deviation,
+            intensity=cls.calculate(data['mean'], data['deviation'], k=k),
             coeff=coeff,
+            info=f'k: {k}',
+        )
+
+    @classmethod
+    def from_blank(cls, data: Frame, coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOD':
+        k = k or cls.k_default
+        mean = data['intensity'].mean()
+        deviation = data['intensity'].std(ddof=1)
+
+        return cls(
+            intensity=cls.calculate(mean, deviation, k=k),
+            coeff=coeff,
+            info=f'k: {k}',
         )
 
 
 class LOQ(BaseLimit):
     """Limit of Quantity (LOQ) in emission or absorption."""
+    k_default = 10
 
     def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
         super().__init__(intensity, coeff=coeff, info=info)
 
+    # --------        handle        --------
+    @staticmethod
+    def calculate(mean: float, deviation: float, k: float) -> float:
+        return mean + k*deviation
+
+    # --------        fabric        --------
     @classmethod
-    def from_deviation(cls, deviation: float, coeff: tuple[Intercept, Slope], k: float = 10) -> 'LOQ':
+    def from_json(cls, data: Mapping[str, float], coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOQ':
+        k = k or cls.k_default
+
         return cls(
-            intensity=k*deviation,
+            intensity=cls.calculate(data['mean'], data['deviation'], k=k),
             coeff=coeff,
+            info=f'k: {k}',
+        )
+
+    @classmethod
+    def from_blank(cls, data: Frame, coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOQ':
+        k = k or cls.k_default
+        mean = data['intensity'].mean()
+        deviation = data['intensity'].std(ddof=1)
+
+        return cls(
+            intensity=cls.calculate(mean, deviation, k=k),
+            coeff=coeff,
+            info=f'k: {k}',
         )
 
 
@@ -83,8 +128,8 @@ def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.0
     intercept, slope = coeff
 
     # calibration curve
-    x_grid = data.loc[~data['mask'], 'concentration'].apply(lambda x: np.log10(x))
-    y_grid = data.loc[~data['mask'], 'intensity'].apply(lambda x: np.log10(x))
+    x_grid = data['concentration'].apply(lambda x: np.log10(x))
+    y_grid = data['intensity'].apply(lambda x: np.log10(x))
 
     x = np.linspace(np.min(x_grid), np.max(x_grid), 1_000_000)
     y = interpolate.interp1d(
@@ -97,7 +142,7 @@ def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.0
     ref = 10**(slope*x + intercept)
     predicted = 10**(y)
 
-    mask = (100*np.abs(ref - predicted) / ref) <= threshold
+    mask = (np.abs(ref - predicted) / ref) <= threshold
     value = 10**(np.max(y[mask])) if any(mask) else np.nan
 
     #

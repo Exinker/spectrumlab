@@ -112,7 +112,7 @@ class RecordedSpectrum(BaseSpectrum):
             detector=self.detector,
         )
 
-    # --------        show        --------
+    # --------        handlers        --------
     @abstractmethod
     def show(self, canvas, yscale):
         pass
@@ -123,7 +123,7 @@ class EmittedSpectrum(RecordedSpectrum):
     def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
 
-    # --------        show        --------
+    # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None, grid: bool = False) -> None:
         is_filling = ax is not None
 
@@ -156,7 +156,7 @@ class AbsorbedSpectrum(RecordedSpectrum):
     def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
 
-    # # --------        show        --------
+    # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None) -> None:
         is_filling = ax is not None
 

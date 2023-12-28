@@ -18,7 +18,7 @@ class CharacteristicBase(ABC):
         raise NotImplementedError
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConstantCharacteristic(CharacteristicBase):
     value: float
 
@@ -32,7 +32,7 @@ class ConstantCharacteristic(CharacteristicBase):
         raise ValueError
 
 
-@dataclass
+@dataclass(frozen=True)
 class WindowCharacteristic(CharacteristicBase):
     span: tuple[Nano, Nano]
     smooth: float | None  # smoothing rectangular edges by gauss
@@ -76,7 +76,7 @@ class WindowCharacteristic(CharacteristicBase):
         )(x)
 
 
-@dataclass
+@dataclass(frozen=True)
 class DatasheetCharacteristic(CharacteristicBase):
     path: str
     xscale: float = field(default=1)  # transform x values to meter units
