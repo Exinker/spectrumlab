@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy import integrate, interpolate, signal
 
 from spectrumlab.alias import Array, Number, Micro, Percent
-from spectrumlab.emulation.detector.characteristic.aperture import Aperture, RectangularApertureShape
+from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.line import Line, VoigtLineShape
 from spectrumlab.picture.config import COLOR
