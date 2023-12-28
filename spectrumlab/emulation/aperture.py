@@ -138,11 +138,11 @@ class Aperture:
     def __call__(self, x: Micro | Array[Micro], n: int) -> Array[float]:
         return self.shape(x, n=n)
 
-    # --------        handlers        --------
     @property
     def detector(self) -> Detector:
         return self.shape.detector
 
+    # --------        handlers        --------
     def show(self, rx: Micro = 100, dx: Micro = .01, xscale: Number | Micro = Number) -> None:
         step = self.detector.config.width
         n_steps = rx // step + 1

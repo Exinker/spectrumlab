@@ -19,10 +19,11 @@ from scipy import integrate, interpolate, signal
 from spectrumlab.alias import Array, Absorbance, MilliSecond, Micro, Percent, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
+from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape
+from spectrumlab.emulation.aperture import Aperture, ApertureShape
 from spectrumlab.emulation.device import Device
+from spectrumlab.emulation.line import Line, LineShape
 from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise, AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
-from spectrumlab.emulation.line import LineShape, VoigtLineShape, Line
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum, HighDynamicRangeEmittedSpectrum
 
 
@@ -68,8 +69,8 @@ class EmittedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_shape: None | LineShape
-    apparatus_shape: LineShape
+    line_shape: LineShape | None
+    apparatus_shape: ApparatusShape
     aperture_shape: ApertureShape
     spectrum: SpectrumConfig
 
@@ -115,7 +116,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
         self.detector = config.detector
         self.line = None if config.line_shape is None else Line.from_shape(config.line_shape)
-        self.apparatus = Line.from_shape(config.apparatus_shape)
+        self.apparatus = Apparatus.from_shape(config.apparatus_shape)
         self.aperture = Aperture.from_shape(config.aperture_shape)
 
         self.position = None
@@ -132,6 +133,13 @@ class EmittedSpectrumEmulation(EmulationInterface):
         self._intensity = None
 
     # --------        noise        --------
+    @property
+    def noise(self) -> EmittedSpectrumNoise:
+        if self._noise is None:
+            self._noise = self._get_noise()
+
+        return self._noise
+
     def _get_noise(self) -> EmittedSpectrumNoise:
         config = self.config
 
@@ -140,14 +148,14 @@ class EmittedSpectrumEmulation(EmulationInterface):
             n_frames=config.spectrum.n_frames,
         )
 
-    @property
-    def noise(self) -> EmittedSpectrumNoise:
-        if self._noise is None:
-            self._noise = self._get_noise()
-
-        return self._noise
-
     # --------        number        --------
+    @property
+    def number(self) -> Array[Number]:
+        if self._number is None:
+            self._number = self._get_number()
+
+        return self._number
+
     def _get_number(self) -> Array[Number]:
         config = self.config
 
@@ -155,13 +163,6 @@ class EmittedSpectrumEmulation(EmulationInterface):
         number = np.arange(n_numbers)
 
         return number
-
-    @property
-    def number(self) -> Array[Number]:
-        if self._number is None:
-            self._number = self._get_number()
-
-        return self._number
 
     # --------        intensity        --------
     @property
@@ -186,29 +187,29 @@ class EmittedSpectrumEmulation(EmulationInterface):
             apparatus = self.apparatus
             aperture = self.aperture
 
+            x_grid = self.x_grid
             rx = config.rx
 
             # physical line function
-            if line is not None:
+            if line is None:
+                self._physical_line = None
+            else:
                 self._physical_line = lambda x: line(x, 0, 1)
 
             # apparatus line function
-            x_grid = self.x_grid
+            if line is None:
+                self._apparatus_line = lambda x: apparatus(x, 0)
 
-            if line is not None:
+            else:
                 self._apparatus_line = interpolate.interp1d(
                     x_grid,
-                    signal.convolve(self._physical_line(x_grid), apparatus(x_grid, 0, 1), mode='same') * 2*rx/len(x_grid),
+                    signal.convolve(self._physical_line(x_grid), apparatus(x_grid, 0), mode='same') * 2*rx/len(x_grid),
                     kind='linear',
                     bounds_error=False,
                     fill_value=np.nan,
                 )
 
-            else:
-                self._apparatus_line = lambda x: apparatus(x, 0, 1)
-
             # peak shape
-            x_grid = self.x_grid
             self._y_grid = signal.convolve(self._apparatus_line(x_grid), aperture(x_grid, 0), mode='same') * 2*rx/len(x_grid)
 
         return self._y_grid
@@ -226,8 +227,8 @@ class EmittedSpectrumEmulation(EmulationInterface):
         I = L * concentration * (detector.config.width * detector.config.height)
         I *= (100/detector.config.capacity)  # to percent
 
-        # intensity
-        shape_function = interpolate.interp1d(
+        # intensity (detector's output signal)
+        f = interpolate.interp1d(
             self.x_grid,
             self.y_grid,
             kind='linear',
@@ -235,7 +236,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             fill_value=0,
         )
 
-        intensity = I*shape_function((number - position)*detector.config.width)
+        intensity = I*f((number - position)*detector.config.width)
 
         # background
         background = config.background_level
@@ -518,7 +519,7 @@ class AbsorbedSpectrumEmulationConfig:
     detector: Detector
 
     line_shape: LineShape
-    apparatus_shape: LineShape
+    apparatus_shape: ApparatusShape
     aperture_shape: ApertureShape
     spectrum_base: SpectrumBaseConfig
     spectrum: SpectrumConfig
@@ -591,7 +592,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         self.line = Line(
             shape=config.line_shape
         )
-        self.apparatus = Line(
+        self.apparatus = Apparatus(
             shape=config.apparatus_shape
         )
         self.aperture = Aperture(
@@ -606,6 +607,13 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         self._intensity = None
 
     # --------        noise        --------
+    @property
+    def noise(self) -> AbsorbedSpectrumNoise:
+        if self._noise is None:
+            self._noise = self._get_noise()
+
+        return self._noise
+
     def _get_noise(self) -> AbsorbedSpectrumNoise:
         config = self.config
 
@@ -622,14 +630,14 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             base_noise=base_noise,
         )
 
-    @property
-    def noise(self) -> AbsorbedSpectrumNoise:
-        if self._noise is None:
-            self._noise = self._get_noise()
-
-        return self._noise
-
     # --------        number        --------
+    @property
+    def number(self) -> Array:
+        if self._number is None:
+            self._number = self._get_number()
+
+        return self._number
+
     def _get_number(self) -> Array:
         config = self.config
 
@@ -637,13 +645,6 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         number = np.arange(n_numbers)
 
         return number
-
-    @property
-    def number(self) -> Array:
-        if self._number is None:
-            self._number = self._get_number()
-
-        return self._number
 
     # --------        intensity        --------
     @property
@@ -677,7 +678,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         # physical line shape
         I = L/D*concentration  # it's divided by D because an amplitude of absorption is independent of dispersion!
 
-        physical_line_function = lambda x: (I0 - S0)*10**(
+        physical_line = lambda x: (I0 - S0)*10**(
             -(B + line(x, position=0, intensity=I))
         )
 
@@ -685,9 +686,9 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         span = 10*rx
         x = np.arange(-span, span+dx, dx)
 
-        apparatus_line_function = interpolate.interp1d(
+        apparatus_line = interpolate.interp1d(
             x,
-            B0 + signal.convolve(apparatus(x, position=0, intensity=1), physical_line_function(x) - B0, mode='same') * 2*span/len(x),
+            B0 + signal.convolve(apparatus(x, position=0, intensity=1), physical_line(x) - B0, mode='same') * 2*span/len(x),
             kind='linear',
             bounds_error=False,
             fill_value=np.nan,
@@ -699,7 +700,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         intensity = np.zeros(number.shape)
         for n in number:
             intensity[n] = integrate.quad(
-                lambda x: apparatus_line_function(x - x0) * aperture(x, n),
+                lambda x: apparatus_line(x - x0) * aperture(x, n),
                 n*detector.config.width - rx,
                 n*detector.config.width + rx,
             )[0]
@@ -723,8 +724,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             # in emission units
             ax = plt.subplot(1, 2, 1)
 
-            plt.plot(x/detector.config.width, S0 + physical_line_function(x - x0), label=r'$I(\lambda)$')  # f'physical line'
-            plt.plot(x/detector.config.width, S0 + apparatus_line_function(x - x0), label=r'$I^{F}(\lambda)$')  # f'apparatus line'
+            plt.plot(x/detector.config.width, S0 + physical_line(x - x0), label=r'$I(\lambda)$')  # f'physical line'
+            plt.plot(x/detector.config.width, S0 + apparatus_line(x - x0), label=r'$I^{F}(\lambda)$')  # f'apparatus line'
             plt.fill_between(
                 number,
                 y1=S0 + np.full(number.shape, B0),
@@ -741,8 +742,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             # in absorption units
             ax = plt.subplot(1, 2, 2)
 
-            plt.plot(x/detector.config.width, calculate_absorbance(S0 + physical_line_function(x - x0), I0), label=r'$A(\lambda)$')  # f'physical line'
-            plt.plot(x/detector.config.width, calculate_absorbance(S0 + apparatus_line_function(x - x0), I0), label=r'$A^{F}(\lambda)$')  # f'apparatus line'
+            plt.plot(x/detector.config.width, calculate_absorbance(S0 + physical_line(x - x0), I0), label=r'$A(\lambda)$')  # f'physical line'
+            plt.plot(x/detector.config.width, calculate_absorbance(S0 + apparatus_line(x - x0), I0), label=r'$A^{F}(\lambda)$')  # f'apparatus line'
             plt.fill_between(
                 number,
                 y1=np.full(number.shape, config.background_level),
@@ -860,6 +861,8 @@ def fetch_emulation(config, mode=None):
 
 # --------        main        --------
 if __name__ == '__main__':
+    from spectrumlab.emulation.aperture import RectangularApertureShape
+    from spectrumlab.emulation.apparatus import VoigtApparatusShape
 
     line_width = 1.68  # in pm
 
@@ -877,8 +880,8 @@ if __name__ == '__main__':
             detector=detector,
 
             line_shape=None,
-            apparatus_shape=VoigtLineShape(
-                width=2.5*detector.config.width,
+            apparatus_shape=VoigtApparatusShape(
+                width=25,
                 asymmetry=0,
                 ratio=0.1,
             ),

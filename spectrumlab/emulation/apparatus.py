@@ -1,14 +1,10 @@
-from dataclasses import dataclass, field
-from typing import Literal
+from dataclasses import dataclass
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, Micro
 from spectrumlab.emulation.curve import rectangular, pvoigt
-from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.picture.config import COLOR
 
 
 # --------        shape        --------
