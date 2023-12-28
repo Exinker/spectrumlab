@@ -688,7 +688,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         apparatus_line = interpolate.interp1d(
             x,
-            B0 + signal.convolve(apparatus(x, position=0, intensity=1), physical_line(x) - B0, mode='same') * 2*span/len(x),
+            B0 + signal.convolve(apparatus(x, 0), physical_line(x) - B0, mode='same') * 2*span/len(x),
             kind='linear',
             bounds_error=False,
             fill_value=np.nan,

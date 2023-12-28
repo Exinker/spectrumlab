@@ -11,8 +11,9 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from spectrumlab.alias import Array, Frame, Micro
+from spectrumlab.alias import Array, Frame
 from spectrumlab.emulation.aperture import ApertureShape, RectangularApertureShape
+from spectrumlab.emulation.apparatus import ApparatusShape, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
@@ -33,7 +34,7 @@ class BaseEmittedExperimentConfig:
     n_numbers: int
     n_frames: int
 
-    apparatus_shape: VoigtLineShape
+    apparatus_shape: ApparatusShape
     aperture_shape: ApertureShape
 
     # --------        position        --------
@@ -123,7 +124,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
             n_numbers=int(parser.get('spectrum', 'n_numbers')),
             n_frames=int(parser.get('spectrum', 'n_frames')),
 
-            apparatus_shape=VoigtLineShape(
+            apparatus_shape=VoigtApparatusShape(
                 width=float(parser.get('apparatus', 'width')),
                 asymmetry=float(parser.get('apparatus', 'asymmetry')),
                 ratio=float(parser.get('apparatus', 'ratio')),
@@ -245,7 +246,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
                 asymmetry=0,
                 ratio=float(parser.get('line', 'ratio')),
             ),
-            apparatus_shape=VoigtLineShape(
+            apparatus_shape=VoigtApparatusShape(
                 width=float(parser.get('apparatus', 'width')),
                 asymmetry=float(parser.get('apparatus', 'asymmetry')),
                 ratio=float(parser.get('apparatus', 'ratio')),
