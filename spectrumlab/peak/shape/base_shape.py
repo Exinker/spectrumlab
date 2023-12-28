@@ -1,11 +1,10 @@
-
 from abc import ABC, abstractmethod
 
 from spectrumlab.alias import Array, Number
 
 
-class BaseShape(ABC):
-    """Base peak's shape type."""
+class BasePeakShape(ABC):
+    """Base peak's shape."""
 
     @abstractmethod
     def __call__(self, x: Array[Number], position: Number, intensity: float, background: float) -> Array[float]:

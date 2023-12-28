@@ -11,7 +11,7 @@ from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.utils import mse
 from spectrumlab.peak.shape.grid import Grid
 from spectrumlab.peak.shape.base_variables import BaseVariables, ScopeVariables, VoightVariables
-from spectrumlab.peak.shape.base_shape import BaseShape
+from spectrumlab.peak.shape.base_shape import BasePeakShape
 
 
 # --------        voight peak shape        --------
@@ -56,6 +56,7 @@ class VoightPeakShapeVariables(BaseVariables):
 
         return result
 
+    # --------        handlers        --------
     @classmethod
     def parse_params(cls, grid: Grid, params: Sequence[float]) -> tuple[VoightVariables, ScopeVariables]:
         assert len(params) == 6
@@ -66,11 +67,19 @@ class VoightPeakShapeVariables(BaseVariables):
         return shape_variables, scope_variables
 
 
-class VoightPeakShape(BaseShape):
-    """Voight peak's shape type."""
-
+class VoightPeakShape(BasePeakShape):
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01) -> None:
+        """Voight peak's shape. A convolution of apparatus shape and aperture shape (rectangular) of a detector.
+
+        Params:
+            width: Number - apparatus shape's width
+            asymmetry: float - apparatus shape's asymmetry
+            ratio: float - apparatus shape's ratio
+
+            rx: Number = 10 - range of grid
+            dx: Number = 0.01 - step of grid
+        """
         super().__init__()
 
         self.width = width
@@ -80,35 +89,15 @@ class VoightPeakShape(BaseShape):
         self.dx = dx  # шаг сетки интерполяции
 
         # grid
-        x = np.arange(-self.rx, self.rx+self.dx, self.dx)
+        # x = np.arange(-self.rx, +self.rx+self.dx, self.dx)
+        x = np.linspace(-self.rx, +self.rx, int(1/self.dx) + 1)
 
         f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
-        h = lambda x: rectangular(x, x0=0, w=1)
-        y = signal.convolve(f(x), h(x), mode='same') * (x[-1] - x[0])/len(x)
+        s = lambda x: rectangular(x, x0=0, w=1)
+        y = signal.convolve(f(x), s(x), mode='same') * (x[-1] - x[0])/len(x)
 
         self._xvalues = x
         self._yvalues = y
-
-    @overload
-    def __call__(self, x: float, position: Number, intensity: float, background: float = 0) -> float: ...
-    @overload
-    def __call__(self, x: Array[float], position: Number, intensity: float, background: float = 0) -> Array[float]: ...
-    def __call__(self, x, position, intensity, background=0):
-
-        f = interpolate.interp1d(
-            self._xvalues,
-            self._yvalues,
-            kind='linear',
-            bounds_error=False,
-            fill_value=0,
-        )
-
-        return background + intensity*f(x - position)
-
-    def __repr__(self) -> str:
-        cls = self.__class__
-
-        return f'{cls.__name__}({get_content(self)})'
 
     # --------        fabric        --------
     @classmethod
@@ -132,14 +121,16 @@ class VoightPeakShape(BaseShape):
         # variables
         variables = VoightPeakShapeVariables(grid=grid)
 
-        result = optimize.minimize(
+        res = optimize.minimize(
             partial(_fitness, grid),
             variables.initial,
             method='SLSQP',
             bounds=variables.bounds,
         )
+        assert res['success'], 'Optimization is not succeeded!'
 
-        shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=result.x)
+        shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=res['x'])
+        # shape_variables = VoightVariables(25/14, 0, .1)
 
         # shape
         shape = cls(**shape_variables)
@@ -186,8 +177,30 @@ class VoightPeakShape(BaseShape):
         # 
         return shape
 
+    # --------        private        --------
+    @overload
+    def __call__(self, x: Number, position: Number, intensity: float, background: float = 0) -> float: ...
+    @overload
+    def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0) -> Array[float]: ...
+    def __call__(self, x, position, intensity, background=0):
 
-class EffectedVoightPeakShape(BaseShape):
+        f = interpolate.interp1d(
+            self._xvalues,
+            self._yvalues,
+            kind='linear',
+            bounds_error=False,
+            fill_value=0,
+        )
+
+        return background + intensity*f(x - position)
+
+    def __repr__(self) -> str:
+        cls = self.__class__
+
+        return f'{cls.__name__}({get_content(self)})'
+
+
+class EffectedVoightPeakShape(BasePeakShape):
     """Effected voight peak's shape type."""
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01, de: float = 0.25, re: float = 4) -> None:
@@ -206,6 +219,7 @@ class EffectedVoightPeakShape(BaseShape):
         self.evalues = np.arange(0, self.re+self.de, self.de)
         self.yvalues = np.array([self._apply_effect(effect=effect) for effect in self.evalues])
 
+    # --------        private        --------
     @overload
     def __call__(self, x: float, position: Number, intensity: float, background: float = 0, effect: float = 0) -> float: ...
     @overload
@@ -271,14 +285,15 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
     # variables
     variables = ScopeVariables(grid=grid)
 
-    result = optimize.minimize(
+    res = optimize.minimize(
         partial(_fitness, grid=grid, shape=shape),
         variables.initial,
         method='SLSQP',
         bounds=variables.bounds,
     )
+    assert res['success'], 'Optimization is not succeeded!'
 
-    scope_variables = ScopeVariables(grid, *result.x)
+    scope_variables = ScopeVariables(grid, *res['x'])
 
     #
     y = grid.yvalues

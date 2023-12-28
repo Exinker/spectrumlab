@@ -1,20 +1,13 @@
-
-from abc import ABC
-from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from functools import partial
-from typing import overload, TypeAlias, Type
+from typing import overload
 
 from tqdm import tqdm
 
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy import interpolate, optimize, signal
+from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
-from spectrumlab.utils import mse
-from spectrumlab.peak.shape.grid import Grid
 from spectrumlab.peak.shape.peak_shape import VoightPeakShape
 
 
@@ -36,8 +29,6 @@ class AbsorbedEffect:
         h = lambda x: rectangular(x, x0=0, w=1)
 
         return signal.convolve(f(x) * 10**(-value * g(x)), h(x), mode='same') * (x[-1] - x[0])/len(x)
-
-
 
 
 ####

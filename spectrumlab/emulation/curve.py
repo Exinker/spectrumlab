@@ -11,8 +11,8 @@ def gauss(x: float | Array[float], x0: float, w: float) -> Array[float]:
     """Gauss (or normal) distribution with position `x0` and unit intensity.
 
     Params:
-        x0: position;
-        w: width.
+        x0: float - position;
+        w: float - width.
     """
 
     F = np.exp( -(1/2)*((x - x0) / w)**2 ) / ( np.sqrt(2*np.pi) * w )
@@ -24,8 +24,8 @@ def lanczos(x: float | Array[float], x0: float, a: int = 2) -> Array[float]:
     """Lanczos distribution with position `x0`.
     
     Params:
-        x0: position;
-        a: window width.
+        x0: float - position;
+        a: float - window width.
     """
 
     F = np.sinc(x - x0) * np.sinc((x - x0) / a)
@@ -38,8 +38,8 @@ def rectangular(x: float | Array[float], x0: float, w: float) -> Array[float]:
     """Rectangular distribution with position `x0` and unit intensity.
 
     Params:
-        x0: position;
-        w: width (full width).
+        x0: float - position;
+        w: float - width (full width).
     """
 
     if isinstance(x, float):  # TODO: don't remove! It's for integrate.quad functions!
@@ -59,9 +59,9 @@ def voigt(x: float | Array[float], x0: float, sigma: float, gamma: float) -> Arr
     """Voigt distribution with position `x0` and unit intensity.
 
     Params:
-        x0: position;
-        sigma: width of Gaussian shape;
-        gamma: width of Lorentzian shape.
+        x0: float - position;
+        sigma: float - width of Gaussian shape;
+        gamma: float - width of Lorentzian shape.
 
     """
     rx = (x[-1] - x[0]) / 2
@@ -77,10 +77,10 @@ def pvoigt(x: float | Array[float], x0: float, w: float, a: float, r: float) -> 
     """Pseudo-Voigt distribution with position `x0` and unit intensity.
 
     Params:
-        x0: position;
-        w: width (full width at half maximum);
-        a: assymetry;
-        r: ratio (in range 0-1).
+        x0: float - position;
+        w: float - width (full width at half maximum);
+        a: float - assymetry;
+        r: float - ratio (in range 0-1).
 
     A simple asymmetric line shape shape for fitting infrared absorption spectra.
     Aaron L. Stancik, Eric B. Brauns

@@ -239,7 +239,7 @@ class VoightPeakShape:
 
 
 @dataclass
-class SelfAbsorptionVoightPeakShape:
+class SelfReversedVoightPeakShape:
     emission_shape: VoightPeakShape
     absorption_shape: VoightPeakShape | None = field(default=None)
 
@@ -285,7 +285,7 @@ class SelfAbsorptionVoightPeakShape:
         return f'{cls.__name__}({content})'
 
 
-PeakShape: TypeAlias = VoightPeakShape | SelfAbsorptionVoightPeakShape
+PeakShape: TypeAlias = VoightPeakShape | SelfReversedVoightPeakShape
 
 
 # --------        PeakShape Approximation        --------

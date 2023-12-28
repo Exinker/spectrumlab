@@ -64,56 +64,20 @@ class Grid:
 
     # --------        fabric        --------
     @classmethod
-    def _from_items(cls, items: Sequence[tuple[Array, Array]], offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> 'Grid':
-        """Get a grid from sequence of items."""
-        n_times = len(items)
-
-        # offset
-        if offset is None:
-            offset = tuple(0 for _ in range(n_times))
-
-        assert len(offset) == n_times, f'len of offset have to be equal of n_times: {n_times}'
-
-        # scale
-        if scale is None:
-            scale = tuple(1 for _ in range(n_times))
-
-        assert len(scale) == n_times, f'len of scale have to be equal of n_times: {n_times}'
-
-        # background
-        if background is None:
-            background = np.zeros(n_times,)
-
-        assert len(background) == n_times, f'len of background have to be equal of n_times: {n_times}'
-
-        #
-        xvalues, yvalues = [], []
-        for t in range(n_times):
-            x, y = items[t]
-
-            xvalues.extend(x - offset[t])
-            yvalues.extend((y - background[t]) / scale[t])
-        xvalues, yvalues = np.array(xvalues), np.array(yvalues)
-
-        index = np.argsort(xvalues)
-
-        #
-        return cls(
-            xvalues=xvalues[index],
-            yvalues=yvalues[index],
-        )
-
-    @classmethod
-    def from_frames(cls, spectrum: Spectrum, offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> 'Grid':
+    def from_frames(cls, spectrum: Spectrum, offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 100) -> 'Grid':
         """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
         assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
 
         #
-        def _get_item(number: Array, intensity: Array) -> tuple[Array, Array]:
-            return number, intensity
+        def _get_item(number: Array, intensity: Array, deviation: Array, clipped: Array, threshold: float) -> tuple[Array, Array]:
+            is_clipped = clipped
+            is_low_snr = intensity / deviation < threshold
+            mask = ~is_clipped & ~is_low_snr
+
+            return number[mask], intensity[mask]
 
         items = tuple(
-            _get_item(spectrum.number, spectrum.intensity[t])
+            _get_item(spectrum.number, spectrum.intensity[t], spectrum.deviation[t], spectrum.clipped[t], threshold=threshold)
             for t in range(spectrum.n_times)
         )
 
@@ -147,6 +111,40 @@ class Grid:
             offset=offset,
             scale=scale,
             background=background,
+        )
+
+    @classmethod
+    def _from_items(cls, items: Sequence[tuple[Array, Array]], offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> 'Grid':
+        """Get a grid from sequence of items."""
+        n_times = len(items)
+
+        if offset is None:
+            offset = tuple(0 for _ in range(n_times))
+        assert len(offset) == n_times, f'len of offset have to be equal of n_times: {n_times}'
+
+        if scale is None:
+            scale = tuple(1 for _ in range(n_times))
+        assert len(scale) == n_times, f'len of scale have to be equal of n_times: {n_times}'
+
+        if background is None:
+            background = np.zeros(n_times,)
+        assert len(background) == n_times, f'len of background have to be equal of n_times: {n_times}'
+
+        #
+        xvalues, yvalues = [], []
+        for t in range(n_times):
+            x, y = items[t]
+
+            xvalues.extend(x - offset[t])
+            yvalues.extend((y - background[t]) / scale[t])
+        xvalues, yvalues = np.array(xvalues), np.array(yvalues)
+
+        index = np.argsort(xvalues)
+
+        #
+        return cls(
+            xvalues=xvalues[index],
+            yvalues=yvalues[index],
         )
 
     # --------        private        --------

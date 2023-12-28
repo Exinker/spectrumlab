@@ -1,4 +1,3 @@
-
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Iterator
@@ -26,26 +25,6 @@ class BaseVariables(Mapping):
             for item in __items
         }
 
-    def __getitem__(self, __key: str) -> float | None:
-        item = self._items[__key]
-        return item.value
-
-    def __iter__(self) -> Iterator:
-        return iter(key for key in self._items.keys())
-
-    def __len__(self) -> int:
-        return len(self._items)
-
-    def __repr__(self) -> str:
-        cls = self.__class__
-
-        content = '\n\t'.join([
-            f'{self._items[key]},'
-            for key in self.keys()
-        ])
-        return f'{cls.__name__}(\n\t{content}\n)'
-
-    # --------        handlers        --------
     @property
     def initial(self) -> tuple[float]:
         return tuple(self._items[key].initial for key in self.keys())
@@ -58,9 +37,39 @@ class BaseVariables(Mapping):
     def value(self) -> tuple[float] | tuple[None]:
         return tuple(self._items[key].value for key in self.keys())
 
+    # --------        private        --------
+    def __repr__(self) -> str:
+        cls = self.__class__
+
+        content = '\n\t'.join([
+            f'{self._items[key]},'
+            for key in self.keys()
+        ])
+        return f'{cls.__name__}(\n\t{content}\n)'
+
+    def __getitem__(self, __key: str) -> float | None:
+        item = self._items[__key]
+        return item.value
+
+    def __iter__(self) -> Iterator:
+        return iter(key for key in self._items.keys())
+
+    def __len__(self) -> int:
+        return len(self._items)
+
 
 class ScopeVariables(BaseVariables):
 
+    def __init__(self, grid: Grid, position: Number | None = None, intensity: float | None = None, background: float | None = None):
+        super().__init__([
+            self._init_position(grid, position=position),
+            self._init_intensity(grid, intensity=intensity),
+            self._init_background(grid, background=background),
+        ])
+
+        self.name = 'scope'
+
+    # --------        private        --------
     def _init_position(self, grid: Grid, position: Number | None = None) -> Variable:
         initial = grid.xvalues[np.argmax(grid.yvalues)] if position is None else position
         bounds = (initial-2, initial+2) if position is None else (initial-1e-10, initial+1e-10)
@@ -81,15 +90,6 @@ class ScopeVariables(BaseVariables):
         final = background
 
         return Variable('background', initial, bounds, final)
-
-    def __init__(self, grid: Grid, position: Number | None = None, intensity: float | None = None, background: float | None = None):
-        super().__init__([
-            self._init_position(grid, position=position),
-            self._init_intensity(grid, intensity=intensity),
-            self._init_background(grid, background=background),
-        ])
-
-        self.name = 'scope'
 
 
 class VoightVariables(BaseVariables):
