@@ -1,7 +1,1 @@
-
-from typing import TypeAlias
-
-from .peak_shape import VoightPeakShape, EffectedVoightPeakShape
-
-
-PeakShape: TypeAlias = VoightPeakShape | EffectedVoightPeakShape
+from .peak_shape import PeakShape, VoightPeakShape, EffectedVoightPeakShape
