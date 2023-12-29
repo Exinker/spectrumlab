@@ -173,7 +173,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             rx = config.rx
             dx = config.dx
             # x_grid = np.arange(-rx, rx+dx, dx)
-            x_grid = np.linspace(-rx, +rx, int(1/dx) + 1)
+            x_grid = np.linspace(-rx, +rx, 2*rx*int(1/dx) + 1)
 
             self._x_grid = x_grid
 
