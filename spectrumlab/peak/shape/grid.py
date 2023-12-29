@@ -64,7 +64,7 @@ class Grid:
 
     # --------        fabric        --------
     @classmethod
-    def from_frames(cls, spectrum: Spectrum, offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 100) -> 'Grid':
+    def from_frames(cls, spectrum: Spectrum, offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
         """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
         assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
 
