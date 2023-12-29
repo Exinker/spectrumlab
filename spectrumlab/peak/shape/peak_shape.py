@@ -69,7 +69,7 @@ class VoightPeakShapeVariables(BaseVariables):
 
 class VoightPeakShape(BasePeakShape):
 
-    def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01) -> None:
+    def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = 1e-3) -> None:
         """Voight peak's shape. A convolution of apparatus shape and aperture shape (rectangular) of a detector.
 
         Params:
@@ -90,7 +90,7 @@ class VoightPeakShape(BasePeakShape):
 
         # grid
         # x = np.arange(-self.rx, +self.rx+self.dx, self.dx)
-        x = np.linspace(-self.rx, +self.rx, int(1/self.dx) + 1)
+        x = np.linspace(-self.rx, +self.rx, 2*self.rx*int(1/self.dx) + 1)
 
         f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
         s = lambda x: rectangular(x, x0=0, w=1)

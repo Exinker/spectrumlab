@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-from spectrumlab.utils import mse
 from spectrumlab.peak.shape import PeakShape, VoightPeakShape, EffectedVoightPeakShape
+from spectrumlab.utils import mse
 
 
 if TYPE_CHECKING:
