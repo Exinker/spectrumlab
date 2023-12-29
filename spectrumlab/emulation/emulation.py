@@ -19,10 +19,10 @@ from scipy import integrate, interpolate, signal
 from spectrumlab.alias import Array, Absorbance, MilliSecond, Micro, Percent, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape
-from spectrumlab.emulation.aperture import Aperture, ApertureShape
+from spectrumlab.emulation.apparatus import Apparatus
+from spectrumlab.emulation.aperture import Aperture
 from spectrumlab.emulation.device import Device
-from spectrumlab.emulation.line import Line, LineShape
+from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise, AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum, HighDynamicRangeEmittedSpectrum
 

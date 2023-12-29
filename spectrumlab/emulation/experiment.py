@@ -12,12 +12,12 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 from spectrumlab.alias import Array, Frame
-from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
-from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape, VoigtApparatusShape
+from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
+from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
-from spectrumlab.emulation.line import Line, LineShape, VoigtLineShape
+from spectrumlab.emulation.line import Line, VoigtLineShape
 
 
 import warnings
