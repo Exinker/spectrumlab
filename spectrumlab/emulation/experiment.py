@@ -17,7 +17,7 @@ from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape, VoigtAppa
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
-from spectrumlab.emulation.line import LineShape, VoigtLineShape
+from spectrumlab.emulation.line import Line, LineShape, VoigtLineShape
 
 
 import warnings
@@ -163,22 +163,22 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
 class EmittedExperimentConfig(BaseEmittedExperimentConfig):
     '''Emitted spectra experiment's config.'''
 
-    def __init__(self, *args, line_shape: VoigtLineShape, **kwargs):
+    def __init__(self, *args, line: VoigtLineShape, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.line_shape = line_shape
+        self.line = line
 
 
 class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
     '''Absorbed spectra experiment's config.'''
 
-    def __init__(self, *args, base_level: float, base_n_frames: int, line_shape: VoigtLineShape, scattering_ratio: float, **kwargs):
+    def __init__(self, *args, base_level: float, base_n_frames: int, line: VoigtLineShape, scattering_ratio: float, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.base_level = base_level
         self.base_n_frames = base_n_frames
 
-        self.line_shape = line_shape
+        self.line = line
 
         self.scattering_ratio = scattering_ratio
 
@@ -246,12 +246,13 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
             base_level=base_level,
             base_n_frames=base_n_frames,
 
-            line_shape = VoigtLineShape(
-                width=float(parser.get('line', 'width')),
-                asymmetry=0,
-                ratio=float(parser.get('line', 'ratio')),
-            ),
-            
+            line = Line(
+                shape=VoigtLineShape(
+                    width=float(parser.get('line', 'width')),
+                    asymmetry=0,
+                    ratio=float(parser.get('line', 'ratio')),
+                ),
+            ),            
             apparatus=Apparatus(
                 shape=VoigtApparatusShape(
                     width=float(parser.get('apparatus', 'width')),

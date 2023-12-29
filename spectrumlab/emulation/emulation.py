@@ -69,7 +69,7 @@ class EmittedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_shape: LineShape | None
+    line: Line | None
     apparatus: Apparatus
     aperture: Aperture
     spectrum: SpectrumConfig
@@ -115,7 +115,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         self.config = config
 
         self.detector = config.detector
-        self.line = None if config.line_shape is None else Line.from_shape(config.line_shape)
+        self.line = config.line
         self.apparatus = config.apparatus
         self.aperture = config.aperture
 
@@ -519,7 +519,7 @@ class AbsorbedSpectrumEmulationConfig:
     device: Device
     detector: Detector
 
-    line_shape: LineShape
+    line: Line
     apparatus: Apparatus
     aperture: Aperture
     spectrum_base: SpectrumBaseConfig
@@ -590,9 +590,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         self.config = config
 
         self.detector = config.detector
-        self.line = Line(
-            shape=config.line_shape
-        )
+        self.line = config.line
         self.apparatus = config.apparatus
         self.aperture = config.aperture
 
@@ -876,7 +874,7 @@ if __name__ == '__main__':
             device=device,
             detector=detector,
 
-            line_shape=None,
+            line=None,
             apparatus=Apparatus(
                 shape=VoigtApparatusShape(
                     width=25,
