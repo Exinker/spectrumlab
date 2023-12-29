@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 from spectrumlab.alias import Array, Frame
-from spectrumlab.emulation.aperture import ApertureShape, RectangularApertureShape
+from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
 from spectrumlab.emulation.apparatus import ApparatusShape, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
@@ -35,7 +35,7 @@ class BaseEmittedExperimentConfig:
     n_frames: int
 
     apparatus_shape: ApparatusShape
-    aperture_shape: ApertureShape
+    aperture: Aperture
 
     # --------        position        --------
     position: float
@@ -129,7 +129,10 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
                 asymmetry=float(parser.get('apparatus', 'asymmetry')),
                 ratio=float(parser.get('apparatus', 'ratio')),
             ),
-            aperture_shape=RectangularApertureShape,
+            aperture=Aperture(
+                detector=detector,
+                shape=RectangularApertureShape(),
+            ),
 
             # --------        position        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,
@@ -251,7 +254,10 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
                 asymmetry=float(parser.get('apparatus', 'asymmetry')),
                 ratio=float(parser.get('apparatus', 'ratio')),
             ),
-            aperture_shape=RectangularApertureShape,
+            aperture=Aperture(
+                detector=detector,
+                shape=RectangularApertureShape(),
+            ),
 
             # --------        position        --------
             position=int(parser.get('spectrum', 'n_numbers'))/2,

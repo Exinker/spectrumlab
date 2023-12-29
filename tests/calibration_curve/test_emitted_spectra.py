@@ -36,9 +36,7 @@ def emulation(config: ExperimentConfig) -> EmittedSpectrumEmulation:
 
             line_shape=None,
             apparatus_shape=config.apparatus_shape,
-            aperture_shape=config.aperture_shape(
-                detector=config.detector,
-            ),
+            aperture=config.aperture,
 
             spectrum=SpectrumConfig(
                 n_numbers=config.n_numbers,

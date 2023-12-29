@@ -71,7 +71,7 @@ class EmittedSpectrumEmulationConfig:
 
     line_shape: LineShape | None
     apparatus_shape: ApparatusShape
-    aperture_shape: ApertureShape
+    aperture: Aperture
     spectrum: SpectrumConfig
 
     concentration_ratio: float
@@ -117,7 +117,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         self.detector = config.detector
         self.line = None if config.line_shape is None else Line.from_shape(config.line_shape)
         self.apparatus = Apparatus.from_shape(config.apparatus_shape)
-        self.aperture = Aperture.from_shape(config.aperture_shape)
+        self.aperture = config.aperture
 
         self.position = None
         self.concentration = None
@@ -521,7 +521,7 @@ class AbsorbedSpectrumEmulationConfig:
 
     line_shape: LineShape
     apparatus_shape: ApparatusShape
-    aperture_shape: ApertureShape
+    aperture: Aperture
     spectrum_base: SpectrumBaseConfig
     spectrum: SpectrumConfig
 
@@ -596,9 +596,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         self.apparatus = Apparatus(
             shape=config.apparatus_shape
         )
-        self.aperture = Aperture(
-            shape=config.aperture_shape
-        )
+        self.aperture = config.aperture
 
         self.position = None
         self.concentration = None
@@ -886,8 +884,9 @@ if __name__ == '__main__':
                 asymmetry=0,
                 ratio=0.1,
             ),
-            aperture_shape=RectangularApertureShape(
+            aperture=Aperture(
                 detector=detector,
+                shape=RectangularApertureShape(),
             ),
 
             spectrum=SpectrumConfig(

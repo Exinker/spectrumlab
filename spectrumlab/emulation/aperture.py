@@ -11,50 +11,39 @@ from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.picture.config import COLOR
 
 
-# --------        shape        --------
+# --------        shapes        --------
 @dataclass
 class RectangularApertureShape:
-    """Rectangular detector's aperture shape."""
-    detector: Detector
+    """Rectangular aperture's profile shape."""
 
-    def __call__(self, x: Micro | Array[Micro], n: int) -> Array[float]:
-        detector = self.detector
-        step = detector.config.width
-
-        f = rectangular(x, x0=step*n, w=step)
+    def __call__(self, x: Number | Array[Number], n: Number) -> Array[float]:
+        f = rectangular(x, x0=n, w=1)
 
         return f
 
 
 @dataclass
 class RoundedRectangularApertureShape:
-    """Rounded rectangular (a convolution of rectangular and pvoigt) detector's aperture shape."""
-    detector: Detector
+    """Rounded rectangular (a convolution of rectangular and pvoigt) aperture's profile shape."""
 
     width: Number = field(default=.2)
-    dx: Micro = field(default=0.1)  # шаг построения интерполяции
-    rx: Micro = field(default=100)  # границы построения интерполяции
+    dx: float = field(default=0.01)  # шаг построения интерполяции
+    rx: float = field(default=10)  # границы построения интерполяции
 
     _x: Array[Number] = field(init=False, repr=False, default=None)
     _f: Array[float] = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
-        detector = self.detector
-        step = detector.config.width
-
         x = np.arange(-self.rx, self.rx+self.dx, self.dx)
 
-        f1 = lambda x: rectangular(x, x0=0, w=step)
-        f2 = lambda x: pvoigt(x, 0, w=step*self.width, a=0, r=0)
+        f1 = lambda x: rectangular(x, x0=0, w=1)
+        f2 = lambda x: pvoigt(x, 0, w=self.width, a=0, r=0)
         f = signal.convolve(f1(x), f2(x), mode='same') * (x[-1] - x[0])/len(x)
 
         self._x = x
         self._f = f
 
-    def __call__(self, x: Micro | Array[Micro], n: int) -> float | Array[float]:
-        detector = self.detector
-        step = detector.config.width
-
+    def __call__(self, x: Number | Array[Number], n: Number) -> float | Array[float]:
         F = interpolate.interp1d(
             self._x,
             self._f,
@@ -62,7 +51,7 @@ class RoundedRectangularApertureShape:
             bounds_error=False,
             fill_value=0,
         )
-        f = F(x - step*n)
+        f = F(x - n)
 
         return f
     
@@ -70,12 +59,12 @@ class RoundedRectangularApertureShape:
 # --------        approximated shape        --------
 @dataclass
 class ApproximatedApertureShape:
-    """Approximated detector's aperture shape."""
+    """Approximated aperture's profile shape."""
     detector: Detector
 
     wavelength: Literal[405] = field(default=405)
-    dx: Micro = field(default=0.1)  # шаг построения интерполяции
-    rx: Micro = field(default=100)  # границы построения интерполяции
+    dx: float = field(default=0.01)  # шаг построения интерполяции
+    rx: float = field(default=10)  # границы построения интерполяции
 
     _x: Array[Number] = field(init=False, repr=False, default=None)
     _f: Array[float] = field(init=False, repr=False, default=None)
@@ -91,23 +80,19 @@ class ApproximatedApertureShape:
     def __post_init__(self):
         detector = self.detector
         wavelength = self.wavelength
-        step = detector.config.width
         w, a, r = self.PARAMS[wavelength][detector]
 
         #
         x = np.arange(-self.rx, self.rx+self.dx, self.dx)
 
-        f1 = lambda x: rectangular(x, x0=0, w=step)
+        f1 = lambda x: rectangular(x, x0=0, w=1)
         f2 = lambda x: pvoigt(x, 0, w=w, a=a, r=r)
         f = signal.convolve(f1(x), f2(x), mode='same') * (x[-1] - x[0])/len(x)
 
         self._x = x
         self._f = f
 
-    def __call__(self, x: Micro | Array[Micro], n: int) -> float | Array[float]:
-        detector = self.detector
-        step = detector.config.width
-
+    def __call__(self, x: Number | Array[Number], n: Number) -> float | Array[float]:
         F = interpolate.interp1d(
             self._x,
             self._f,
@@ -115,7 +100,7 @@ class ApproximatedApertureShape:
             bounds_error=False,
             fill_value=0,
         )
-        f = F(x - step*n)
+        f = F(x - n)
 
         return f
 
@@ -123,50 +108,47 @@ class ApproximatedApertureShape:
 ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | ApproximatedApertureShape
 
 
-# --------        aperture        --------
-@dataclass
+# --------        aperture interface        --------
+@dataclass(frozen=True)
 class Aperture:
     """
-    Interface for any aperture's shape.
+    Interface for any detectors's aperture.
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
       Date: 2014.03.24
     """
+    detector: Detector
     shape: ApertureShape
 
-    def __call__(self, x: Micro | Array[Micro], n: int) -> Array[float]:
-        return self.shape(x, n=n)
-
     @property
-    def detector(self) -> Detector:
-        return self.shape.detector
+    def step(self) -> Micro:
+        return self.detector.config.width
 
     # --------        handlers        --------
     def show(self, rx: Micro = 100, dx: Micro = .01, xscale: Number | Micro = Number) -> None:
-        step = self.detector.config.width
-        n_steps = rx // step + 1
+        n_steps = rx // self.step + 1
 
         #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        x = np.arange(0, rx+dx, dx)
-        integral = np.zeros(x.shape)
+        xvalues = np.arange(0, rx+dx, dx)
+        integral = np.zeros(xvalues.shape)
         for n in range(n_steps):
-            xvalues = x if xscale == Micro else x/step
-            yvalues = self(x, n=n)
+            x = xvalues if xscale == Micro else xvalues/self.step
+            y = self(xvalues, n=n)
             plt.plot(
-                xvalues, yvalues,
+                x, y,
                 color=COLOR['blue'],
                 label='$S(x - x_{k})$' if n==0 else None,
             )
 
-            integral += yvalues
+            integral += y
 
-        xvalues = x if xscale == Micro else x/step
-        yvalues = integral
+        x = xvalues if xscale == Micro else xvalues/self.step
+        y = integral
         plt.plot(
-            xvalues, yvalues,
+            x, y,
             color='k', linestyle=':',
             label='Integral',
         )
@@ -180,10 +162,9 @@ class Aperture:
 
         plt.show()
 
-    # --------        fabric        --------
-    @classmethod
-    def from_shape(cls, shape: ApertureShape) -> 'Aperture':
-        return cls(shape=shape)
+    # --------        private        --------
+    def __call__(self, x: Micro | Array[Micro], n: Number) -> Array[float]:
+        return self.shape(x / self.step, n=n)
 
 
 if __name__ == '__main__':
@@ -193,7 +174,8 @@ if __name__ == '__main__':
 
     # aperture
     aperture = Aperture(
-        shape=RectangularApertureShape(detector=detector),
-        # shape=VoigtApertureShape(detector=detector, width=1.6, asymmetry=0, ratio=.1),
+        detector=detector,
+        # shape=RectangularApertureShape(),
+        shape=RoundedRectangularApertureShape(),
     )
     aperture.show()
