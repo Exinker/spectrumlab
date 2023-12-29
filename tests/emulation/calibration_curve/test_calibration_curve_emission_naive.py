@@ -26,7 +26,7 @@ def emulation(config: ExperimentConfig) -> Emulation:
             detector=config.detector,
 
             line_shape=None,
-            apparatus_shape=config.apparatus_shape,
+            apparatus=config.apparatus,
             aperture=config.aperture,
 
             spectrum=SpectrumConfig(

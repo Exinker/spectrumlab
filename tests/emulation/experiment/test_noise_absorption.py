@@ -20,7 +20,7 @@ def config() -> AbsorbedSpectrumEmulationConfig:
         detector=config.detector,
 
         line_shape=config.line_shape,
-        apparatus_shape=config.apparatus_shape,
+        apparatus=config.apparatus,
         aperture=config.aperture,
 
         spectrum_base=SpectrumBaseConfig(

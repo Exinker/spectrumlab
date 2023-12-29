@@ -13,7 +13,7 @@ import pandas as pd
 
 from spectrumlab.alias import Array, Frame
 from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
-from spectrumlab.emulation.apparatus import ApparatusShape, VoigtApparatusShape
+from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
@@ -34,7 +34,7 @@ class BaseEmittedExperimentConfig:
     n_numbers: int
     n_frames: int
 
-    apparatus_shape: ApparatusShape
+    apparatus: Apparatus
     aperture: Aperture
 
     # --------        position        --------
@@ -124,10 +124,12 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
             n_numbers=int(parser.get('spectrum', 'n_numbers')),
             n_frames=int(parser.get('spectrum', 'n_frames')),
 
-            apparatus_shape=VoigtApparatusShape(
-                width=float(parser.get('apparatus', 'width')),
-                asymmetry=float(parser.get('apparatus', 'asymmetry')),
-                ratio=float(parser.get('apparatus', 'ratio')),
+            apparatus=Apparatus(
+                shape=VoigtApparatusShape(
+                    width=float(parser.get('apparatus', 'width')),
+                    asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                    ratio=float(parser.get('apparatus', 'ratio')),
+                ),
             ),
             aperture=Aperture(
                 detector=detector,
@@ -249,10 +251,13 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
                 asymmetry=0,
                 ratio=float(parser.get('line', 'ratio')),
             ),
-            apparatus_shape=VoigtApparatusShape(
-                width=float(parser.get('apparatus', 'width')),
-                asymmetry=float(parser.get('apparatus', 'asymmetry')),
-                ratio=float(parser.get('apparatus', 'ratio')),
+            
+            apparatus=Apparatus(
+                shape=VoigtApparatusShape(
+                    width=float(parser.get('apparatus', 'width')),
+                    asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                    ratio=float(parser.get('apparatus', 'ratio')),
+                ),
             ),
             aperture=Aperture(
                 detector=detector,

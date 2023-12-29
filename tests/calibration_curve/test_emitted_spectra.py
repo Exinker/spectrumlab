@@ -35,7 +35,7 @@ def emulation(config: ExperimentConfig) -> EmittedSpectrumEmulation:
             detector=config.detector,
 
             line_shape=None,
-            apparatus_shape=config.apparatus_shape,
+            apparatus=config.apparatus,
             aperture=config.aperture,
 
             spectrum=SpectrumConfig(
@@ -154,7 +154,7 @@ class TestCalibrationCurve:
     @pytest.mark.filterwarnings
     def test_calculate_intensity_by_approx(self, config: ExperimentConfig, spectra: Frame):
         detector = config.detector
-        apparatus_shape = config.apparatus_shape
+        apparatus = config.apparatus
 
         # calibrate
         calibration_curve = calibrate_spectra(
@@ -174,9 +174,9 @@ class TestCalibrationCurve:
                     position=InterpolationPositionConfig(),
                     intensity=ApproxIntensityConfig(
                         approx_shape=VoightPeakShape(
-                            width=apparatus_shape.width/detector.config.width,
-                            asymmetry=apparatus_shape.asymmetry,
-                            ratio=apparatus_shape.ratio,
+                            width=apparatus.shape.width/detector.config.width,
+                            asymmetry=apparatus.shape.asymmetry,
+                            ratio=apparatus.shape.ratio,
                             rx=25,
                         ),
                         delta=0,

@@ -61,9 +61,6 @@ class Apparatus:
     """
     shape: ApparatusShape
 
-    def __call__(self, x: Micro | Array[Micro], x0: Micro) -> Array[float]:
-        return self.shape(x, x0=x0)
-
     # --------        handlers        --------
     def show(self, rx: Micro = 100, dx: Micro = .01) -> None:
         
@@ -85,17 +82,16 @@ class Apparatus:
 
         plt.show()
 
-    # --------        fabric        --------
-    @classmethod
-    def from_shape(cls, shape: ApparatusShape) -> 'Apparatus':
-        return cls(shape=shape)
+    # --------        private        --------
+    def __call__(self, x: Micro | Array[Micro], x0: Micro) -> Array[float]:
+        return self.shape(x, x0=x0)
+
 
 
 if __name__ == '__main__':
 
     # aperture
     aperture = Apparatus(
-        # shape=RectangularApparatusShape(width=25),
         shape=VoigtApparatusShape(width=25, asymmetry=0, ratio=.1),
     )
     aperture.show()
