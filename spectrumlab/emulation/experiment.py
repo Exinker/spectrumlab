@@ -125,6 +125,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
             n_frames=int(parser.get('spectrum', 'n_frames')),
 
             apparatus=Apparatus(
+                detector=detector,
                 shape=VoigtApparatusShape(
                     width=float(parser.get('apparatus', 'width')),
                     asymmetry=float(parser.get('apparatus', 'asymmetry')),
@@ -254,6 +255,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
                 ),
             ),            
             apparatus=Apparatus(
+                detector=detector,
                 shape=VoigtApparatusShape(
                     width=float(parser.get('apparatus', 'width')),
                     asymmetry=float(parser.get('apparatus', 'asymmetry')),

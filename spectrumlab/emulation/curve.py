@@ -3,16 +3,16 @@ from functools import partial
 import numpy as np
 from scipy import signal, optimize
 
-from spectrumlab.alias import Array
+from spectrumlab.alias import Array, Number
 from spectrumlab.utils import mse
 
 
-def gauss(x: float | Array[float], x0: float, w: float) -> Array[float]:
+def gauss(x: Number | Array[Number], x0: Number, w: Number) -> Array[float]:
     """Gauss (or normal) distribution with position `x0` and unit intensity.
 
     Params:
-        x0: float - position
-        w: float - width
+        x0: Number - position
+        w: Number - width 
     """
 
     F = np.exp( -(1/2)*((x - x0) / w)**2 ) / ( np.sqrt(2*np.pi) * w )
@@ -20,11 +20,11 @@ def gauss(x: float | Array[float], x0: float, w: float) -> Array[float]:
     return F
 
 
-def lanczos(x: float | Array[float], x0: float, a: int = 2) -> Array[float]:
+def lanczos(x: Number | Array[Number], x0: Number, a: int = 2) -> Array[float]:
     """Lanczos distribution with position `x0`.
     
     Params:
-        x0: float - position
+        x0: Number - position
         a: float - window width
     """
 
@@ -34,12 +34,12 @@ def lanczos(x: float | Array[float], x0: float, a: int = 2) -> Array[float]:
     return F
 
 
-def rectangular(x: float | Array[float], x0: float, w: float) -> Array[float]:
+def rectangular(x: Number | Array[Number], x0: Number, w: Number) -> Array[float]:
     """Rectangular distribution with position `x0` and unit intensity.
 
     Params:
-        x0: float - position
-        w: float - width (full width)
+        x0: Number - position
+        w: Number - width (full width)
     """
 
     if isinstance(x, float):  # TODO: don't remove! It's for integrate.quad functions!
@@ -49,17 +49,15 @@ def rectangular(x: float | Array[float], x0: float, w: float) -> Array[float]:
 
     F[(x > x0 - w/2) & (x < x0 + w/2)] = (2/w) / 2
     F[(x == x0 - w/2) | ( x == x0 + w/2)] = (2/w) / 4
-    # F[(x > x0 - w/2) & (x < x0 + w/2)] = 1
-    # F[(x == x0 - w/2) | ( x == x0 + w/2)] = 1/2
 
     return F
 
 
-def voigt(x: float | Array[float], x0: float, sigma: float, gamma: float) -> Array[float]:
+def voigt(x: Number | Array[Number], x0: Number, sigma: float, gamma: float) -> Array[float]:
     """Voigt distribution with position `x0` and unit intensity.
 
     Params:
-        x0: float - position;
+        x0: Number - position;
         sigma: float - width of Gaussian shape
         gamma: float - width of Lorentzian shape
     """
@@ -72,12 +70,12 @@ def voigt(x: float | Array[float], x0: float, sigma: float, gamma: float) -> Arr
     return F
 
 
-def pvoigt(x: float | Array[float], x0: float, w: float, a: float, r: float) -> Array[float]:
+def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float) -> Array[float]:
     """Pseudo-Voigt distribution with position `x0` and unit intensity.
 
     Params:
-        x0: float - position
-        w: float - width (full width at half maximum)
+        x0: Number - position
+        w: Number - width (full width at half maximum)
         a: float - assymetry
         r: float - ratio (in range [0; 1])
 
@@ -95,10 +93,10 @@ def pvoigt(x: float | Array[float], x0: float, w: float, a: float, r: float) -> 
 
 
 # --------        utils        --------
-def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tuple[float, float, float]:
-    """Approximate `voigt` function by psevdo-voigt (`pvoigt`) function."""
+def voigt2pvoigt(x: Array[Number], x0: Number, sigma: float, gamma: float) -> tuple[float, float, float]:
+    """Approximate `voigt` shape by psevdo-voigt (`pvoigt`) shape."""
 
-    def func(x: float, x0: float, y: Array[float], params) -> float:
+    def loss(x: Number, x0: Number, y: Array[float], params) -> float:
         y_hat = pvoigt(x, x0, *params)
 
         return mse(y, y_hat)
@@ -106,7 +104,7 @@ def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tupl
     y = voigt(x, x0=x0, sigma=sigma, gamma=gamma)
 
     res = optimize.minimize(
-        partial(func, x, x0, y),
+        partial(loss, x, x0, y),
         x0=[2, 0, 0],
         bounds=[
             (0, 10),

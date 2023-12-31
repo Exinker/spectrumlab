@@ -876,6 +876,7 @@ if __name__ == '__main__':
 
             line=None,
             apparatus=Apparatus(
+                detector=detector,
                 shape=VoigtApparatusShape(
                     width=25,
                     asymmetry=0,

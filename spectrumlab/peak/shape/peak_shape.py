@@ -103,8 +103,7 @@ class VoightPeakShape(BasePeakShape):
     @classmethod
     def from_grid(cls, grid: Grid, show: bool = False) -> 'VoightPeakShape':
 
-        def _fitness(grid: Grid, params: Sequence[float]) -> float:
-            """Calculate error (fitness) of approximation."""
+        def loss(grid: Grid, params: Sequence[float]) -> float:
 
             # variables
             shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=params)
@@ -122,7 +121,7 @@ class VoightPeakShape(BasePeakShape):
         variables = VoightPeakShapeVariables(grid=grid)
 
         res = optimize.minimize(
-            partial(_fitness, grid),
+            partial(loss, grid),
             variables.initial,
             method='SLSQP',
             bounds=variables.bounds,
@@ -130,7 +129,6 @@ class VoightPeakShape(BasePeakShape):
         assert res['success'], 'Optimization is not succeeded!'
 
         shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=res['x'])
-        # shape_variables = VoightVariables(25/14, 0, .1)
 
         # shape
         shape = cls(**shape_variables)

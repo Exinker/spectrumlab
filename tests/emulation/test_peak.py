@@ -1,18 +1,14 @@
 from dataclasses import dataclass, field
-from typing import Callable, Mapping
 
 import numpy as np
-import matplotlib.pyplot as plt
 import pytest
 from scipy import interpolate, integrate, signal
 
 from spectrumlab.alias import Array, Micro
-from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
-from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape, VoigtApparatusShape
-from spectrumlab.emulation.curve import gauss, pvoigt, rectangular
+from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
+from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.peak.shape import VoightPeakShape
-from spectrumlab.utils import mse
 
 
 # --------        fixtures        --------
@@ -33,9 +29,17 @@ class Config:
 
 
 @pytest.fixture
-def config() -> Config:
+def detector() -> Detector:
+    return 
+
+
+@pytest.fixture
+def config(detector: Detector) -> Config:
     return Config(
-        apparatus=Apparatus(shape=VoigtApparatusShape(25, 0, 0.1)),
+        apparatus=Apparatus(
+            detector=detector,
+            shape=VoigtApparatusShape(25, 0, 0.1),
+        ),
         rx=140,
         dx=1e-4,
     )
@@ -43,11 +47,6 @@ def config() -> Config:
 
 def test_config(config: Config):
     assert len(config.x) == config.n
-
-
-@pytest.fixture
-def detector() -> Detector:
-    return 
 
 
 # --------        tests        --------
@@ -69,10 +68,9 @@ def test_voight_peak_shape(detector: Detector, config: Config):
     x = config.x
 
     # f
-    F = signal.convolve(apparatus(x, 0), aperture(x, 0), mode='same') * (x[-1] - x[0])/config.n
     f = interpolate.interp1d(
         x,
-        F,
+        signal.convolve(apparatus(x, 0), aperture(x, 0), mode='same') * (x[-1] - x[0])/config.n,
         kind='linear',
         bounds_error=False,
         fill_value=0,
@@ -117,9 +115,11 @@ def test_voight_peak_integral(detector: Detector, config: Config):
 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
     tolerance = 1e-6
     detector = Detector.BLPP2000
-    apparatus = Apparatus(shape=VoigtApparatusShape(25, 0, 0.1))
+    apparatus = Apparatus(shape=VoigtApparatusShape(25, .1, .1))
     aperture = Aperture(detector=detector, shape=RectangularApertureShape())
 
     step = detector.config.width
@@ -128,32 +128,35 @@ if __name__ == '__main__':
     dx = 1e-3
 
     x = np.linspace(-rx, +rx, 2*rx*int(1/dx) + 1)
-    F = signal.convolve(
-        apparatus(
-            x,
-            0,
-        ),
-        aperture(
-            x,
-            0,
-        ),
-        mode='same',
-    ) * (x[-1] - x[0])/len(x)
     f = interpolate.interp1d(
         x,
-        F,
+        signal.convolve(apparatus(x, 0), aperture(x, 0), mode='same') * (x[-1] - x[0])/len(x),
         kind='linear',
         bounds_error=False,
         fill_value=0,
     )
 
     f_hat = VoightPeakShape(apparatus.shape.width/step, apparatus.shape.asymmetry, apparatus.shape.ratio)
-    error = f(x) - f_hat(x/step, 0, 1)
-    mask = (x > -(rx-apparatus.shape.width/2)) & (x < +(rx-apparatus.shape.width/2))
 
+    y = f(x)
+    plt.plot(
+        x, y,
+        color='black',
+        label='$y$',
+    )
 
+    y_hat = f_hat(x/step, 0, 1)
+    plt.plot(
+        x, y_hat,
+        linestyle='--',
+        label='$\hat{y}$',
+    )
 
+    plt.plot(
+        x, y_hat - y,
+        color='black', linestyle='none', marker='s', markersize=0.5,
+        label='$error$',
+    )
 
-    print(np.all(np.abs(error[mask]) < tolerance))
-
-
+    plt.grid(color='grey', linestyle=':'),
+    plt.show()

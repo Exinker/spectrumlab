@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, Micro
 from spectrumlab.emulation.curve import rectangular, pvoigt
+from spectrumlab.emulation.detector.linear_array_detector import Detector
 
 
 # --------        shape        --------
@@ -13,8 +14,8 @@ class RectangularApparatusShape:
     """Rectangular device's apparatus shape."""
     width: Micro
 
-    def __call__(self, x: Micro | Array[Micro], x0: Micro) -> Array[float]:
-        f = rectangular(x, x0=x0, w=self.width)
+    def __call__(self, x: Micro | Array[Micro], x0: Micro, step: float) -> Array[float]:
+        f = rectangular(x/step, x0=x0/step, w=self.width/step)/step
 
         return f
 
@@ -40,8 +41,8 @@ class VoigtApparatusShape:
     asymmetry: float
     ratio: float
 
-    def __call__(self, x: Micro | Array[Micro], x0: Micro) -> Array[float]:
-        f = pvoigt(x, x0=x0, w=self.width, a=self.asymmetry, r=self.ratio)
+    def __call__(self, x: Micro | Array[Micro], x0: Micro, step: float) -> Array[float]:
+        f = pvoigt(x/step, x0=x0/step, w=self.width/step, a=self.asymmetry, r=self.ratio)/step
 
         return f
 
@@ -53,13 +54,18 @@ ApparatusShape = RectangularApparatusShape | TriangularApparatusShape | VoigtApp
 @dataclass
 class Apparatus:
     """
-    Interface for any apparatus's shape.
+    Interface for any apparatus's profile.
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
       Date: 2014.03.24
     """
+    detector: Detector
     shape: ApparatusShape
+
+    @property
+    def step(self) -> Micro:
+        return self.detector.config.width
 
     # --------        handlers        --------
     def show(self, rx: Micro = 100, dx: Micro = .01) -> None:
@@ -84,14 +90,17 @@ class Apparatus:
 
     # --------        private        --------
     def __call__(self, x: Micro | Array[Micro], x0: Micro) -> Array[float]:
-        return self.shape(x, x0=x0)
-
+        return self.shape(x, x0=x0, step=self.step)
 
 
 if __name__ == '__main__':
 
-    # aperture
-    aperture = Apparatus(
+    # detector
+    detector = Detector.BLPP2000
+
+    # apparatus
+    apparatus = Apparatus(
+        detector=detector,
         shape=VoigtApparatusShape(width=25, asymmetry=0, ratio=.1),
     )
-    aperture.show()
+    apparatus.show()

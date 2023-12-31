@@ -112,7 +112,7 @@ ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | App
 @dataclass(frozen=True)
 class Aperture:
     """
-    Interface for any detectors's aperture.
+    Interface for any detectors's aperture profile.
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
@@ -164,7 +164,7 @@ class Aperture:
 
     # --------        private        --------
     def __call__(self, x: Micro | Array[Micro], n: Number) -> Array[float]:
-        return self.shape(x / self.step, n=n)
+        return self.shape(x/self.step, n=n)
 
 
 if __name__ == '__main__':
