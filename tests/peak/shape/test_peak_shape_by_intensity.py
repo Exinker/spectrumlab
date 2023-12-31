@@ -29,12 +29,12 @@ SHAPE = VoigtApparatusShape(
 class ExperimentConfig(BaseExperimentConfig):
 
     @property
-    def exposure(self) -> float:
-        return 100
+    def exposure(self) -> Array[float]:
+        return np.array([2**x for x in range(self.n_iters)])
 
     @property
-    def position(self) -> Array[Number]:
-        return self.n_numbers//2 + np.arange(-.5, +.5, 1/self.n_iters)
+    def position(self) -> Number:
+        return self.n_numbers//2
 
 
 class Experiment(BaseExperiment):
@@ -70,23 +70,23 @@ class Experiment(BaseExperiment):
         self._background = 0
 
         intensity = np.zeros((config.n_iters, config.n_numbers))
-        for i, position in enumerate(config.position):
-            intensity[i] = config.exposure * f((self.number - position)*step)
+        for i, exposure in enumerate(config.exposure):
+            intensity[i] = exposure * f((self.number - config.position)*step)
         self._intensity = intensity
 
         # show
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            y = f(x)
+            x, y = x, f(x)
             plt.plot(
                 x/step, y,
                 color='black',
             )
 
-            for i, position in enumerate(config.position):
-                x = self.number - position
-                y = self.intensity[i] / config.exposure
+            for i, exposure in enumerate(config.exposure):
+                x = self.number - config.position
+                y = self.intensity[i] / exposure
                 plt.plot(
                     x, y,
                     color='red', linestyle='none', marker='s', markersize=3,
@@ -131,7 +131,7 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
     )
     experiment = experiment.setup(
         verbose=False,
-        show=False,
+        show=True,
     )
 
     return experiment
@@ -147,15 +147,15 @@ def shape_hat(experiment: Experiment) -> VoightPeakShape:
     # grid
     grid = Grid.from_frames(
         spectrum=spectrum,
-        offset=config.position,
-        scale=np.full((config.n_iters, ), 1),
+        offset=np.full((config.n_iters, ), config.n_numbers//2),
+        scale=config.exposure,
         background=np.full((config.n_iters, ), 0),
     )
 
     # shape_hat
     shape_hat = VoightPeakShape.from_grid(
         grid=grid,
-        show=False,
+        show=True,
     )
 
     return shape_hat
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     )
     experiment = experiment.setup(
         verbose=False,
-        show=False,
+        # show=True,
     )
 
     # spectrum
@@ -248,21 +248,20 @@ if __name__ == '__main__':
     step = detector.config.width
 
     n_thresholds = 101
-    thresholds = np.logspace(-1, 1, n_thresholds)
+    thresholds = np.logspace(-1, 2, n_thresholds)
     error = []
     for threshold in tqdm(thresholds):
-
         grid = Grid.from_frames(
             spectrum=spectrum,
-            offset=config.position,
-            scale=np.full((config.n_iters, ), 1),
+            offset=np.full((config.n_iters, ), config.position),
+            scale=config.exposure,
             background=np.full((config.n_iters, ), 0),
             threshold=threshold,
         )
 
         shape_hat = VoightPeakShape.from_grid(
             grid=grid,
-            # show=True,
+            show=False,
         )
 
         #
