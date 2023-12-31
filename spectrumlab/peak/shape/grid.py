@@ -69,15 +69,15 @@ class Grid:
         assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
 
         #
-        def _get_item(number: Array, intensity: Array, deviation: Array, clipped: Array, threshold: float) -> tuple[Array, Array]:
-            is_clipped = clipped
-            is_low_snr = intensity / deviation < threshold
+        def _get_item(spectrum: Spectrum, t: int, threshold: float) -> tuple[Array, Array]:
+            is_clipped = spectrum.clipped[t]
+            is_low_snr = spectrum.intensity[t] / spectrum.deviation[t] < threshold
             mask = ~is_clipped & ~is_low_snr
 
-            return number[mask], intensity[mask]
+            return spectrum.number[mask], spectrum.intensity[t, mask]
 
         items = tuple(
-            _get_item(spectrum.number, spectrum.intensity[t], spectrum.deviation[t], spectrum.clipped[t], threshold=threshold)
+            _get_item(spectrum, t=t, threshold=threshold)
             for t in range(spectrum.n_times)
         )
 
@@ -90,18 +90,22 @@ class Grid:
         )
 
     @classmethod
-    def from_blinks(cls, spectrum: Spectrum, blinks: Sequence['BlinkPeak'], offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> 'Grid':
+    def from_blinks(cls, spectrum: Spectrum, blinks: Sequence['BlinkPeak'], offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
         """Get a grid from sequence of blinks from spectrum."""
         assert spectrum.n_times == 1, 'kinetics spectra are not supported!'
 
         #
-        def _get_item(number: Array, intensity: Array, blink: 'BlinkPeak') -> tuple[Array, Array]:
+        def _get_item(spectrum: Spectrum, blink: 'BlinkPeak', threshold: float) -> tuple[Array, Array]:
             lb, ub = blink.minima
 
-            return number[lb:ub], intensity[lb:ub]
+            is_clipped = spectrum.clipped[lb:ub]
+            is_low_snr = spectrum.intensity[lb:ub] / spectrum.deviation[lb:ub] < threshold
+            mask = ~is_clipped & ~is_low_snr
+
+            return spectrum.number[lb:ub][mask], spectrum.intensity[lb:ub][mask]
 
         items = tuple(
-            _get_item(spectrum.number, spectrum.intensity, blink=blink)
+            _get_item(spectrum, blink=blink, threshold=threshold)
             for blink in blinks
         )
 
