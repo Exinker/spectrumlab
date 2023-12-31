@@ -101,6 +101,6 @@ if __name__ == '__main__':
     # apparatus
     apparatus = Apparatus(
         detector=detector,
-        shape=VoigtApparatusShape(width=25, asymmetry=0, ratio=.1),
+        shape=VoigtApparatusShape(width=25, asymmetry=.3, ratio=.0),
     )
     apparatus.show()
