@@ -301,14 +301,14 @@ class EmittedSpectrumEmulation(EmulationInterface):
         if isinstance(position, (int, float)):
             self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
 
-        if isinstance(position, Sequence):
+        if isinstance(position, np.ndarray):
             self._intensity = np.array([
                 self._get_intensity(number=self.number, position=x, concentration=concentration, show=show, ylim=ylim)
                 for x in position
             ])
 
         # add spectral environment
-        if isinstance(environment, Sequence):
+        if isinstance(environment, np.ndarray):
             assert (environment.ndim == 1) and (environment.shape[-1] == self.config.spectrum.n_numbers)
             self._intensity += environment
 
