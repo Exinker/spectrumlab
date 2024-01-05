@@ -164,7 +164,7 @@ class Aperture:
 
     # --------        private        --------
     def __call__(self, x: Micro | Array[Micro], n: Number) -> Array[float]:
-        return self.shape(x/self.step, n=n)
+        return self.shape(x/self.step, n=n)/self.step
 
 
 if __name__ == '__main__':
