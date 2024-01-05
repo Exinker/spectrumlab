@@ -148,7 +148,8 @@ class VoightPeakShape(BasePeakShape):
             y_hat = shape(x, **scope_variables)
             plt.plot(
                 x, y_hat,
-                color='black', linestyle=':',
+                color='black', linestyle='-', linewidth=.5,
+                alpha=1,
             )
 
             x, y = grid.xvalues, grid.yvalues
@@ -156,6 +157,7 @@ class VoightPeakShape(BasePeakShape):
             plt.plot(
                 x, y - y_hat,
                 color='black', linestyle='none', marker='s', markersize=0.5,
+                alpha=1,
             )
 
             content = get_content(shape, sep='\n')
@@ -316,7 +318,8 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
         y_hat = shape(x, **scope_variables)
         plt.plot(
             x, y_hat,
-            color='black', linestyle=':',
+            color='black', linestyle='-', linewidth=.5,
+            alpha=1,
         )
 
         x, y = grid.xvalues, grid.yvalues
@@ -324,6 +327,7 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
         plt.plot(
             x, y - y_hat,
             color='black', linestyle='none', marker='s', markersize=0.5,
+            alpha=1,
         )
 
         plt.xlabel(r'$number$')
