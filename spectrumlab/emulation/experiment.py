@@ -249,7 +249,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
 
             line = Line(
                 shape=VoigtLineShape(
-                    width=float(parser.get('line', 'width')),
+                    width=float(parser.get('line', 'width')) / device.config.dispersion,  # in micron
                     asymmetry=0,
                     ratio=float(parser.get('line', 'ratio')),
                 ),
