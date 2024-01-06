@@ -103,7 +103,7 @@ def calculate_fwhm(x: Array[float], y: Array[float]) -> float:
     )
     # assert res['success'], 'Optimization is not success!'
 
-    return res['x'].item()
+    return 2*res['x'].item()
 
 
 def voigt2pvoigt(x: Array[Number], x0: Number, sigma: float, gamma: float) -> tuple[float, float, float]:
