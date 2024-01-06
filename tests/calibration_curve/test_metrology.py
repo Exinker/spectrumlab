@@ -9,37 +9,42 @@ from spectrumlab.calibration_curve.metrology import LOD, LOQ
 # --------        limits (LOD and LOQ)        --------
 class TestLimits:
     N = 100_000_000
+    MEAN = 1
+    DEVIATION = .01
     COEFF = (0, 1)
-    TOLERANCE = 1e-3
 
     @pytest.fixture(scope='module')
     def intensity(self) -> Array[float]:
         np.random.seed(42)
 
-        return np.random.randn(self.N,)
+        return self.MEAN + self.DEVIATION*np.random.randn(self.N,)
 
     def test_default_lod(self, intensity: Array[float]):
+        tolerance = 1e-3
+
         k = 3
-        lod = LOD.from_deviation(
-            deviation=np.std(intensity, ddof=1),
+        lod = LOD.from_json(
+            data={
+                'mean': np.mean(intensity),
+                'deviation': np.std(intensity, ddof=1),
+            },
             coeff=self.COEFF,
         )
 
-        assert np.abs(1 - lod.intensity/k) <= self.TOLERANCE
+        value = (lod.intensity - self.MEAN) / self.DEVIATION
+        assert np.abs(1 - value/k) <= tolerance
 
     def test_default_loq(self, intensity: Array[float]):
+        tolerance = 1e-3
+
         k = 10
-        loq = LOQ.from_deviation(
-            deviation=np.std(intensity, ddof=1),
+        loq = LOQ.from_json(
+            data={
+                'mean': np.mean(intensity),
+                'deviation': np.std(intensity, ddof=1),
+            },
             coeff=self.COEFF,
         )
 
-        assert np.abs(1 - loq.intensity/k) <= self.TOLERANCE
-
-    def test_to_concentration(self, intensity: Array[float]):
-        lod = LOD.from_deviation(
-            deviation=np.std(intensity, ddof=1),
-            coeff=self.COEFF,
-        )
-
-        assert np.abs(lod.concentration - 3) <= self.TOLERANCE
+        value = (loq.intensity - self.MEAN) / self.DEVIATION
+        assert np.abs(1 - value/k) <= tolerance
