@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
 
-from spectrumlab.alias import Array, MicroMeter, PicoMeter
+from spectrumlab.alias import Array, PicoMeter
 from spectrumlab.emulation.curve import gauss, voigt, pvoigt, voigt2pvoigt, calculate_fwhm
 from spectrumlab.picture.config import COLOR
 
@@ -14,12 +14,12 @@ from spectrumlab.picture.config import COLOR
 @dataclass(frozen=True)
 class GaussLineShape:
     """Gauss (or normal) line profile's shape."""
-    width: MicroMeter
+    width: PicoMeter
 
     @overload
-    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         F = gauss(x, x0=position, w=self.width)
 
@@ -116,14 +116,14 @@ class PVoigtLineShape:
     Aaron L. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """
-    width: MicroMeter
+    width: PicoMeter
     asymmetry: float = field(default=0)  # non asymmetric default
     ratio: float = field(default=0)  # gauss shape default
 
     @overload
-    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         F = pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
         f = intensity*F
@@ -134,15 +134,15 @@ class PVoigtLineShape:
 @dataclass(frozen=True)
 class SelfReversedPVoigtLineShape:
     """Self-reversed voigt line profile's shape with self-absorption"""
-    width: MicroMeter
+    width: PicoMeter
     asymmetry: float
     ratio: float
     absorbance: float
 
     @overload
-    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         F = pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
         f = intensity*F * 10**(-self.absorbance*F)
@@ -157,9 +157,9 @@ class SigmoidsLineShape:
     power: float
 
     @overload
-    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         w = self.width
         p = self.power
@@ -192,14 +192,14 @@ class Line:
     shape: LineShape
 
     @overload
-    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         return self.shape(x, position, intensity)
 
     # --------        handlers        --------
-    def show(self, position: MicroMeter, intensity: float, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
+    def show(self, position: PicoMeter, intensity: float, rx: PicoMeter = 100, dx: PicoMeter = .01) -> None:
         """Show line profile's shape at the range rx with step dx."""
 
         #

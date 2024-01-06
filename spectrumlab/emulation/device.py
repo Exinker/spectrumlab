@@ -13,13 +13,13 @@ from enum import Enum
 class DeviceConfig:
     '''Device config.'''
     name: str
-    dispersion: float  # reciprocal linear dispersion (in nm/mm) of nm
+    dispersion: float  # reciprocal linear dispersion [pm/μm]
 
     def __repr__(self) -> str:
         name = self.name
         dispersion = self.dispersion
 
-        content = f'{type(self).__name__}: {name}\n\treciprocal linear dispersion: {dispersion:.4f} nm/mm'
+        content = f'{type(self).__name__}: {name}\n\treciprocal linear dispersion: {dispersion:.4f} pm/μm'
         return content
 
 
@@ -27,7 +27,7 @@ class DeviceConfig:
 class DynamicDeviceConfig:
     '''Device config (not frozen).'''
     name: str
-    dispersion: float  # reciprocal linear dispersion (in nm/mm) of nm
+    dispersion: float  # reciprocal linear dispersion [pm/μm]
 
 
 class Device(Enum):
@@ -62,7 +62,7 @@ class Device(Enum):
         name = self.value.name
         dispersion = self.value.dispersion
 
-        content = f'{type(self).__name__}: {name}\n\treciprocal linear dispersion: {dispersion:.4f} nm/mm'
+        content = f'{type(self).__name__}: {name}\n\treciprocal linear dispersion: {dispersion:.4f} pm/μm'
 
         return content
 
