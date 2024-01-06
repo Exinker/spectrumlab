@@ -163,7 +163,7 @@ class Aperture:
         plt.show()
 
     # --------        private        --------
-    def __call__(self, x: Micro | Array[Micro], n: Number) -> Array[float]:
+    def __call__(self, x: Micro | Array[Micro], n: Number = 0) -> Array[float]:
         return self.shape(x/self.step, n=n)/self.step
 
 

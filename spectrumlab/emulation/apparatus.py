@@ -89,7 +89,7 @@ class Apparatus:
         plt.show()
 
     # --------        private        --------
-    def __call__(self, x: Micro | Array[Micro], x0: Micro) -> Array[float]:
+    def __call__(self, x: Micro | Array[Micro], x0: Micro = 0) -> Array[float]:
         return self.shape(x, x0=x0, step=self.step)
 
 
