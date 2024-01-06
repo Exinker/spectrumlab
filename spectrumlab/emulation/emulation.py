@@ -675,7 +675,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         device = config.device
         detector = config.detector
-        step = detector.config.step
+        step = detector.config.width
         rx = config.rx
         dx = config.dx
 
