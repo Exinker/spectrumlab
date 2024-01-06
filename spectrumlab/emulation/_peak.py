@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate, interpolate, signal
 
-from spectrumlab.alias import Array, Number, Micro, Percent
+from spectrumlab.alias import Array, Number, MicroMeter, Percent
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.line import Line, VoigtLineShape
@@ -23,10 +23,10 @@ class Peak:
     """
     line: Line
     aperture: Aperture
-    dx: Micro = field(default=0.01)  # шаг построения интерполяции
-    rx: Micro = field(default=100)  # границы построения интерполяции
+    dx: MicroMeter = field(default=0.01)  # шаг построения интерполяции
+    rx: MicroMeter = field(default=100)  # границы построения интерполяции
 
-    _x: Array[Micro] = field(init=False, repr=False, default=None)
+    _x: Array[MicroMeter] = field(init=False, repr=False, default=None)
     _f: Array[Percent] = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
@@ -68,7 +68,7 @@ class _Peak:
     """
     line: Line
     aperture: Aperture
-    rx: Micro = field(default=100)  # границы построения интерполяции
+    rx: MicroMeter = field(default=100)  # границы построения интерполяции
 
     def __call__(self, number: Array[Number], position: float, intensity: float) -> Array[Number]:
 
@@ -89,7 +89,7 @@ class _Peak:
         return f
 
 
-def show_peak(peak: Peak | _Peak, position: Micro, intensity: float, xscale: Number | Micro = Number):
+def show_peak(peak: Peak | _Peak, position: MicroMeter, intensity: float, xscale: Number | MicroMeter = Number):
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
 
@@ -101,7 +101,7 @@ def show_peak(peak: Peak | _Peak, position: Micro, intensity: float, xscale: Num
     spam = rx // step
     wavelength = np.array([step*i for i in np.arange(-spam, spam+1, 1)])
 
-    xvalues = x if xscale == Micro else x/step
+    xvalues = x if xscale == MicroMeter else x/step
     yvalues = peak.line(x, position, intensity)
     plt.plot(
         xvalues, yvalues,
@@ -109,7 +109,7 @@ def show_peak(peak: Peak | _Peak, position: Micro, intensity: float, xscale: Num
         label=r'$I(x)$',
     )
 
-    xvalues = wavelength if xscale == Micro else wavelength/step
+    xvalues = wavelength if xscale == MicroMeter else wavelength/step
     yvalues = peak(wavelength, position, intensity)
     plt.fill_between(
         xvalues, yvalues,
@@ -120,7 +120,7 @@ def show_peak(peak: Peak | _Peak, position: Micro, intensity: float, xscale: Num
     )
 
     plt.title(f'{detector.config.name}')
-    plt.xlabel(r'$x, \mu$' if xscale == Micro else r'$k$')
+    plt.xlabel(r'$x, \mu$' if xscale == MicroMeter else r'$k$')
     plt.ylabel('$s_{k}$, %')
 
     plt.grid(
@@ -164,4 +164,4 @@ if __name__ == '__main__':
     #     ),
     # )
 
-    show_peak(peak, position, intensity, xscale=Micro)
+    show_peak(peak, position, intensity, xscale=MicroMeter)

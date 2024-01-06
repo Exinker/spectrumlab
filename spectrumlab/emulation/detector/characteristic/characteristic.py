@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, Meter, Nano
+from spectrumlab.alias import Array, Meter, NanoMeter
 from spectrumlab.emulation.curve import gauss, rectangular
 
 
@@ -34,7 +34,7 @@ class ConstantCharacteristic(CharacteristicBase):
 
 @dataclass(frozen=True)
 class WindowCharacteristic(CharacteristicBase):
-    span: tuple[Nano, Nano]
+    span: tuple[NanoMeter, NanoMeter]
     smooth: float | None  # smoothing rectangular edges by gauss
     wavelength_bounds: tuple[float]
     wavelength_step: float
@@ -83,7 +83,7 @@ class DatasheetCharacteristic(CharacteristicBase):
     yscale: float = field(default=1)  # normalize y values to scale
     delimiter: str = field(default=',')
 
-    _x: Array[Nano] = field(init=False, repr=False)
+    _x: Array[NanoMeter] = field(init=False, repr=False)
     _y: Array[float] = field(init=False, repr=False)
 
     def __post_init__(self):

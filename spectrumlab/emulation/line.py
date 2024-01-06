@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
 
-from spectrumlab.alias import Array, Micro
+from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.emulation.curve import gauss, pvoigt
 from spectrumlab.picture.config import COLOR
 
@@ -14,12 +14,12 @@ from spectrumlab.picture.config import COLOR
 @dataclass(frozen=True)
 class NormalLineShape:
     """Normal (gauss) line profile's shape."""
-    width: Micro
+    width: MicroMeter
 
     @overload
-    def __call__(self, x: Micro, position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[Micro], position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         F = gauss(x, x0=position, w=self.width)
 
@@ -35,14 +35,14 @@ class VoigtLineShape:
     Aaron L. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """
-    width: Micro
+    width: MicroMeter
     asymmetry: float = field(default=0)  # non asymmetric default
     ratio: float = field(default=0)  # gauss shape default
 
     @overload
-    def __call__(self, x: Micro, position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[Micro], position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         F = pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
         f = intensity*F
@@ -53,15 +53,15 @@ class VoigtLineShape:
 @dataclass(frozen=True)
 class SelfReversedVoigtLineShape:
     """Self-reversed voigt line profile's shape with self-absorption"""
-    width: Micro
+    width: MicroMeter
     asymmetry: float
     ratio: float
     absorbance: float
 
     @overload
-    def __call__(self, x: Micro, position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[Micro], position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         F = pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
         f = intensity*F * 10**(-self.absorbance*F)
@@ -76,9 +76,9 @@ class SigmoidsLineShape:
     power: float
 
     @overload
-    def __call__(self, x: Micro, position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[Micro], position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         w = self.width
         p = self.power
@@ -111,9 +111,9 @@ class Line:
     shape: LineShape
 
     @overload
-    def __call__(self, x: Micro, position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
     @overload
-    def __call__(self, x: Array[Micro], position: Micro, intensity: float) -> Array[float]: ...
+    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         return self.shape(x, position, intensity)
 
@@ -122,7 +122,7 @@ class Line:
     def from_shape(cls, shape: LineShape) -> 'Line':
         return cls(shape=shape)
 
-    def show(self, position: Micro, intensity: float, rx: Micro = 100, dx: Micro = .01) -> None:
+    def show(self, position: MicroMeter, intensity: float, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
         """Show line profile's shape at the range rx with step dx."""
 
         #

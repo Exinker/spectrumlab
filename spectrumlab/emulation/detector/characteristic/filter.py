@@ -6,7 +6,7 @@ from typing import Literal
 
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Nano
+from spectrumlab.alias import NanoMeter
 from .characteristic import WindowCharacteristic, DatasheetCharacteristic
 
 
@@ -26,7 +26,7 @@ class Filter(ABC):
 
 @dataclass
 class WindowFilter(Filter, WindowCharacteristic):
-    span: tuple[Nano, Nano]
+    span: tuple[NanoMeter, NanoMeter]
     smooth: float  # smoothing rectangular edges by gauss
     wavelength_bounds: tuple[float, float]
     wavelength_step: float

@@ -33,15 +33,16 @@ MicroSecond = NewType('MicroSecond', int)
 
 
 # --------        spacial units        --------
-Meter = NewType('Meter', float)
 Inch = NewType('Inch', float)
-Centi = NewType('Centi', float)  # centimetre
-Milli = NewType('Milli', float)  # millimeter
-Micro = NewType('Micro', float)  # micrometer
-Nano = NewType('Nano', float)  # nanometer
+
+Meter = NewType('Meter', float)
+CentiMeter = NewType('CentiMeter', float)  # centimetre
+MilliMeter = NewType('MilliMeter', float)  # millimeter
+MicroMeter = NewType('MicroMeter', float)  # micrometer
+NanoMeter = NewType('NanoMeter', float)  # nanometer
+PicoMeter = NewType('Pico', float)  # picometer
 
 Number = NewType('Number', float)
-Wavelength = NewType('Wavelength', float)
 
 
 # --------        intensity units        --------

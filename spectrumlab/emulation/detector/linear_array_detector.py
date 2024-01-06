@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from spectrumlab.alias import Electron, Micro
+from spectrumlab.alias import Electron, MicroMeter
 from spectrumlab.emulation.detector.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic
 
 
@@ -13,8 +13,8 @@ class DetectorConfig:
     capacity: Electron
     read_noise: Electron
     n_pixels: int
-    width: Micro
-    height: Micro
+    width: MicroMeter
+    height: MicroMeter
     sensitivity: CharacteristicBase = field(default=ConstantCharacteristic(value=1))
     transmittance: CharacteristicBase = field(default=ConstantCharacteristic(value=1))
     description: str = field(default='')

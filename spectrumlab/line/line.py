@@ -1,9 +1,9 @@
 from typing import Callable
 
-from spectrumlab.alias import Nano, Number
+from spectrumlab.alias import NanoMeter, Number
 
 
-def default_handler(wavelength: Nano) -> Number:
+def default_handler(wavelength: NanoMeter) -> Number:
     """Default wavelength handler (do nothing)."""
 
     return wavelength
@@ -11,7 +11,7 @@ def default_handler(wavelength: Nano) -> Number:
 
 class Line:
 
-    def __init__(self, id: int, symbol: str, wavelength: Nano, *args, database_intensity: float = 0, database_ionization_degree: int = 1, handler: Callable[[Nano], Number] | None = None, **kwargs):
+    def __init__(self, id: int, symbol: str, wavelength: NanoMeter, *args, database_intensity: float = 0, database_ionization_degree: int = 1, handler: Callable[[NanoMeter], Number] | None = None, **kwargs):
 
         self.id = id
         self.symbol = symbol

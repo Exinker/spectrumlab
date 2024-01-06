@@ -7,7 +7,7 @@ from typing import Literal
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Meter, Nano
+from spectrumlab.alias import Array, Meter, NanoMeter
 from spectrumlab.emulation.detector.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic, DatasheetCharacteristic
 
 
@@ -98,7 +98,7 @@ class Detector(Enum):
 
         return config.sensitivity(x, fill_value) * config.transmittance(x, fill_value)
 
-    def show(self, bounds: tuple[Nano, Nano], info: Literal['title', 'text', 'none'] = 'text', save: bool = False, ax: plt.Axes | None = None) -> None:
+    def show(self, bounds: tuple[NanoMeter, NanoMeter], info: Literal['title', 'text', 'none'] = 'text', save: bool = False, ax: plt.Axes | None = None) -> None:
         fill = ax is not None
 
         if not fill:
