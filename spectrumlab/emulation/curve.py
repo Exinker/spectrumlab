@@ -106,10 +106,10 @@ def calculate_fwhm(x: Array[float], y: Array[float]) -> float:
     return res['x'].item()
 
 
-def voigt2pvoigt(x: Array[Number], x0: Number, sigma: float, gamma: float) -> tuple[float, float, float]:
+def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tuple[float, float, float]:
     """Approximate `voigt` shape by psevdo-voigt (`pvoigt`) shape."""
 
-    def loss(x: Number, x0: Number, y: Array[float], params) -> float:
+    def loss(x: float, x0: float, y: Array[float], params) -> float:
         y_hat = pvoigt(x, x0, *params)
 
         return mse(y, y_hat)

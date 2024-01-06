@@ -5,15 +5,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
 
-from spectrumlab.alias import Array, MicroMeter
-from spectrumlab.emulation.curve import gauss, pvoigt
+from spectrumlab.alias import Array, MicroMeter, PicoMeter
+from spectrumlab.emulation.curve import gauss, voigt, pvoigt, voigt2pvoigt, calculate_fwhm
 from spectrumlab.picture.config import COLOR
 
 
 # --------        shape        --------
 @dataclass(frozen=True)
-class NormalLineShape:
-    """Normal (gauss) line profile's shape."""
+class GaussLineShape:
+    """Gauss (or normal) line profile's shape."""
     width: MicroMeter
 
     @overload
@@ -26,6 +26,80 @@ class NormalLineShape:
         f = intensity*F
 
         return f
+
+
+@dataclass(frozen=True, slots=True)
+class VoigtLineShape:
+    """Voigt line shape."""
+    g: PicoMeter  # fwhm of gauss profile shape (doppler broadening)
+    l: PicoMeter  # fwhm of lorents profile shape (collisional broadening)
+
+    x: Array[PicoMeter] = field(default=np.linspace(-10, +10, 10000))
+
+    @property
+    def sigma(self) -> PicoMeter:
+        return self.g / np.sqrt(8 * np.log(2))
+
+    @property
+    def gamma(self) -> PicoMeter:
+        return self.l / 2
+
+    @property
+    def y(self) -> Array[float]:
+        return self(self.x)
+
+    # --------        handlers        --------
+    def estimate_fwhm(self) -> PicoMeter:
+        """Estimate FWHM of the shape [by formula](https://en.wikipedia.org/wiki/Voigt_profile#The_width_of_the_Voigt_profile)."""
+        return self.l/2 + np.sqrt((self.l/2)**2 + self.g**2)
+
+    def calculate_fwhm(self) -> PicoMeter:
+        """Calculate FWHM of the shape."""
+        hwhm = calculate_fwhm(self.x, self.y)
+
+        return hwhm
+    
+    def to_pseudo(self, show: bool = False) -> 'PVoigtLineShape':
+        """Approx voight shape by pvoigt shape."""
+        
+        params = voigt2pvoigt(self.x, x0=0, sigma=self.sigma, gamma=self.gamma)
+        shape = PVoigtLineShape(*params)
+
+        # show
+        if show:
+            x = self.x
+            y = self.y
+            y_hat = shape(x, position=0, intensity=1)
+
+            plt.plot(
+                x, y,
+                color='red', linestyle='none', marker='s', markersize=3,
+                label=r'voigt shape',
+            )
+            plt.plot(
+                x, y_hat,
+                label=r'pvoigt shape',
+                color='black', linestyle='-', linewidth=1,
+            )
+            plt.plot(
+                x, y_hat - y,
+                color='black', linestyle='none', marker='s', markersize=0.5,
+                label=r'error',
+            )
+
+            plt.xlabel('$x$ $[pm]$')
+            plt.ylabel('$f(x)$')
+
+            plt.grid(linestyle=':')
+            plt.legend()
+            plt.show()
+
+        #
+        return shape
+
+    # --------        private        --------
+    def __call__(self, x: Array[float], x0: float = 0) -> Array[float]:
+        return voigt(x, x0=x0, sigma=self.sigma, gamma=self.gamma)
 
 
 @dataclass(frozen=True)
@@ -51,7 +125,7 @@ class PVoigtLineShape:
 
 
 @dataclass(frozen=True)
-class SelfReversedVoigtLineShape:
+class SelfReversedPVoigtLineShape:
     """Self-reversed voigt line profile's shape with self-absorption"""
     width: MicroMeter
     asymmetry: float
@@ -95,7 +169,7 @@ class SigmoidsLineShape:
         return f
 
 
-LineShape = NormalLineShape | PVoigtLineShape | SelfReversedVoigtLineShape | SigmoidsLineShape
+LineShape = GaussLineShape | VoigtLineShape | PVoigtLineShape | SelfReversedPVoigtLineShape | SigmoidsLineShape
 
 
 # --------        line        --------
