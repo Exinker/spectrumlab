@@ -46,7 +46,7 @@ class VoigtLineShape:
 
     @property
     def y(self) -> Array[float]:
-        return self(self.x)
+        return self(self.x, 0, 1)
 
     # --------        handlers        --------
     def estimate_fwhm(self) -> PicoMeter:
