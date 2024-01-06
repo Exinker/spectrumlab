@@ -68,7 +68,7 @@ def test_shape(detector: Detector, config: Config):
         rx=int(config.rx/step),
         dx=config.dx/step,
     )
-    f_hat = convolve(x/step, apparatus=apparatus, aperture=aperture)
+    f_hat = convolve(x/step, apparatus=apparatus, aperture=aperture, step=step)
 
     # 
     mask = (x > -(config.rx-apparatus.shape.width/2)) & (x < +(config.rx-apparatus.shape.width/2))  # remove edges
@@ -98,7 +98,7 @@ def test_integral(detector: Detector, config: Config):
     )
 
     x = config.x
-    f = convolve(x, apparatus=apparatus, aperture=aperture)
+    f = convolve(x, apparatus=apparatus, aperture=aperture, step=step)
 
     integral = np.sum(f(x/step)) * (config.dx/step)
     assert np.abs(integral - 1) < tolerance
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     x = config.x
     f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio)
-    f_hat = convolve(x/step, apparatus=apparatus, aperture=aperture)
+    f_hat = convolve(x/step, apparatus=apparatus, aperture=aperture, step=step)
 
     #
     integral = np.sum(f_hat(x/step)) * (config.dx/step)

@@ -58,10 +58,10 @@ class EmulationInterface(ABC):
 
 
 # --------        emission emulation        --------
-def convolve(x: Array[Number], apparatus: Apparatus, aperture: Aperture) -> Callable[[Array[Micro]], Array[float]]:
+def convolve(x: Array[Number], apparatus: Callable[[Array[Micro]], Array[float]], aperture: Callable[[Array[Micro]], Array[float]], step: Micro) -> Callable[[Array[Number]], Array[float]]:
     return interpolate.interp1d(
         x,
-        signal.convolve(aperture.step*apparatus(x*aperture.step, 0), aperture.step*aperture(x*aperture.step, 0), mode='same') * (x[-1] - x[0])/(len(x) + 1),
+        signal.convolve(step*apparatus(x*step), step*aperture(x*step), mode='same') * (x[-1] - x[0])/(len(x) + 1),
         kind='linear',
         bounds_error=False,
         fill_value=0,
@@ -226,6 +226,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 x_grid/step,
                 self._apparatus_line,
                 aperture,
+                step=step,
             )
 
         return self._y_grid
@@ -674,6 +675,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         device = config.device
         detector = config.detector
+        step = detector.config.step
         rx = config.rx
         dx = config.dx
 
