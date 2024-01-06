@@ -1,4 +1,3 @@
-
 from abc import ABC
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -151,7 +150,7 @@ class VoightPeakShape:
     _y_grid: Array[float] = field(init=False, repr=False)
 
     def __post_init__(self):
-        x = np.arange(-self.rx, self.rx+self.dx, self.dx)
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
         f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
         h = lambda x: rectangular(x, x0=0, w=1)

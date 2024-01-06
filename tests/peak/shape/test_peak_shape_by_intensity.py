@@ -57,7 +57,7 @@ class Experiment(BaseExperiment):
         rx = 100
         dx = .01
 
-        x = np.linspace(-rx, +rx, 2*rx*int(1/dx) + 1)
+        x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
         f = interpolate.interp1d(
             x,
             signal.convolve(config.apparatus(x, 0), config.aperture(x, 0), mode='same') * (x[-1] - x[0])/len(x),
@@ -202,7 +202,7 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
     rx = 100
     dx = .01
 
-    x = np.linspace(-rx, +rx, 2*rx*int(1/dx) + 1)
+    x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
 
     y = f(x)
     y_hat = f_hat(x)
@@ -275,7 +275,7 @@ if __name__ == '__main__':
         rx = 100
         dx = .01
 
-        x = np.linspace(-rx, +rx, 2*rx*int(1/dx) + 1)
+        x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
 
         y = f(x)
         y_hat = f_hat(x)

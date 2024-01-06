@@ -29,8 +29,8 @@ class EmulatedPeakShape(VoightPeakShape):
         self.concentrations = concentrations
 
         # grid
-        x = np.arange(-self.rx, self.rx+self.dx, self.dx)
-        y = np.arange(0, self.ry+self.dy, self.dy)
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
+        y = np.linspace(0, self.ry, int(self.ry/self.dy) + 1)
 
         f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
         h = lambda x: rectangular(x, x0=0, w=1)

@@ -34,7 +34,7 @@ class RoundedRectangularApertureShape:
     _f: Array[float] = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
-        x = np.arange(-self.rx, self.rx+self.dx, self.dx)
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
         f1 = lambda x: rectangular(x, x0=0, w=1)
         f2 = lambda x: pvoigt(x, 0, w=self.width, a=0, r=0)
@@ -83,7 +83,7 @@ class ApproximatedApertureShape:
         w, a, r = self.PARAMS[wavelength][detector]
 
         #
-        x = np.arange(-self.rx, self.rx+self.dx, self.dx)
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
         f1 = lambda x: rectangular(x, x0=0, w=1)
         f2 = lambda x: pvoigt(x, 0, w=w, a=a, r=r)
@@ -132,7 +132,7 @@ class Aperture:
         #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        xvalues = np.arange(0, rx+dx, dx)
+        xvalues = np.linspace(0, rx, int(rx/dx) + 1)
         integral = np.zeros(xvalues.shape)
         for n in range(n_steps):
             x = xvalues if xscale == Micro else xvalues/self.step

@@ -128,7 +128,7 @@ class Line:
         #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        x = np.arange(-rx, rx+dx, dx)
+        x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
         y = self(x=x, position=position, intensity=intensity)
         plt.plot(
             x, y,

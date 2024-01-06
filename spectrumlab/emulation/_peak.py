@@ -31,7 +31,7 @@ class Peak:
 
     def __post_init__(self):
 
-        x = np.arange(-self.rx, self.rx+self.dx, self.dx)
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
         f1 = lambda x: self.line(x, position=0, intensity=1)
         f2 = lambda x: self.aperture(x, n=0)
@@ -95,7 +95,7 @@ def show_peak(peak: Peak | _Peak, position: Micro, intensity: float, xscale: Num
 
     #
     rx, dx = 100, .01
-    x = np.arange(position-rx, position+rx+dx, dx)
+    x = np.linspace(position-rx, position+rx, 2*int(rx/dx) + 1)
 
     step = detector.config.width
     spam = rx // step

@@ -22,7 +22,7 @@ class AbsorbedEffect:
         asymmetry = self.asymmetry
         ratio = self.ratio
 
-        x = np.arange(-self.shape.rx, self.shape.rx+self.shape.dx, self.shape.dx)
+        x = np.linspace(-self.shape.rx, self.shape.rx, 2*int(self.shape.rx/self.shape.dx) + 1)
 
         f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
         g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
@@ -60,8 +60,8 @@ class EffectedVoightPeakShape(VoightPeakShape):
     _z_grid: Array[float] = field(init=False, repr=False)
 
     def __post_init__(self):
-        self._x_grid = np.arange(-self.rx, self.rx+self.dx, self.dx)
-        self._y_grid = np.arange(0, self.ry+self.dy, self.dy)
+        self._x_grid = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
+        self._y_grid = np.linspace(0, self.ry, int(self.ry/self.dy) + 1)
         self._z_grid = np.array([self.effect(value=value) for value in self._y_grid])
 
     @overload

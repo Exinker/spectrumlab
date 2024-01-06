@@ -22,7 +22,7 @@ class Config:
 
     @property
     def n(self) -> int:
-        return 2*self.rx*int(1/self.dx) + 1
+        return 2*int(self.rx/self.dx) + 1
 
 
 @pytest.fixture

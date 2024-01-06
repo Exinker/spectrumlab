@@ -105,8 +105,7 @@ class Detector(Enum):
             fig, ax = plt.subplots(ncols=1, figsize=(6, 4), tight_layout=True)
 
         lb, ub = bounds
-        step = (ub - lb) / 1000
-        x = 1e-9*np.arange(lb, ub+step, step)
+        x = 1e-9*np.linspace(lb, ub, 1000)
         y = self.responce(x)
         ax.plot(
             1e+9*x, y,

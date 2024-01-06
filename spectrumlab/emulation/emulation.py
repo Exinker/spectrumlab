@@ -10,13 +10,13 @@ Emitted and absorbed spectrum emulation.
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Literal, TypeAlias, overload
+from typing import Callable, Literal, TypeAlias, overload
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate, interpolate, signal
 
-from spectrumlab.alias import Array, Absorbance, MilliSecond, Micro, Percent, Number
+from spectrumlab.alias import Array, Absorbance, MilliSecond, Percent, Micro, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.apparatus import Apparatus
@@ -58,6 +58,16 @@ class EmulationInterface(ABC):
 
 
 # --------        emission emulation        --------
+def convolve(x: Array[Number], apparatus: Apparatus, aperture: Aperture) -> Callable[[Array[Micro]], Array[float]]:
+    return interpolate.interp1d(
+        x,
+        signal.convolve(aperture.step*apparatus(x*aperture.step, 0), aperture.step*aperture(x*aperture.step, 0), mode='same') * (x[-1] - x[0])/(len(x) + 1),
+        kind='linear',
+        bounds_error=False,
+        fill_value=0,
+    )
+
+
 @dataclass
 class SpectrumConfig:
     n_numbers: int = field(default=50)
@@ -172,8 +182,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
             rx = config.rx
             dx = config.dx
-            # x_grid = np.arange(-rx, rx+dx, dx)
-            x_grid = np.linspace(-rx, +rx, 2*rx*int(1/dx) + 1)
+            x_grid = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
 
             self._x_grid = x_grid
 
@@ -184,6 +193,8 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
         if self._y_grid is None:
             config = self.config
+            detector = self.detector
+            step = detector.config.width
             line = self.line
             apparatus = self.apparatus
             aperture = self.aperture
@@ -211,13 +222,18 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 )
 
             # peak shape
-            self._y_grid = signal.convolve(self._apparatus_line(x_grid), aperture(x_grid, 0), mode='same') * 2*rx/len(x_grid)
+            self._y_grid = convolve(
+                x_grid/step,
+                self._apparatus_line,
+                aperture,
+            )
 
         return self._y_grid
 
     def _get_intensity(self, number: Array, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> Array[Percent]:
         config = self.config
         detector = config.detector
+        step = detector.config.width
 
         L = config.concentration_ratio  # path length (concentration coefficient to agreement between theory and emulation)
 
@@ -237,7 +253,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             fill_value=0,
         )
 
-        intensity = I*f((number - position)*detector.config.width)
+        intensity = I*f((number - position)*step)
 
         # background
         background = config.background_level
@@ -252,11 +268,11 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
             if self._physical_line is not None:
                 plt.plot(
-                    x/detector.config.width + position, background + I*self._physical_line(x),
+                    x/step + position, background + I*self._physical_line(x),
                     label=r'$I(\lambda)$',
                 )
             plt.plot(
-                x/detector.config.width + position, background + I*self._apparatus_line(x),
+                x/step + position, background + I*self._apparatus_line(x),
                 label=r'$I^{F}(\lambda)$',
             )
             plt.fill_between(
@@ -679,8 +695,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         # apparatus line function
         span = 10*rx
-        x = np.arange(-span, span+dx, dx)
 
+        x = np.linspace(-span, +span, 2*int(span/dx) + 1)        
         apparatus_line = interpolate.interp1d(
             x,
             B0 + signal.convolve(apparatus(x, 0), physical_line(x) - B0, mode='same') * 2*span/len(x),
@@ -690,14 +706,14 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         )
 
         # intensity (detector's output signal)
-        x0 = position*detector.config.width
+        x0 = position*step
 
         intensity = np.zeros(number.shape)
         for n in number:
             intensity[n] = integrate.quad(
                 lambda x: apparatus_line(x - x0) * aperture(x, n),
-                n*detector.config.width - rx,
-                n*detector.config.width + rx,
+                n*step - rx,
+                n*step + rx,
             )[0]
 
         intensity += S0  # add scattering radiation
@@ -705,7 +721,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         # show
         if show:
-            x = np.linspace(min(number)*detector.config.width, max(number)*detector.config.width, 1000)  # in Micro
+            x = np.linspace(min(number)*step, max(number)*step, 1000)  # in Micro
 
             #
             plt.figure(figsize=(12, 4))
@@ -719,8 +735,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             # in emission units
             ax = plt.subplot(1, 2, 1)
 
-            plt.plot(x/detector.config.width, S0 + physical_line(x - x0), label=r'$I(\lambda)$')  # f'physical line'
-            plt.plot(x/detector.config.width, S0 + apparatus_line(x - x0), label=r'$I^{F}(\lambda)$')  # f'apparatus line'
+            plt.plot(x/step, S0 + physical_line(x - x0), label=r'$I(\lambda)$')  # f'physical line'
+            plt.plot(x/step, S0 + apparatus_line(x - x0), label=r'$I^{F}(\lambda)$')  # f'apparatus line'
             plt.fill_between(
                 number,
                 y1=S0 + np.full(number.shape, B0),
@@ -737,8 +753,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             # in absorption units
             ax = plt.subplot(1, 2, 2)
 
-            plt.plot(x/detector.config.width, calculate_absorbance(S0 + physical_line(x - x0), I0), label=r'$A(\lambda)$')  # f'physical line'
-            plt.plot(x/detector.config.width, calculate_absorbance(S0 + apparatus_line(x - x0), I0), label=r'$A^{F}(\lambda)$')  # f'apparatus line'
+            plt.plot(x/step, calculate_absorbance(S0 + physical_line(x - x0), I0), label=r'$A(\lambda)$')  # f'physical line'
+            plt.plot(x/step, calculate_absorbance(S0 + apparatus_line(x - x0), I0), label=r'$A^{F}(\lambda)$')  # f'apparatus line'
             plt.fill_between(
                 number,
                 y1=np.full(number.shape, config.background_level),

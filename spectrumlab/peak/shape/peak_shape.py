@@ -89,8 +89,7 @@ class VoightPeakShape(BasePeakShape):
         self.dx = dx  # шаг сетки интерполяции
 
         # grid
-        # x = np.arange(-self.rx, +self.rx+self.dx, self.dx)
-        x = np.linspace(-self.rx, +self.rx, 2*self.rx*int(1/self.dx) + 1)
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
         f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
         s = lambda x: rectangular(x, x0=0, w=1)
@@ -216,8 +215,8 @@ class EffectedVoightPeakShape(BasePeakShape):
         self.de = de
 
         # grid
-        self.xvalues = np.arange(-self.rx, self.rx+self.dx, self.dx)
-        self.evalues = np.arange(0, self.re+self.de, self.de)
+        self.xvalues = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
+        self.evalues = np.linspace(0, self.re, int(self.re/self.de) + 1)
         self.yvalues = np.array([self._apply_effect(effect=effect) for effect in self.evalues])
 
     # --------        private        --------
@@ -249,7 +248,7 @@ class EffectedVoightPeakShape(BasePeakShape):
         asymmetry = self.asymmetry
         ratio = self.ratio
 
-        x = np.arange(-self.rx, self.rx+self.dx, self.dx)
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
         f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
         g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)

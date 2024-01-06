@@ -57,7 +57,7 @@ class WindowCharacteristic(CharacteristicBase):
             G = lambda x: gauss(x, 0, w=self.smooth)
             grid_f = signal.convolve(R(grid_x), G(grid_x), mode='same') * (grid_x[-1] - grid_x[0])/len(grid_x)
 
-            x = np.arange(lb, ub+step, step)
+            x = np.linspace(lb, ub, int((ub - lb)/step) + 1)
             y = interpolate.interp1d(
                 grid_x,
                 grid_f,
