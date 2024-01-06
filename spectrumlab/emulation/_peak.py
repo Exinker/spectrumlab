@@ -9,7 +9,7 @@ from scipy import integrate, interpolate, signal
 from spectrumlab.alias import Array, Number, MicroMeter, Percent
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.line import Line, VoigtLineShape
+from spectrumlab.emulation.line import Line, PVoigtLineShape
 from spectrumlab.picture.config import COLOR
 
 # ----------------    peak    ----------------
@@ -145,7 +145,7 @@ if __name__ == '__main__':
 
     peak = Peak(
         line=Line(
-            shape=VoigtLineShape(width, asymmetry, ratio),
+            shape=PVoigtLineShape(width, asymmetry, ratio),
         ),
         aperture=Aperture(
             shape=RectangularApertureShape(
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     )
     # peak = _Peak(
     #     line=Line(
-    #         shape=VoigtLineShape(width, asymmetry, ratio),
+    #         shape=PVoigtLineShape(width, asymmetry, ratio),
     #     ),
     #     aperture=Aperture(
     #         shape=RectangularApertureShape(

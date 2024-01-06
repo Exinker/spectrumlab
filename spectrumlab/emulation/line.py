@@ -29,7 +29,7 @@ class NormalLineShape:
 
 
 @dataclass(frozen=True)
-class VoigtLineShape:
+class PVoigtLineShape:
     """
     A simple asymmetric line shape profile for fitting infrared absorption spectra.
     Aaron L. Stancik, Eric B. Brauns
@@ -95,7 +95,7 @@ class SigmoidsLineShape:
         return f
 
 
-LineShape = NormalLineShape | VoigtLineShape | SelfReversedVoigtLineShape | SigmoidsLineShape
+LineShape = NormalLineShape | PVoigtLineShape | SelfReversedVoigtLineShape | SigmoidsLineShape
 
 
 # --------        line        --------
@@ -147,6 +147,6 @@ class Line:
 if __name__ == '__main__':
 
     line = Line(
-        shape=VoigtLineShape(width=25, asymmetry=0, ratio=.1),
+        shape=PVoigtLineShape(width=25, asymmetry=0, ratio=.1),
     )
     line.show(position=0, intensity=1)
