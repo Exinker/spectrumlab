@@ -11,7 +11,7 @@ def _estimate_intensity(x_grid: Array, y_grid: Array, mask: Array, position: Num
     """Interface to estimate analyte peak's intensity."""
 
     if isinstance(config, AmplitudeIntensityConfig):
-        f = interpolate_grid(x_grid, y_grid, kind='nearest')
+        f = interpolate_grid(x_grid, y_grid, kind=InterpolationKind.NEAREST)
 
         return f(position)
 
@@ -124,7 +124,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
             )
 
             x = np.linspace(position - 1/2, position + 1/2, 101)
-            f = interpolate_grid(x_grid, background + y_grid, kind='nearest')
+            f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.NEAREST)
             plt.fill_between(
                 x, 
                 background,
@@ -146,7 +146,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
                 )
 
                 x = np.linspace(position - config.interval/2, position + config.interval/2, 101)
-                f = interpolate_grid(x_grid, background + y_grid, kind='nearest')
+                f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.NEAREST)
                 plt.fill_between(
                     x, 
                     background,
@@ -165,7 +165,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
                 )
 
                 x = np.linspace(position - config.interval/2, position + config.interval/2, 101)
-                f = interpolate_grid(x_grid, background + y_grid, kind='linear')
+                f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.LINEAR)
                 plt.fill_between(
                     x, 
                     background,
