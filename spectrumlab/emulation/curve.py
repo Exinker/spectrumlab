@@ -1,7 +1,7 @@
 from functools import partial
 
 import numpy as np
-from scipy import signal, optimize
+from scipy import interpolate, optimize, signal
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.utils import mse
@@ -93,6 +93,19 @@ def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float)
 
 
 # --------        utils        --------
+def calculate_fwhm(x: Array[float], y: Array[float]) -> float:
+    def loss(x, f) -> float:
+        return np.sqrt((f(x) - f(0)/2)**2)
+
+    res = optimize.minimize(
+        partial(loss, f=interpolate.interp1d(x, y, kind='linear', bounds_error=False, fill_value=np.nan)),
+        x0=1,
+    )
+    # assert res['success'], 'Optimization is not success!'
+
+    return res['x'].item()
+
+
 def voigt2pvoigt(x: Array[Number], x0: Number, sigma: float, gamma: float) -> tuple[float, float, float]:
     """Approximate `voigt` shape by psevdo-voigt (`pvoigt`) shape."""
 
