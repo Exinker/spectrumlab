@@ -227,7 +227,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 self._apparatus_line,
                 aperture,
                 step=step,
-            )
+            )(x_grid/step)
 
         return self._y_grid
 
