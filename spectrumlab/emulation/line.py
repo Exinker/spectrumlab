@@ -98,8 +98,15 @@ class VoigtLineShape:
         return shape
 
     # --------        private        --------
-    def __call__(self, x: Array[float], x0: float = 0) -> Array[float]:
-        return voigt(x, x0=x0, sigma=self.sigma, gamma=self.gamma)
+    @overload
+    def __call__(self, x: MicroMeter, position: MicroMeter, intensity: float) -> Array[float]: ...
+    @overload
+    def __call__(self, x: Array[MicroMeter], position: MicroMeter, intensity: float) -> Array[float]: ...
+    def __call__(self, x, position, intensity):
+        F = voigt(x, x0=position, sigma=self.sigma, gamma=self.gamma)
+        f = intensity*F
+
+        return f
 
 
 @dataclass(frozen=True)
@@ -191,11 +198,7 @@ class Line:
     def __call__(self, x, position, intensity):
         return self.shape(x, position, intensity)
 
-    # --------        fabric        --------
-    @classmethod
-    def from_shape(cls, shape: LineShape) -> 'Line':
-        return cls(shape=shape)
-
+    # --------        handlers        --------
     def show(self, position: MicroMeter, intensity: float, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
         """Show line profile's shape at the range rx with step dx."""
 
