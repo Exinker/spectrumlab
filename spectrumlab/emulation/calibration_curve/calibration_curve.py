@@ -295,6 +295,7 @@ class CalibrationCurve(BaseCalibrationCurve):
             data['concentration'] = concentration_ratio * data['concentration']
         else:
             data = ref.copy()
+            data['mask'] = False
             data = data.set_index(['probe', 'parallel'])
 
         color = self._get_color(
@@ -379,30 +380,32 @@ class CalibrationCurve(BaseCalibrationCurve):
 
         c_true = unicorn['concentration']
         c_hat = self.predict(unicorn['intensity'])
-        bias = 100*(c_hat - c_true)/c_true
-        x = c_true
-        y = bias
-        plt.plot(
-            x, y,
-            color='black', linestyle='none', marker='s', markersize=2,
-            alpha=ALPHA['default'],
-            label='theoretical',
-        )
+        if ref is None:
+            bias = 100*(c_hat - c_true)/c_true
+            x = c_true
+            y = bias
+            plt.plot(
+                x, y,
+                color='black', linestyle='none', marker='s', markersize=2,
+                alpha=ALPHA['default'],
+                label='theoretical',
+            )
 
         c_true = data['concentration'].groupby(level=0, sort=False).mean()
-        c_hat = self.predict(data['intensity'].groupby(level=0, sort=False).mean())
-        bias = 100*(c_hat - c_true)/c_true
-        x = c_true
-        y = bias
-        plt.scatter(
-            x, y,
-            s=20,
-            marker='s',
-            facecolors=color,
-            edgecolors=color,
-            alpha=alpha,
-            label='emulated' if ref is None else 'recorded',
-        )
+        if ref is None:
+            c_hat = self.predict(data['intensity'].groupby(level=0, sort=False).mean())
+            bias = 100*(c_hat - c_true)/c_true
+            x = c_true
+            y = bias
+            plt.scatter(
+                x, y,
+                s=20,
+                marker='s',
+                facecolors=color,
+                edgecolors=color,
+                alpha=alpha,
+                label='emulated' if ref is None else 'recorded',
+            )
 
         plt.xscale('log')
         plt.xlabel('$C$')
