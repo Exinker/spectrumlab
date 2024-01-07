@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.alias import Array, Micro
+from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
@@ -13,11 +13,11 @@ from spectrumlab.peak.shape import VoightPeakShape
 
 @dataclass
 class Config:
-    width: Micro
+    width: MicroMeter
     asymmetry: float
     ratio: float
-    rx: Micro = field(default=100)
-    dx: Micro = field(default=1e-2)
+    rx: MicroMeter = field(default=100)
+    dx: MicroMeter = field(default=1e-2)
     tolerance: float = field(default=1e-6)
 
     @property

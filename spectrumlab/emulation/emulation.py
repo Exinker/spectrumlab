@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate, interpolate, signal
 
-from spectrumlab.alias import Array, Absorbance, MilliSecond, Percent, Micro, Number
+from spectrumlab.alias import Array, Absorbance, MilliSecond, Percent, MicroMeter, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.apparatus import Apparatus
@@ -58,7 +58,7 @@ class EmulationInterface(ABC):
 
 
 # --------        emission emulation        --------
-def convolve(x: Array[Number], apparatus: Callable[[Array[Micro]], Array[float]], aperture: Callable[[Array[Micro]], Array[float]], step: Micro) -> Callable[[Array[Number]], Array[float]]:
+def convolve(x: Array[Number], apparatus: Callable[[Array[MicroMeter]], Array[float]], aperture: Callable[[Array[MicroMeter]], Array[float]], step: MicroMeter) -> Callable[[Array[Number]], Array[float]]:
     return interpolate.interp1d(
         x,
         signal.convolve(step*apparatus(x*step), step*aperture(x*step), mode='same') * (x[-1] - x[0])/(len(x) + 1),
@@ -89,8 +89,8 @@ class EmittedSpectrumEmulationConfig:
 
     info: str | None = field(default=None)  # дополнительное текстовое описание (для указания в имени файлов)
 
-    rx: Micro = field(default=100)  # границы построения интерполяции
-    dx: Micro = field(default=.01)  # шаг сетки интерполяции
+    rx: MicroMeter = field(default=100)  # границы построения интерполяции
+    dx: MicroMeter = field(default=.01)  # шаг сетки интерполяции
 
 
 def emulate_emitted_spectrum(number: Array[Number], intensity: Array[Percent], noise: EmittedSpectrumNoise, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> EmittedSpectrum:
@@ -176,7 +176,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
     # --------        intensity        --------
     @property
-    def x_grid(self) -> Array[Micro]:
+    def x_grid(self) -> Array[MicroMeter]:
         if self._x_grid is None:
             config = self.config
 
@@ -548,8 +548,8 @@ class AbsorbedSpectrumEmulationConfig:
 
     info: str | None = field(default=None)  # дополнительное текстовое описание (для указания в имени файлов)
 
-    rx: Micro = field(default=100)  # границы построения интерполяции
-    dx: Micro = field(default=.01)  # шаг сетки интерполяции
+    rx: MicroMeter = field(default=100)  # границы построения интерполяции
+    dx: MicroMeter = field(default=.01)  # шаг сетки интерполяции
 
 
 def emulate_absorbed_spectrum(number: Array, intensity: Array, noise: EmittedSpectrumNoise, base_level: float, base_noise: EmittedSpectrumNoise, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> AbsorbedSpectrum:
@@ -723,7 +723,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         # show
         if show:
-            x = np.linspace(min(number)*step, max(number)*step, 1000)  # in Micro
+            x = np.linspace(min(number)*step, max(number)*step, 1000)  # in MicroMeter
 
             #
             plt.figure(figsize=(12, 4))

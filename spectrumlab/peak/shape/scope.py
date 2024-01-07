@@ -1,13 +1,22 @@
-
 import numpy as np
 
 from spectrumlab.alias import Number
-from spectrumlab.peak.shape.grid import Grid
-from spectrumlab.peak.shape.base_variables import BaseVariables, Variable
+from spectrumlab.peak.shape import Grid
+from spectrumlab.peak.shape.base_variables import Variable, BaseVariables
 
 
 class ScopeVariables(BaseVariables):
 
+    def __init__(self, grid: Grid, position: Number | None = None, intensity: float | None = None, background: float | None = None):
+        super().__init__([
+            self._init_position(grid, position=position),
+            self._init_intensity(grid, intensity=intensity),
+            self._init_background(grid, background=background),
+        ])
+
+        self.name = 'scope'
+
+    # --------        private        --------
     def _init_position(self, grid: Grid, position: Number | None = None) -> Variable:
         initial = grid.xvalues[np.argmax(grid.yvalues)] if position is None else position
         bounds = (initial-2, initial+2) if position is None else (initial-1e-10, initial+1e-10)
@@ -28,23 +37,3 @@ class ScopeVariables(BaseVariables):
         final = background
 
         return Variable('background', initial, bounds, final)
-
-    def __init__(self, grid: Grid, position: Number | None = None, intensity: float | None = None, background: float | None = None):
-        super().__init__([
-            self._init_position(grid, position=position),
-            self._init_intensity(grid, intensity=intensity),
-            self._init_background(grid, background=background),
-        ])
-
-        self.name = 'scope'
-
-
-if __name__ == '__main__':
-
-    vars = ScopeVariables(
-        grid=None,
-        position=10,
-        intensity=10,
-        background=0
-    )
-    print(vars)

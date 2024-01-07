@@ -17,7 +17,7 @@ from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
-from spectrumlab.emulation.line import Line, VoigtLineShape
+from spectrumlab.emulation.line import Line, PVoigtLineShape
 
 
 import warnings
@@ -164,7 +164,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
 class EmittedExperimentConfig(BaseEmittedExperimentConfig):
     '''Emitted spectra experiment's config.'''
 
-    def __init__(self, *args, line: VoigtLineShape, **kwargs):
+    def __init__(self, *args, line: PVoigtLineShape, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.line = line
@@ -173,7 +173,7 @@ class EmittedExperimentConfig(BaseEmittedExperimentConfig):
 class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
     '''Absorbed spectra experiment's config.'''
 
-    def __init__(self, *args, base_level: float, base_n_frames: int, line: VoigtLineShape, scattering_ratio: float, **kwargs):
+    def __init__(self, *args, base_level: float, base_n_frames: int, line: PVoigtLineShape, scattering_ratio: float, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.base_level = base_level
@@ -248,7 +248,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
             base_n_frames=base_n_frames,
 
             line = Line(
-                shape=VoigtLineShape(
+                shape=PVoigtLineShape(
                     width=float(parser.get('line', 'width')) / device.config.dispersion,  # in micron
                     asymmetry=0,
                     ratio=float(parser.get('line', 'ratio')),

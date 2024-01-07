@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array
+from spectrumlab.alias import Array, Number
 from spectrumlab.spectrum import Spectrum
 
 
@@ -15,11 +15,12 @@ if TYPE_CHECKING:
 
 class GridIterator:
 
-    def __init__(self, xvalues: Array, yvalues: Array):
+    def __init__(self, xvalues: Array[Number], yvalues: Array[float]):
         self._xvalues = xvalues
         self._yvalues = yvalues
         self._index = -1
 
+    # --------        private        --------
     def __iter__(self) -> Iterator:
         return self
 
@@ -35,11 +36,8 @@ class GridIterator:
 
 @dataclass(frozen=True)
 class Grid:
-    xvalues: Array
-    yvalues: Array
-
-    def __post_init__(self):
-        assert len(self.xvalues) == len(self.yvalues)
+    xvalues: Array[Number]
+    yvalues: Array[float]
 
     @property
     def n_points(self) -> int:
@@ -64,7 +62,7 @@ class Grid:
 
     # --------        fabric        --------
     @classmethod
-    def from_frames(cls, spectrum: Spectrum, offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
+    def from_frames(cls, spectrum: Spectrum, offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
         """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
         assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
 
@@ -90,7 +88,7 @@ class Grid:
         )
 
     @classmethod
-    def from_blinks(cls, spectrum: Spectrum, blinks: Sequence['BlinkPeak'], offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
+    def from_blinks(cls, spectrum: Spectrum, blinks: Sequence['BlinkPeak'], offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
         """Get a grid from sequence of blinks from spectrum."""
         assert spectrum.n_times == 1, 'kinetics spectra are not supported!'
 
@@ -117,8 +115,9 @@ class Grid:
             background=background,
         )
 
+    # --------        private        --------
     @classmethod
-    def _from_items(cls, items: Sequence[tuple[Array, Array]], offset: Array[float] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> 'Grid':
+    def _from_items(cls, items: Sequence[tuple[Array, Array]], offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> 'Grid':
         """Get a grid from sequence of items."""
         n_times = len(items)
 
@@ -151,7 +150,9 @@ class Grid:
             yvalues=yvalues[index],
         )
 
-    # --------        private        --------
+    def __post_init__(self):
+        assert len(self.xvalues) == len(self.yvalues)
+
     def __iter__(self) -> Iterator:
         return GridIterator(
             xvalues=self.xvalues,

@@ -9,12 +9,25 @@ from scipy import interpolate, optimize, signal
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.utils import mse
-from spectrumlab.peak.shape.grid import Grid
-from spectrumlab.peak.shape.base_variables import BaseVariables, ScopeVariables, VoightVariables
+from spectrumlab.peak.shape import Grid
+from spectrumlab.peak.shape.base_variables import Variable, BaseVariables
 from spectrumlab.peak.shape.base_shape import BasePeakShape
+from spectrumlab.peak.shape.scope import ScopeVariables
 
 
 # --------        voight peak shape        --------
+class VoightVariables(BaseVariables):
+
+    def __init__(self, width: Number | None = None, asymmetry: float | None = None, ratio: float | None = None):
+        super().__init__([
+            Variable('width', 2.0, (0.1, 20), width),
+            Variable('asymmetry', 0.0, (-0.5, +0.5), asymmetry),
+            Variable('ratio', 0.1, (0, 1), ratio),
+        ])
+
+        self.name = 'shape'
+
+
 class VoightPeakShapeVariables(BaseVariables):
 
     def __init__(self, grid: Grid, *args, **kwargs):
@@ -98,6 +111,15 @@ class VoightPeakShape(BasePeakShape):
         self._xvalues = x
         self._yvalues = y
 
+    def get_content(self, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
+        sign = {+1: '+' }.get(np.sign(self.asymmetry), '') if is_signed else ''
+
+        return sep.join([
+            f'w={self.width:.4f}',
+            f'a={sign}{self.asymmetry:.4f}',
+            f'r={self.ratio:.4f}',
+        ])
+
     # --------        fabric        --------
     @classmethod
     def from_grid(cls, grid: Grid, show: bool = False) -> 'VoightPeakShape':
@@ -159,7 +181,7 @@ class VoightPeakShape(BasePeakShape):
                 alpha=1,
             )
 
-            content = get_content(shape, sep='\n')
+            content = cls.get_content(shape, sep='\n')
             plt.text(
                 0.05, 0.95,
                 content,
@@ -183,7 +205,6 @@ class VoightPeakShape(BasePeakShape):
     @overload
     def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0) -> Array[float]: ...
     def __call__(self, x, position, intensity, background=0):
-
         f = interpolate.interp1d(
             self._xvalues,
             self._yvalues,
@@ -197,10 +218,10 @@ class VoightPeakShape(BasePeakShape):
     def __repr__(self) -> str:
         cls = self.__class__
 
-        return f'{cls.__name__}({get_content(self)})'
+        return f'{cls.__name__}({self.get_content()})'
 
 
-class EffectedVoightPeakShape(BasePeakShape):
+class SelfReversedVoightPeakShape(BasePeakShape):
     """Effected voight peak's shape type."""
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01, de: float = 0.25, re: float = 4) -> None:
@@ -220,6 +241,19 @@ class EffectedVoightPeakShape(BasePeakShape):
         self.yvalues = np.array([self._apply_effect(effect=effect) for effect in self.evalues])
 
     # --------        private        --------
+    def _apply_effect(self, effect: float) -> Array[float]:
+        width = self.width
+        asymmetry = self.asymmetry
+        ratio = self.ratio
+
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
+
+        f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
+        g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
+        h = lambda x: rectangular(x, x0=0, w=1)
+
+        return signal.convolve(f(x) * 10**(-effect * g(x)), h(x), mode='same') * (x[-1] - x[0])/len(x)
+
     @overload
     def __call__(self, x: float, position: Number, intensity: float, background: float = 0, effect: float = 0) -> float: ...
     @overload
@@ -242,32 +276,6 @@ class EffectedVoightPeakShape(BasePeakShape):
         cls = self.__class__
 
         return f'{cls.__name__}(w={self.width:.4f}; a={self.asymmetry:.4f}; r={self.ratio:.4f})'
-
-    def _apply_effect(self, effect: float) -> Array[float]:
-        width = self.width
-        asymmetry = self.asymmetry
-        ratio = self.ratio
-
-        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
-
-        f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
-        g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
-        h = lambda x: rectangular(x, x0=0, w=1)
-
-        return signal.convolve(f(x) * 10**(-effect * g(x)), h(x), mode='same') * (x[-1] - x[0])/len(x)
-
-
-PeakShape: TypeAlias = VoightPeakShape | EffectedVoightPeakShape
-
-
-def get_content(p: PeakShape, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
-    sign = {+1: '+' }.get(np.sign(p.asymmetry), '') if is_signed else ''
-
-    return sep.join([
-        f'w={p.width:.4f}',
-        f'a={sign}{p.asymmetry:.4f}',
-        f'r={p.ratio:.4f}',
-    ])
 
 
 # --------        handlers        --------

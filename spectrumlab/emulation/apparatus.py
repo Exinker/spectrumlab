@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Micro
+from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.emulation.curve import rectangular, pvoigt
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 
@@ -12,9 +12,9 @@ from spectrumlab.emulation.detector.linear_array_detector import Detector
 @dataclass
 class RectangularApparatusShape:
     """Rectangular device's apparatus shape."""
-    width: Micro
+    width: MicroMeter
 
-    def __call__(self, x: Micro | Array[Micro], x0: Micro, step: float) -> Array[float]:
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
         f = rectangular(x/step, x0=x0/step, w=self.width/step)/step
 
         return f
@@ -23,9 +23,9 @@ class RectangularApparatusShape:
 @dataclass
 class TriangularApparatusShape:
     """Triangular device's apparatus shape."""
-    width: Micro
+    width: MicroMeter
 
-    def __call__(self, x: Micro | Array[Micro], x0: Micro) -> Array[float]:
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter) -> Array[float]:
         raise NotImplementedError
 
 
@@ -37,11 +37,11 @@ class VoigtApparatusShape:
     Aaron L. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """
-    width: Micro
+    width: MicroMeter
     asymmetry: float
     ratio: float
 
-    def __call__(self, x: Micro | Array[Micro], x0: Micro, step: float) -> Array[float]:
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
         f = pvoigt(x/step, x0=x0/step, w=self.width/step, a=self.asymmetry, r=self.ratio)/step
 
         return f
@@ -64,11 +64,11 @@ class Apparatus:
     shape: ApparatusShape
 
     @property
-    def step(self) -> Micro:
+    def step(self) -> MicroMeter:
         return self.detector.config.width
 
     # --------        handlers        --------
-    def show(self, rx: Micro = 100, dx: Micro = .01) -> None:
+    def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
         
         #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
@@ -89,7 +89,7 @@ class Apparatus:
         plt.show()
 
     # --------        private        --------
-    def __call__(self, x: Micro | Array[Micro], x0: Micro = 0) -> Array[float]:
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter = 0) -> Array[float]:
         return self.shape(x, x0=x0, step=self.step)
 
 

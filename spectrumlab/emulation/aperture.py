@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, Micro, Number
+from spectrumlab.alias import Array, MicroMeter, Number
 from spectrumlab.emulation.curve import rectangular, pvoigt
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.picture.config import COLOR
@@ -27,8 +27,8 @@ class RoundedRectangularApertureShape:
     """Rounded rectangular (a convolution of rectangular and pvoigt) aperture's profile shape."""
 
     width: Number = field(default=.2)
-    dx: float = field(default=0.01)  # шаг построения интерполяции
-    rx: float = field(default=10)  # границы построения интерполяции
+    dx: Number = field(default=0.01)  # шаг построения интерполяции
+    rx: Number = field(default=10)  # границы построения интерполяции
 
     _x: Array[Number] = field(init=False, repr=False, default=None)
     _f: Array[float] = field(init=False, repr=False, default=None)
@@ -63,8 +63,8 @@ class ApproximatedApertureShape:
     detector: Detector
 
     wavelength: Literal[405] = field(default=405)
-    dx: float = field(default=0.01)  # шаг построения интерполяции
-    rx: float = field(default=10)  # границы построения интерполяции
+    dx: Number = field(default=0.01)  # шаг построения интерполяции
+    rx: Number = field(default=10)  # границы построения интерполяции
 
     _x: Array[Number] = field(init=False, repr=False, default=None)
     _f: Array[float] = field(init=False, repr=False, default=None)
@@ -122,11 +122,11 @@ class Aperture:
     shape: ApertureShape
 
     @property
-    def step(self) -> Micro:
+    def step(self) -> MicroMeter:
         return self.detector.config.width
 
     # --------        handlers        --------
-    def show(self, rx: Micro = 100, dx: Micro = .01, xscale: Number | Micro = Number) -> None:
+    def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, xscale: Number | MicroMeter = Number) -> None:
         n_steps = rx // self.step + 1
 
         #
@@ -135,7 +135,7 @@ class Aperture:
         xvalues = np.linspace(0, rx, int(rx/dx) + 1)
         integral = np.zeros(xvalues.shape)
         for n in range(n_steps):
-            x = xvalues if xscale == Micro else xvalues/self.step
+            x = xvalues if xscale == MicroMeter else xvalues/self.step
             y = self(xvalues, n=n)
             plt.plot(
                 x, y,
@@ -145,7 +145,7 @@ class Aperture:
 
             integral += y
 
-        x = xvalues if xscale == Micro else xvalues/self.step
+        x = xvalues if xscale == MicroMeter else xvalues/self.step
         y = integral
         plt.plot(
             x, y,
@@ -153,7 +153,7 @@ class Aperture:
             label='Integral',
         )
 
-        plt.xlabel(r'$x$ $[\mu]$' if xscale == Micro else r'$k$')
+        plt.xlabel(r'$x$ $[\mu]$' if xscale == MicroMeter else r'$k$')
         plt.ylabel('$S(x - x_{k})$')
         plt.grid(
             color='grey', linestyle=':',
@@ -163,7 +163,7 @@ class Aperture:
         plt.show()
 
     # --------        private        --------
-    def __call__(self, x: Micro | Array[Micro], n: Number = 0) -> Array[float]:
+    def __call__(self, x: MicroMeter | Array[MicroMeter], n: Number = 0) -> Array[float]:
         return self.shape(x/self.step, n=n)/self.step
 
 

@@ -4,18 +4,18 @@ from functools import partial
 import numpy as np
 import pytest
 
-from spectrumlab.alias import Array, Micro
+from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 
 
 @dataclass
 class Config:
-    rx: Micro = field(default=100)
-    dx: Micro = field(default=1e-2)
+    rx: MicroMeter = field(default=100)
+    dx: MicroMeter = field(default=1e-2)
 
     @property
-    def x(self) -> Array[Micro]:
+    def x(self) -> Array[MicroMeter]:
         return np.linspace(-self.rx, +self.rx, self.n)
 
     @property

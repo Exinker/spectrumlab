@@ -8,11 +8,11 @@ from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
-from spectrumlab.peak.shape.peak_shape import VoightPeakShape
+from spectrumlab.peak.shape import VoightPeakShape
 
 
 @dataclass
-class AbsorbedEffect:
+class SelfReversedEffect:
     width: Number
     asymmetry: float
     ratio: float
@@ -116,7 +116,7 @@ class EffectedVoightPeakShape(VoightPeakShape):
 #     ratio = .2
 
 #     #
-#     effect = AbsorbedEffect(
+#     effect = SelfReversedEffect(
 #         width=width,
 #         asymmetry=asymmetry,
 #         ratio=ratio,
