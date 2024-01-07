@@ -22,7 +22,6 @@ class GaussLineShape:
     def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
         F = gauss(x, x0=position, w=self.width)
-
         f = intensity*F
 
         return f
@@ -34,7 +33,8 @@ class VoigtLineShape:
     g: PicoMeter  # fwhm of gauss profile shape (doppler broadening)
     l: PicoMeter  # fwhm of lorents profile shape (collisional broadening)
 
-    x: Array[PicoMeter] = field(default=np.linspace(-10, +10, 10000))
+    dx: PicoMeter = field(default=0.01)  # шаг построения интерполяции
+    rx: PicoMeter = field(default=10)  # границы построения интерполяции
 
     @property
     def sigma(self) -> PicoMeter:
@@ -43,6 +43,10 @@ class VoigtLineShape:
     @property
     def gamma(self) -> PicoMeter:
         return self.l / 2
+
+    @property
+    def x(self) -> Array[PicoMeter]:
+        return np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
     @property
     def y(self) -> Array[float]:
@@ -170,7 +174,6 @@ class SigmoidsLineShape:
             a=position-1e+3,
             b=position+1e+3,
         )[0]  # normalization
-
         f = intensity*F
 
         return f

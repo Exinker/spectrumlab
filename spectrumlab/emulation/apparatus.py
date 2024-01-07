@@ -14,7 +14,7 @@ class RectangularApparatusShape:
     """Rectangular device's apparatus shape."""
     width: MicroMeter
 
-    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: float) -> Array[float]:
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
         f = rectangular(x/step, x0=x0/step, w=self.width/step)/step
 
         return f
@@ -41,7 +41,7 @@ class VoigtApparatusShape:
     asymmetry: float
     ratio: float
 
-    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: float) -> Array[float]:
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
         f = pvoigt(x/step, x0=x0/step, w=self.width/step, a=self.asymmetry, r=self.ratio)/step
 
         return f
