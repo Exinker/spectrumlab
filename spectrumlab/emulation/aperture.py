@@ -27,8 +27,8 @@ class RoundedRectangularApertureShape:
     """Rounded rectangular (a convolution of rectangular and pvoigt) aperture's profile shape."""
 
     width: Number = field(default=.2)
-    dx: float = field(default=0.01)  # шаг построения интерполяции
-    rx: float = field(default=10)  # границы построения интерполяции
+    dx: Number = field(default=0.01)  # шаг построения интерполяции
+    rx: Number = field(default=10)  # границы построения интерполяции
 
     _x: Array[Number] = field(init=False, repr=False, default=None)
     _f: Array[float] = field(init=False, repr=False, default=None)
@@ -63,8 +63,8 @@ class ApproximatedApertureShape:
     detector: Detector
 
     wavelength: Literal[405] = field(default=405)
-    dx: float = field(default=0.01)  # шаг построения интерполяции
-    rx: float = field(default=10)  # границы построения интерполяции
+    dx: Number = field(default=0.01)  # шаг построения интерполяции
+    rx: Number = field(default=10)  # границы построения интерполяции
 
     _x: Array[Number] = field(init=False, repr=False, default=None)
     _f: Array[float] = field(init=False, repr=False, default=None)
