@@ -9,9 +9,7 @@ from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.emulation import convolve
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.peak.shape import VoightPeakShape
-from spectrumlab.peak.shape.grid import Grid
-from spectrumlab.peak.shape.peak_shape import VoightPeakShape
+from spectrumlab.peak.shape import VoightPeakShape, Grid
 from spectrumlab.utils import mse
 
 from experiment import BaseExperimentConfig, BaseExperiment
