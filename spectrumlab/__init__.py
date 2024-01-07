@@ -1,7 +1,7 @@
 
 NAME = 'spectrumlab'
 DESCRIPTION = '`spectrumlab` is a library designed to emulate and process spectra.'
-VERSION = '0.5.1'
+VERSION = '0.5.2'
 
 AUTHOR_NAME = 'Pavel Vaschenko'
 AUTHOR_EMAIL = 'vaschenko@vmk.ru'
