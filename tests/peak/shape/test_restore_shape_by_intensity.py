@@ -3,13 +3,12 @@ from functools import partial
 import numpy as np
 import matplotlib.pyplot as plt
 import pytest
-from tqdm import tqdm
-from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.emulation import convolve
 from spectrumlab.peak.shape import VoightPeakShape
 from spectrumlab.peak.shape.grid import Grid
 from spectrumlab.peak.shape.peak_shape import VoightPeakShape
@@ -17,6 +16,10 @@ from spectrumlab.utils import mse
 
 from experiment import BaseExperimentConfig, BaseExperiment
 
+
+POSITION = 0.0
+N_ITERS = 51
+THRESHOLD = 100
 
 DETECTOR = Detector.BLPP2000
 SHAPE = VoigtApparatusShape(
@@ -34,7 +37,7 @@ class ExperimentConfig(BaseExperimentConfig):
 
     @property
     def position(self) -> Number:
-        return self.n_numbers//2
+        return self.n_numbers//2 + POSITION
 
 
 class Experiment(BaseExperiment):
@@ -56,29 +59,22 @@ class Experiment(BaseExperiment):
         # setup intensity
         rx = 100
         dx = .01
-
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = interpolate.interp1d(
-            x,
-            signal.convolve(config.apparatus(x, 0), config.aperture(x, 0), mode='same') * (x[-1] - x[0])/len(x),
-            kind='linear',
-            bounds_error=False,
-            fill_value=0,
-        )
+        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0
 
         intensity = np.zeros((config.n_iters, config.n_numbers))
         for i, exposure in enumerate(config.exposure):
-            intensity[i] = exposure * f((self.number - config.position)*step)
+            intensity[i] = exposure * f(self.number - config.position)
         self._intensity = intensity
 
         # show
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            x, y = x, f(x)
+            x, y = x, f(x/step)
             plt.plot(
                 x/step, y,
                 color='black',
@@ -116,7 +112,7 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
         config=ExperimentConfig(
             n_numbers=20,
             n_frames=1,
-            n_iters=21,
+            n_iters=N_ITERS,
 
             detector=detector,
             apparatus=Apparatus(
@@ -131,7 +127,7 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
     )
     experiment = experiment.setup(
         verbose=False,
-        show=True,
+        show=False,
     )
 
     return experiment
@@ -150,12 +146,13 @@ def shape_hat(experiment: Experiment) -> VoightPeakShape:
         offset=np.full((config.n_iters, ), config.n_numbers//2),
         scale=config.exposure,
         background=np.full((config.n_iters, ), 0),
+        threshold=THRESHOLD,
     )
 
     # shape_hat
     shape_hat = VoightPeakShape.from_grid(
         grid=grid,
-        show=True,
+        show=False,
     )
 
     return shape_hat
@@ -187,8 +184,6 @@ def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat:
 
 
 def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
-    from functools import partial
-
     tolerance = 1e-6
     step = detector.config.width
 
@@ -220,7 +215,7 @@ if __name__ == '__main__':
     config = ExperimentConfig(
         n_numbers=20,
         n_frames=1,
-        n_iters=21,
+        n_iters=N_ITERS,
 
         detector=detector,
         apparatus=Apparatus(
@@ -238,51 +233,24 @@ if __name__ == '__main__':
     )
     experiment = experiment.setup(
         verbose=False,
-        # show=True,
+        show=False,
     )
 
     # spectrum
     spectrum = experiment.run(is_noised=True)
 
-    # optimaze threshold
+    # shape_hat
     step = detector.config.width
 
-    n_thresholds = 101
-    thresholds = np.logspace(-1, 2, n_thresholds)
-    error = []
-    for threshold in tqdm(thresholds):
-        grid = Grid.from_frames(
-            spectrum=spectrum,
-            offset=np.full((config.n_iters, ), config.position),
-            scale=config.exposure,
-            background=np.full((config.n_iters, ), 0),
-            threshold=threshold,
-        )
+    grid = Grid.from_frames(
+        spectrum=spectrum,
+        offset=np.full((config.n_iters, ), config.position),
+        scale=config.exposure,
+        background=np.full((config.n_iters, ), 0),
+        threshold=THRESHOLD,
+    )
 
-        shape_hat = VoightPeakShape.from_grid(
-            grid=grid,
-            show=False,
-        )
-
-        #
-        f = partial(shape, x0=0, step=step)
-        f_hat = partial(VoigtApparatusShape(
-            width=shape_hat.width*step,
-            asymmetry=shape.asymmetry,
-            ratio=shape.ratio,
-        ), x0=0, step=step)
-
-        rx = 100
-        dx = .01
-
-        x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-
-        y = f(x)
-        y_hat = f_hat(x)
-
-        #
-        error.append(mse(y, y_hat))
-
-
-    plt.plot(thresholds, error)
-    plt.show()
+    shape_hat = VoightPeakShape.from_grid(
+        grid=grid,
+        show=True,
+    )
