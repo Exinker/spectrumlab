@@ -33,7 +33,7 @@ class Config:
 @pytest.fixture
 def config() -> Config:
     return Config(
-        width=25,
+        width=28,
         asymmetry=0,
         ratio=0,
     )
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     
     config = Config(
-        width=25,
+        width=28,
         asymmetry=0,
         ratio=0,
     )

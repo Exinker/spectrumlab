@@ -2,21 +2,24 @@ from functools import partial
 
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 import pytest
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulation.emulation import convolve
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.peak.shape import VoightPeakShape, Grid, restore_shape_from_grid
+from spectrumlab.emulation.emulation import convolve
+from spectrumlab.line import Line
+from spectrumlab.peak.shape import VoightPeakShape, restore_shape_from_spectrum
+from spectrumlab.picture.config import COLOR
 
 from core import BaseExperimentConfig, BaseExperiment, distance
 
 
-IS_NOISED = True
+IS_NOISED = False
 EXPOSURE = 100
-N_ITERS = 100
+N_ITERS = 50
 THRESHOLD = 0
 
 DETECTOR = Detector.BLPP2000
@@ -35,7 +38,7 @@ class ExperimentConfig(BaseExperimentConfig):
 
     @property
     def position(self) -> Array[Number]:
-        return self.n_numbers//2 + np.linspace(-.5, +.5, self.n_iters, endpoint=False)
+        return self.n_numbers//2 + np.linspace(-.5, +.5, self.n_iters)
 
 
 class Experiment(BaseExperiment):
@@ -44,7 +47,7 @@ class Experiment(BaseExperiment):
         super().__init__(config=config)
 
     # --------        handlers        --------
-    def setup(self, seed: int | None = None, verbose: bool = False, show: bool = False) -> 'Experiment':
+    def setup(self, mu: float, sigma: float, seed: int | None = None, verbose: bool = False, show: bool = False) -> 'Experiment':
         config = self.config
         detector = self.config.detector
 
@@ -54,38 +57,44 @@ class Experiment(BaseExperiment):
         if seed:
             np.random.seed(seed)
 
+        # sefup lines
+        # _position = np.linspace(0, config.n_numbers, config.n_iters)
+        # _intensity = np.full(config.n_iters, 1)
+        _position = np.random.uniform(0, config.n_numbers, size=(config.n_iters,))
+        _intensity = 10**np.random.normal(mu, sigma, size=(config.n_iters,))
+        self._lines = tuple([
+            Line(id=0, symbol='NA', wavelength=position, database_intensity=intensity)
+            for position, intensity in zip(_position, _intensity)
+        ])
+
         # setup intensity
         rx = 100
-        dx = 1e-2
+        dx = .01
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
         f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0
 
-        intensity = np.zeros((config.n_iters, config.n_numbers))
-        for i, position in enumerate(config.position):
-            intensity[i] = config.exposure * f(self.number - position)
+        intensity = np.zeros((config.n_numbers,))
+        for line in tqdm(self.lines, total=config.n_iters, disable=not verbose):
+            intensity += line.intensity * f(self.number - line.position)
+        intensity *= config.exposure
         self._intensity = intensity
+
 
         # show
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            y = f(x/step)
-            plt.plot(
-                x/step, y,
-                color='black',
-            )
-
-            for i, position in enumerate(config.position):
-                x = self.number - position
-                y = self.intensity[i] / config.exposure
+            for line in self.lines:
                 plt.plot(
-                    x, y,
-                    color='red', linestyle='none', marker='s', markersize=3,
-                    alpha=1,
+                    [line.position, line.position], [0, config.exposure*line.intensity],
+                    color=COLOR['blue'], linestyle=':',
                 )
+            plt.plot(
+                self.number, self.intensity,
+            )
 
             plt.grid(color='grey', linestyle=':')
             plt.show()
@@ -134,30 +143,21 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
 
 @pytest.fixture(scope='module')
 def shape_hat(experiment: Experiment) -> VoightPeakShape:
-    config = experiment.config
 
     # spectrum
     spectrum = experiment.run(is_noised=IS_NOISED)
 
-    # grid
-    grid = Grid.from_frames(
-        spectrum=spectrum,
-        offset=config.position,
-        scale=np.full((config.n_iters, ), config.exposure),
-        background=np.full((config.n_iters, ), 0),
-        threshold=THRESHOLD,
-    )
-
     # shape_hat
-    shape_hat = restore_shape_from_grid(
-        grid=grid,
-        show=False,
+    shape_hat = restore_shape_from_spectrum(
+        spectrum=spectrum,
+        noise=experiment.noise,
+        verbose=True,
+        show=True,
     )
 
     return shape_hat
 
 
-# --------        tests        --------
 def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
     tolerance = 1e-3  # 0.1 [%]
     step = detector.config.width
@@ -203,7 +203,7 @@ if __name__ == '__main__':
     detector = DETECTOR
     shape = SHAPE
     config = ExperimentConfig(
-        n_numbers=20,
+        n_numbers=2048,
         n_frames=1,
         n_iters=N_ITERS,
 
@@ -223,22 +223,18 @@ if __name__ == '__main__':
         config=config,
     )
     experiment = experiment.setup(
+        mu=-1,
+        sigma=.5,
         verbose=False,
-        show=False,
     )
 
     # spectrum
     spectrum = experiment.run(is_noised=IS_NOISED)
 
     # restore shape
-    grid = Grid.from_frames(
+    shape_hat = restore_shape_from_spectrum(
         spectrum=spectrum,
-        offset=config.position,
-        scale=np.full((config.n_iters, ), config.exposure),
-        background=np.full((config.n_iters, ), 0),
-        threshold=THRESHOLD,
-    )
-    shape_hat = restore_shape_from_grid(
-        grid=grid,
+        noise=experiment.noise,
+        verbose=True,
         show=True,
     )

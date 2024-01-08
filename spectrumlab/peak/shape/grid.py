@@ -44,6 +44,9 @@ class Grid:
         return len(self.xvalues)
 
     # --------        handlers        --------
+    def space(self, n_points: int = 1000) -> Array[Number]:
+        return np.linspace(min(self.xvalues), max(self.xvalues), n_points)
+
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 

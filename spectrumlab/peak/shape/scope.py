@@ -25,7 +25,7 @@ class ScopeVariables(BaseVariables):
         return Variable('position', initial, bounds, final)
 
     def _init_intensity(self, grid: Grid, intensity: float | None = None) -> Variable:
-        initial = max(grid.yvalues) if intensity is None else intensity
+        initial = np.sum(grid.yvalues)*(grid.xvalues[-1] - grid.xvalues[0])/grid.n_points if intensity is None else intensity
         bounds = (0, +np.inf) if intensity is None else (intensity - 1e-10, intensity + 1e-10)
         final = intensity
 
@@ -33,7 +33,8 @@ class ScopeVariables(BaseVariables):
 
     def _init_background(self, grid: Grid, background: float | None = None) -> Variable:
         initial = min(grid.yvalues) if background is None else background
-        bounds = (min(grid.yvalues), max(grid.yvalues)) if background is None else (background - 1e-10, background + 1e-10)
+        # bounds = (min(grid.yvalues), max(grid.yvalues)) if background is None else (background - 1e-10, background + 1e-10)
+        bounds = (0, 0) if background is None else (background - 1e-10, background + 1e-10)
         final = background
 
         return Variable('background', initial, bounds, final)

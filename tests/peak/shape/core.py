@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+import numpy as np
+
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.aperture import Aperture
 from spectrumlab.emulation.apparatus import Apparatus
@@ -93,3 +95,10 @@ class BaseExperiment(ABC):
         )
 
         return spectrum
+
+
+def distance(xi: float, xi_hat: float, is_relative: bool = False) -> float:
+    """Calculate a distance (relative, in optionally) between `xi` and `xi_hat`."""
+    if is_relative:
+        return np.abs((xi_hat - xi) / xi)
+    return np.abs(xi_hat - xi)

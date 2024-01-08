@@ -1,22 +1,26 @@
 from collections.abc import Sequence
 from functools import partial
-from typing import overload, Literal, TypeAlias
+from typing import overload, Literal
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate, optimize, signal
+from tqdm import tqdm
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
-from spectrumlab.utils import mse
-from spectrumlab.peak.shape import Grid
+from spectrumlab.emulation.noise import Noise
+from spectrumlab.emulation.spectrum import EmittedSpectrum
+from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.base_variables import Variable, BaseVariables
 from spectrumlab.peak.shape.base_shape import BasePeakShape
+from spectrumlab.peak.shape.grid import Grid
 from spectrumlab.peak.shape.scope import ScopeVariables
+from spectrumlab.utils import mse
 
 
 # --------        voight peak shape        --------
-class VoightVariables(BaseVariables):
+class VoightPeakShapeVariables(BaseVariables):
 
     def __init__(self, width: Number | None = None, asymmetry: float | None = None, ratio: float | None = None):
         super().__init__([
@@ -28,11 +32,11 @@ class VoightVariables(BaseVariables):
         self.name = 'shape'
 
 
-class VoightPeakShapeVariables(BaseVariables):
+class AssociatedVoightPeakShapeVariables(BaseVariables):
 
     def __init__(self, grid: Grid, *args, **kwargs):
         super().__init__([
-            VoightVariables(),
+            VoightPeakShapeVariables(),
             ScopeVariables(grid, *args, **kwargs),
         ])
 
@@ -71,10 +75,10 @@ class VoightPeakShapeVariables(BaseVariables):
 
     # --------        handlers        --------
     @classmethod
-    def parse_params(cls, grid: Grid, params: Sequence[float]) -> tuple[VoightVariables, ScopeVariables]:
+    def parse_params(cls, grid: Grid, params: Sequence[float]) -> tuple[VoightPeakShapeVariables, ScopeVariables]:
         assert len(params) == 6
 
-        shape_variables = VoightVariables(*params[:3])
+        shape_variables = VoightPeakShapeVariables(*params[:3])
         scope_variables = ScopeVariables(grid, *params[3:])
 
         return shape_variables, scope_variables
@@ -82,7 +86,7 @@ class VoightPeakShapeVariables(BaseVariables):
 
 class VoightPeakShape(BasePeakShape):
 
-    def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = 1e-3) -> None:
+    def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = 1e-2) -> None:
         """Voight peak's shape. A convolution of apparatus shape and aperture shape (rectangular) of a detector.
 
         Params:
@@ -90,8 +94,8 @@ class VoightPeakShape(BasePeakShape):
             asymmetry: float - apparatus shape's asymmetry
             ratio: float - apparatus shape's ratio
 
-            rx: Number = 10 - range of grid
-            dx: Number = 0.01 - step of grid
+            rx: Number = 10 - range of convolution grid
+            dx: Number = 0.01 - step of convolution grid
         """
         super().__init__()
 
@@ -106,7 +110,7 @@ class VoightPeakShape(BasePeakShape):
 
         f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
         s = lambda x: rectangular(x, x0=0, w=1)
-        y = signal.convolve(f(x), s(x), mode='same') * (x[-1] - x[0])/len(x)
+        y = signal.convolve(f(x), s(x), mode='same') * self.dx
 
         self._xvalues = x
         self._yvalues = y
@@ -124,32 +128,27 @@ class VoightPeakShape(BasePeakShape):
     @classmethod
     def from_grid(cls, grid: Grid, show: bool = False) -> 'VoightPeakShape':
 
-        def loss(grid: Grid, params: Sequence[float]) -> float:
-
-            # variables
-            shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=params)
-
-            # shape
+        def _loss(grid: Grid, params: Sequence[float]) -> float:
+            shape_variables, scope_variables = AssociatedVoightPeakShapeVariables.parse_params(grid=grid, params=params)
             shape = VoightPeakShape(**shape_variables)
 
-            # 
             return mse(
                 y=grid.yvalues,
                 y_hat=shape(x=grid.xvalues, **scope_variables),
             )
 
-        # variables
-        variables = VoightPeakShapeVariables(grid=grid)
+        # approx
+        variables = AssociatedVoightPeakShapeVariables(grid=grid)
 
         res = optimize.minimize(
-            partial(loss, grid),
+            partial(_loss, grid),
             variables.initial,
-            method='SLSQP',
+            # method='SLSQP',
             bounds=variables.bounds,
         )
-        assert res['success'], 'Optimization is not succeeded!'
+        # assert res['success'], 'Optimization is not succeeded!'
 
-        shape_variables, scope_variables = VoightPeakShapeVariables.parse_params(grid=grid, params=res['x'])
+        shape_variables, scope_variables = AssociatedVoightPeakShapeVariables.parse_params(grid=grid, params=res['x'])
 
         # shape
         shape = cls(**shape_variables)
@@ -165,7 +164,7 @@ class VoightPeakShape(BasePeakShape):
                 alpha=1,
             )
 
-            x = np.linspace(min(grid.xvalues), max(grid.xvalues), 1000)
+            x = grid.space()
             y_hat = shape(x, **scope_variables)
             plt.plot(
                 x, y_hat,
@@ -252,7 +251,7 @@ class SelfReversedVoightPeakShape(BasePeakShape):
         g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
         h = lambda x: rectangular(x, x0=0, w=1)
 
-        return signal.convolve(f(x) * 10**(-effect * g(x)), h(x), mode='same') * (x[-1] - x[0])/len(x)
+        return signal.convolve(f(x) * 10**(-effect * g(x)), h(x), mode='same') * self.dx
 
     @overload
     def __call__(self, x: float, position: Number, intensity: float, background: float = 0, effect: float = 0) -> float: ...
@@ -282,7 +281,7 @@ class SelfReversedVoightPeakShape(BasePeakShape):
 def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple[ScopeVariables, float]:
     """Approximate grid by VoightPeakShape."""
 
-    def _fitness(params: Sequence[float], grid: Grid, shape: VoightPeakShape) -> float:
+    def _loss(params: Sequence[float], grid: Grid, shape: VoightPeakShape) -> float:
         scope_variables = ScopeVariables(grid, *params)
 
         y = grid.yvalues
@@ -294,7 +293,7 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
     variables = ScopeVariables(grid=grid)
 
     res = optimize.minimize(
-        partial(_fitness, grid=grid, shape=shape),
+        partial(_loss, grid=grid, shape=shape),
         variables.initial,
         method='SLSQP',
         bounds=variables.bounds,
@@ -347,3 +346,253 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
 
     #
     return scope_variables, error
+
+
+def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape':
+    """Restore voight peaks's shape from standardized grid."""
+
+    def _loss(grid: Grid, params: Sequence[float]) -> float:
+        shape = VoightPeakShape(*params)
+
+        return mse(
+            y=grid.yvalues,
+            y_hat=shape(grid.xvalues, position=0, intensity=1),
+        )
+
+    # variables
+    variables = VoightPeakShapeVariables()
+
+    res = optimize.minimize(
+        partial(_loss, grid),
+        variables.initial,
+        # method='SLSQP',
+        bounds=variables.bounds,
+    )
+    assert res['success'], 'Optimization is not succeeded!'
+
+    # shape
+    shape = VoightPeakShape(*res['x'])
+
+    # show
+    if show:
+        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
+
+        x, y = grid.xvalues, grid.yvalues
+        plt.plot(
+            x, y,
+            color='red', linestyle='none', marker='s', markersize=3,
+            alpha=1,
+        )
+
+        x = grid.space()
+        y_hat = shape(x, 0, 1)
+        plt.plot(
+            x, y_hat,
+            color='black', linestyle='-', linewidth=1,
+            alpha=1,
+        )
+
+        x, y = grid.xvalues, grid.yvalues
+        y_hat = shape(grid.xvalues, 0, 1)
+        plt.plot(
+            x, y - y_hat,
+            color='black', linestyle='none', marker='s', markersize=0.5,
+            alpha=1,
+        )
+
+        plt.text(
+            0.05, 0.95,
+            shape.get_content(sep='\n'),
+            transform=ax.transAxes,
+            ha='left', va='top',
+        )
+
+        plt.xlim([-10, +10])
+        plt.xlabel(r'$number$')
+        plt.ylabel(r'$I$ [$\%$]')
+        plt.grid(color='grey', linestyle=':')
+
+        plt.show()
+
+    # 
+    return shape
+
+
+def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose: bool = False, show: bool = False) -> VoightPeakShape:
+
+    # draft blinks
+    blinks = draft_blinks(
+        spectrum=spectrum,
+        noise=noise,
+        config=DraftBlinkPeakConfig(
+            n_counts_min=10,
+            n_counts_max=100,
+
+            except_clipped_peak=True,
+            except_sloped_peak=True,
+            except_edges=False,
+
+            noise_level=10,
+
+        ),
+        # show=True,
+    )
+
+    # calculate shape
+    n_blinks = len(blinks)
+
+    offset = np.zeros(n_blinks, )
+    scale = np.zeros(n_blinks, )
+    background = np.zeros(n_blinks, )
+    error = np.zeros(n_blinks, )
+    mask = np.full(n_blinks, False)
+    for i, blink in tqdm(enumerate(blinks), total=n_blinks, desc='Initializing:', unit='blinks', disable=not verbose):
+        lb, ub = blink.minima
+        grid = Grid(spectrum.number[lb:ub], spectrum.intensity[lb:ub])
+
+        scope_variables, error[i] = approx_grid(
+            grid=grid,
+            shape=VoightPeakShape.from_grid(
+                grid=grid,
+            ),
+        )
+        offset[i], scale[i], background[i] = scope_variables.value
+
+    pbar = tqdm(desc='Filtration:', unit='blinks', disable=not verbose)
+    while True:
+        pbar.update(1)
+
+        # update shape
+        grid = Grid.from_blinks(
+            spectrum=spectrum,
+            blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
+            offset=[offset[i] for i, mask in enumerate(mask) if not mask],
+            scale=[scale[i] for i, mask in enumerate(mask) if not mask],
+            background=[background[i] for i, mask in enumerate(mask) if not mask],
+        )
+        shape = restore_shape_from_grid(
+            grid=grid,
+            show=False,
+        )
+
+        # update offset, scale, background
+        for i, blink in enumerate(blinks):
+            lb, ub = blink.minima
+            scope_variables, error[i] = approx_grid(
+                grid=Grid(spectrum.number[lb:ub], spectrum.intensity[lb:ub]),
+                shape=shape,
+                show=False,
+            )
+            offset[i], scale[i], background[i] = scope_variables.value
+
+        # udpate mask
+        index, = np.where(~mask)
+        i = index[np.argmax(np.abs(error[index]))]
+
+        mask[i] = True
+
+        # breakpoints
+        if max(np.abs(error[index])) <= .001:
+            break
+
+        if len(index) <= 10:
+            break
+
+    pbar.close()
+
+    # show
+    if show:
+        fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 5), tight_layout=True)
+
+        plt.sca(ax_left)
+        spectrum.show(ax=ax_left)
+        for blink in [blinks[i] for i, mask in enumerate(mask) if mask]:
+            x, y = spectrum.wavelength[blink.number], spectrum.intensity[blink.number]
+            plt.step(
+                x, y,
+                where='mid',
+                color='grey',
+                alpha=1,
+            )
+        for blink in [blinks[i] for i, mask in enumerate(mask) if not mask]:
+            x, y = spectrum.wavelength[blink.number], spectrum.intensity[blink.number]
+            plt.step(
+                x, y,
+                where='mid',
+                color='red',
+            )
+
+        plt.sca(ax_mid)
+        grid = Grid.from_blinks(
+            spectrum=spectrum,
+            blinks=[blinks[i] for i, mask in enumerate(mask) if mask],
+            offset=[offset[i] for i, mask in enumerate(mask) if mask],
+            scale=[scale[i] for i, mask in enumerate(mask) if mask],
+            background=[background[i] for i, mask in enumerate(mask) if mask],
+        )
+        x, y = grid.xvalues, grid.yvalues
+        plt.plot(
+            x, y,
+            color='grey', linestyle='none', marker='s', markersize=3,
+            alpha=.5,
+        )
+
+        grid = Grid.from_blinks(
+            spectrum=spectrum,
+            blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
+            offset=[offset[i] for i, mask in enumerate(mask) if not mask],
+            scale=[scale[i] for i, mask in enumerate(mask) if not mask],
+            background=[background[i] for i, mask in enumerate(mask) if not mask],
+        )
+        x, y = grid.xvalues, grid.yvalues
+        plt.plot(
+            x, y,
+            color='red', linestyle='none', marker='s', markersize=3,
+            alpha=1,
+        )
+
+        x = np.linspace(min(grid.xvalues), max(grid.xvalues), 1000)
+        y_hat = shape(x, 0, 1)
+        plt.plot(
+            x, y_hat,
+            color='black', linestyle=':',
+        )
+
+        x, y = grid.xvalues, grid.yvalues
+        y_hat = shape(x, 0, 1)
+        plt.plot(
+            x, y - y_hat,
+            color='black', linestyle='none', marker='s', markersize=0.5,
+        )
+
+        plt.text(
+            0.05, 0.95,
+            shape.get_content(sep='\n'),
+            transform=ax_mid.transAxes,
+            ha='left', va='top',
+        )
+
+        plt.xlim([-10, +10])
+        plt.xlabel(r'$number$')
+        plt.ylabel(r'$I, \%$')
+        plt.grid(color='grey', linestyle=':')
+
+        #
+        plt.sca(ax_right)
+
+        y = 100*error
+        plt.plot(y)
+        plt.plot(
+            np.arange(n_blinks)[~mask], y[~mask],
+            color='red', linestyle='none', marker='.',
+        )
+
+        plt.xlabel(r'$index$')
+        plt.ylabel(r'$error, \%$')
+        plt.grid(color='grey', linestyle=':')
+
+        #
+        plt.show()
+
+    #
+    return shape
