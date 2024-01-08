@@ -3,8 +3,8 @@ import pytest
 
 import numpy as np
 
+from spectrumlab.emulation.concentration_calibration import AbsorbedExperimentConfig as ExperimentConfig
 from spectrumlab.emulation.emulation import emulate_absorbed_spectrum, AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
-from spectrumlab.emulation.experiment import AbsorbedExperimentConfig as ExperimentConfig
 from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
 
 

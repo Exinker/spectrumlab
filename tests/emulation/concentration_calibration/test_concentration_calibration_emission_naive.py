@@ -3,10 +3,9 @@ import pytest
 
 import numpy as np
 
-from spectrumlab.emulation.concentration_calibration.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig
+from spectrumlab.emulation.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig, EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.emulation import fetch_emulation, Emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
-from spectrumlab.emulation.experiment import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, AmplitudeIntensityConfig
 
 
@@ -68,13 +67,13 @@ class TestConcentrationCalibration:
     tolerance = 1e-9
 
     # --------        coeff        --------
-    def test_calibration_curve_coeff(self, config: ExperimentConfig, concentration_calibration: ConcentrationCalibration):
+    def test_concentration_calibration_coeff(self, config: ExperimentConfig, concentration_calibration: ConcentrationCalibration):
         intercept, slope = concentration_calibration.coeff
 
         assert np.abs(slope - 1) <= self.tolerance
 
     # --------        LOD        --------
-    def test_calibration_curve_lod(self, config: ExperimentConfig, concentration_calibration: ConcentrationCalibration):
+    def test_concentration_calibration_lod(self, config: ExperimentConfig, concentration_calibration: ConcentrationCalibration):
         lod = self.calcualte_lod(detector=config.detector, config=config.intensity)
 
         assert np.abs(concentration_calibration.lod.intensity - lod) < self.tolerance

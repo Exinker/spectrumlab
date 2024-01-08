@@ -9,7 +9,7 @@ from tqdm import tqdm
 from spectrumlab.alias import Frame
 from spectrumlab.concentration_calibration import calibrate
 from spectrumlab.emulation.emulation import fetch_emulation, EmittedSpectrumEmulation, SpectrumConfig, EmittedSpectrumEmulationConfig
-from spectrumlab.emulation.experiment import EmittedExperimentConfigNaive as ExperimentConfig
+from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import Spectrum
 from spectrumlab.line import Line
