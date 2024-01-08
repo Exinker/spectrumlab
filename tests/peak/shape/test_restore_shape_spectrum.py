@@ -134,6 +134,8 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
         ),
     )
     experiment = experiment.setup(
+        mu=-1,
+        sigma=.5,
         verbose=False,
         show=False,
     )
