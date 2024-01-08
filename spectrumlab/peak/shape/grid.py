@@ -138,20 +138,20 @@ class Grid:
         assert len(background) == n_times, f'len of background have to be equal of n_times: {n_times}'
 
         #
-        x, y = [], []
+        _x, _y = [], []
         for t in range(n_times):
             x, y = items[t]
 
-            x.extend(x - offset[t])
-            y.extend((y - background[t]) / scale[t])
-        x, y = np.array(x), np.array(y)
+            _x.extend(x - offset[t])
+            _y.extend((y - background[t]) / scale[t])
+        _x, _y = np.array(_x), np.array(_y)
 
-        index = np.argsort(x)
+        index = np.argsort(_x)
 
         #
         return cls(
-            x=x[index],
-            y=y[index],
+            x=_x[index],
+            y=_y[index],
         )
 
     def __post_init__(self):
