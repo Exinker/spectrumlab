@@ -133,8 +133,8 @@ class VoightPeakShape(BasePeakShape):
             shape = VoightPeakShape(**shape_variables)
 
             return mse(
-                y=grid.yvalues,
-                y_hat=shape(x=grid.xvalues, **scope_variables),
+                y=grid.y,
+                y_hat=shape(x=grid.x, **scope_variables),
             )
 
         # approx
@@ -157,7 +157,7 @@ class VoightPeakShape(BasePeakShape):
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            x, y = grid.xvalues, grid.yvalues
+            x, y = grid.x, grid.y
             plt.plot(
                 x, y,
                 color='red', linestyle='none', marker='s', markersize=3,
@@ -172,8 +172,8 @@ class VoightPeakShape(BasePeakShape):
                 alpha=1,
             )
 
-            x, y = grid.xvalues, grid.yvalues
-            y_hat = shape(grid.xvalues, **scope_variables)
+            x, y = grid.x, grid.y
+            y_hat = shape(grid.x, **scope_variables)
             plt.plot(
                 x, y - y_hat,
                 color='black', linestyle='none', marker='s', markersize=0.5,
@@ -284,8 +284,8 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
     def _loss(params: Sequence[float], grid: Grid, shape: VoightPeakShape) -> float:
         scope_variables = ScopeVariables(grid, *params)
 
-        y = grid.yvalues
-        y_hat = shape(x=grid.xvalues, **scope_variables)
+        y = grid.y
+        y_hat = shape(x=grid.x, **scope_variables)
 
         return mse(y, y_hat)
 
@@ -303,8 +303,8 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
     scope_variables = ScopeVariables(grid, *res['x'])
 
     #
-    y = grid.yvalues
-    y_hat = shape(x=grid.xvalues, **scope_variables)
+    y = grid.y
+    y_hat = shape(x=grid.x, **scope_variables)
 
     error = mse(y, y_hat) / scope_variables['intensity']
 
@@ -314,14 +314,14 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
 
         plt.title(f'error: {error:.5f}')
 
-        x, y = grid.xvalues, grid.yvalues
+        x, y = grid.x, grid.y
         plt.plot(
             x, y,
             color='red', linestyle='none', marker='s', markersize=3,
             alpha=1,
         )
 
-        x = np.linspace(min(grid.xvalues), max(grid.xvalues), 1000)
+        x = np.linspace(min(grid.x), max(grid.x), 1000)
         y_hat = shape(x, **scope_variables)
         plt.plot(
             x, y_hat,
@@ -329,7 +329,7 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
             alpha=1,
         )
 
-        x, y = grid.xvalues, grid.yvalues
+        x, y = grid.x, grid.y
         y_hat = shape(x, **scope_variables)
         plt.plot(
             x, y - y_hat,
@@ -355,8 +355,8 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape'
         shape = VoightPeakShape(*params)
 
         return mse(
-            y=grid.yvalues,
-            y_hat=shape(grid.xvalues, position=0, intensity=1),
+            y=grid.y,
+            y_hat=shape(grid.x, position=0, intensity=1),
         )
 
     # variables
@@ -377,7 +377,7 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape'
     if show:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        x, y = grid.xvalues, grid.yvalues
+        x, y = grid.x, grid.y
         plt.plot(
             x, y,
             color='red', linestyle='none', marker='s', markersize=3,
@@ -392,8 +392,8 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape'
             alpha=1,
         )
 
-        x, y = grid.xvalues, grid.yvalues
-        y_hat = shape(grid.xvalues, 0, 1)
+        x, y = grid.x, grid.y
+        y_hat = shape(grid.x, 0, 1)
         plt.plot(
             x, y - y_hat,
             color='black', linestyle='none', marker='s', markersize=0.5,
@@ -530,7 +530,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             scale=[scale[i] for i, mask in enumerate(mask) if mask],
             background=[background[i] for i, mask in enumerate(mask) if mask],
         )
-        x, y = grid.xvalues, grid.yvalues
+        x, y = grid.x, grid.y
         plt.plot(
             x, y,
             color='grey', linestyle='none', marker='s', markersize=3,
@@ -544,21 +544,21 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             scale=[scale[i] for i, mask in enumerate(mask) if not mask],
             background=[background[i] for i, mask in enumerate(mask) if not mask],
         )
-        x, y = grid.xvalues, grid.yvalues
+        x, y = grid.x, grid.y
         plt.plot(
             x, y,
             color='red', linestyle='none', marker='s', markersize=3,
             alpha=1,
         )
 
-        x = np.linspace(min(grid.xvalues), max(grid.xvalues), 1000)
+        x = np.linspace(min(grid.x), max(grid.x), 1000)
         y_hat = shape(x, 0, 1)
         plt.plot(
             x, y_hat,
             color='black', linestyle=':',
         )
 
-        x, y = grid.xvalues, grid.yvalues
+        x, y = grid.x, grid.y
         y_hat = shape(x, 0, 1)
         plt.plot(
             x, y - y_hat,
