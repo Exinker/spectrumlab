@@ -18,22 +18,23 @@ class ScopeVariables(BaseVariables):
 
     # --------        private        --------
     def _init_position(self, grid: Grid, position: Number | None = None) -> Variable:
-        initial = grid.xvalues[np.argmax(grid.yvalues)] if position is None else position
+        initial = grid.x[np.argmax(grid.y)] if position is None else position
         bounds = (initial-2, initial+2) if position is None else (initial-1e-10, initial+1e-10)
         final = position
 
         return Variable('position', initial, bounds, final)
 
     def _init_intensity(self, grid: Grid, intensity: float | None = None) -> Variable:
-        initial = max(grid.yvalues) if intensity is None else intensity
+        initial = np.sum(grid.y)*(grid.x[-1] - grid.x[0])/grid.n_points if intensity is None else intensity
         bounds = (0, +np.inf) if intensity is None else (intensity - 1e-10, intensity + 1e-10)
         final = intensity
 
         return Variable('intensity', initial, bounds, final)
 
     def _init_background(self, grid: Grid, background: float | None = None) -> Variable:
-        initial = min(grid.yvalues) if background is None else background
-        bounds = (min(grid.yvalues), max(grid.yvalues)) if background is None else (background - 1e-10, background + 1e-10)
+        initial = min(grid.y) if background is None else background
+        # bounds = (min(grid.y), max(grid.y)) if background is None else (background - 1e-10, background + 1e-10)
+        bounds = (0, 0) if background is None else (background - 1e-10, background + 1e-10)
         final = background
 
         return Variable('background', initial, bounds, final)
