@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from spectrumlab.alias import Frame, Series, Number
-from spectrumlab.calibration_curve import BaseCalibrationCurve, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
+from spectrumlab.concentration_calibration import BaseConcentrationCalibration, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
 from spectrumlab.emulation import Emulation
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
 from spectrumlab.picture.config import COLOR, ALPHA
@@ -18,7 +18,7 @@ from .exceptions import EmulationError
 
 
 @dataclass
-class CalibrationCurveConfig:
+class ConcentrationCalibrationConfig:
     intensity_config: IntensityConfig = field(default=IntegralIntensityConfig(interval=3, kind=InterpolationKind.LINEAR))
 
     concentration_blank: float = field(default=0)
@@ -29,9 +29,9 @@ class CalibrationCurveConfig:
     n_parallels: int = field(default=5)
 
 
-class CalibrationCurve(BaseCalibrationCurve):
+class ConcentrationCalibration(BaseConcentrationCalibration):
 
-    def __init__(self, emulation: Emulation, config: CalibrationCurveConfig):
+    def __init__(self, emulation: Emulation, config: ConcentrationCalibrationConfig):
         self.emulation = emulation
         self.config = config
 
@@ -494,4 +494,4 @@ class CalibrationCurve(BaseCalibrationCurve):
         info = emulation.config.info
 
         content = '; '.join([f'{item}' for item in [device.config.dispersion, detector.config.name, info] if item])  # FIXME: change device.config.dispersion to device.config.name
-        return f'calibration_curve ({content}).{extension}'
+        return f'concentration_calibration ({content}).{extension}'

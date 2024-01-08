@@ -14,7 +14,7 @@ from .exceptions import FitError
 from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol
 
 
-class BaseCalibrationCurve(ABC):
+class BaseConcentrationCalibration(ABC):
 
     @abstractmethod
     def fit(self, intensity: Series, concentration: Series):
@@ -72,7 +72,7 @@ class BaseCalibrationCurve(ABC):
         return list(map(lambda x: mapping[x], mask))
 
 
-class CalibrationCurve(BaseCalibrationCurve):
+class ConcentrationCalibration(BaseConcentrationCalibration):
 
     def __init__(self, data: Frame, blank: Frame | None = None):
         self._data = data
@@ -334,11 +334,11 @@ class CalibrationCurve(BaseCalibrationCurve):
     # --------        private        --------
     def _get_filename(content: str, extension: Literal['png', 'txt']):
 
-        return f'calibration_curve ({content}).{extension}'
+        return f'concentration_calibration ({content}).{extension}'
 
 
 # --------        handlers        --------
-def calibrate_spectra(spectra: Frame, handler: Callable[[Spectrum], float], show: bool = False) -> CalibrationCurve:
+def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool = False) -> ConcentrationCalibration:
 
     # blank
     index = spectra[spectra.index.get_level_values(0) == 'blank'].index
@@ -386,14 +386,14 @@ def calibrate_spectra(spectra: Frame, handler: Callable[[Spectrum], float], show
         data.loc[(i,j), 'mask'] = is_traced or is_clipped
 
     # calibration curve
-    calibration_curve = CalibrationCurve(
+    concentration_calibration = ConcentrationCalibration(
         data=data,
         blank=blank,
     )
 
     #
     if show:
-        calibration_curve.show()
+        concentration_calibration.show()
     
     #
-    return calibration_curve
+    return concentration_calibration

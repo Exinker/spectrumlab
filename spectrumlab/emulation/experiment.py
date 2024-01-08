@@ -97,7 +97,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
         def _get_ref(parser: ConfigParser) -> Frame | None:
             device = _get_device(parser)
 
-            filepath = os.path.join(filedir, 'data', device.name, f'calibration_curve.csv')
+            filepath = os.path.join(filedir, 'data', device.name, f'concentration_calibration.csv')
             if os.path.isfile(filepath):
                 return pd.read_csv(
                     filepath,
@@ -212,7 +212,7 @@ class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
         def _get_ref(parser: ConfigParser) -> Frame | None:
             device = _get_device(parser)
 
-            filepath = os.path.join(filedir, 'data', device.name, f'calibration_curve.csv')
+            filepath = os.path.join(filedir, 'data', device.name, f'concentration_calibration.csv')
             if os.path.isfile(filepath):
                 return pd.read_csv(
                     filepath,
