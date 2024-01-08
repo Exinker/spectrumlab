@@ -9,19 +9,19 @@ from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.emulation import convolve
-from spectrumlab.peak.shape import VoightPeakShape, Grid
-from spectrumlab.utils import mse
+from spectrumlab.peak.shape import VoightPeakShape, Grid, restore_shape_from_grid
 
-from experiment import BaseExperimentConfig, BaseExperiment
+from core import BaseExperimentConfig, BaseExperiment, distance
 
 
+IS_NOISED = False
 POSITION = 0.0
 N_ITERS = 51
 THRESHOLD = 100
 
 DETECTOR = Detector.BLPP2000
 SHAPE = VoigtApparatusShape(
-    width=25,
+    width=28,
     asymmetry=+0.1,
     ratio=0.1,
 )
@@ -93,6 +93,7 @@ class Experiment(BaseExperiment):
         return self
 
 
+# --------        fixtures        --------
 @pytest.fixture(scope='module')
 def detector() -> Detector:
     return DETECTOR
@@ -136,7 +137,7 @@ def shape_hat(experiment: Experiment) -> VoightPeakShape:
     config = experiment.config
 
     # spectrum
-    spectrum = experiment.run(is_noised=True)
+    spectrum = experiment.run(is_noised=IS_NOISED)
 
     # grid
     grid = Grid.from_frames(
@@ -148,7 +149,7 @@ def shape_hat(experiment: Experiment) -> VoightPeakShape:
     )
 
     # shape_hat
-    shape_hat = VoightPeakShape.from_grid(
+    shape_hat = restore_shape_from_grid(
         grid=grid,
         show=False,
     )
@@ -156,15 +157,10 @@ def shape_hat(experiment: Experiment) -> VoightPeakShape:
     return shape_hat
 
 
+# --------        tests        --------
 def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
-    tolerance = 1e-2  # 1 [%]
+    tolerance = 1e-3  # 0.1 [%]
     step = detector.config.width
-
-    def distance(xi: float, xi_hat: float, is_relative: bool = False) -> float:
-        """Calculate a distance (relative, in optionally) between `xi` and `xi_hat`."""
-        if is_relative:
-            return np.abs((xi_hat - xi) / xi)
-        return np.abs(xi_hat - xi)
 
     assert distance(
         xi=shape.width,
@@ -194,22 +190,18 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
 
     rx = 100
     dx = .01
-
     x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
 
     y = f(x)
     y_hat = f_hat(x)
 
     #
-    assert mse(y, y_hat) < tolerance
+    assert np.all(np.abs(y_hat - y) < tolerance)
 
 
 if __name__ == '__main__':
-
     detector = DETECTOR
     shape = SHAPE
-
-    # experiment
     config = ExperimentConfig(
         n_numbers=20,
         n_frames=1,
@@ -226,6 +218,7 @@ if __name__ == '__main__':
         ),
     )
 
+    # experiment
     experiment = Experiment(
         config=config,
     )
@@ -235,11 +228,9 @@ if __name__ == '__main__':
     )
 
     # spectrum
-    spectrum = experiment.run(is_noised=True)
+    spectrum = experiment.run(is_noised=IS_NOISED)
 
-    # shape_hat
-    step = detector.config.width
-
+    # restore shape
     grid = Grid.from_frames(
         spectrum=spectrum,
         offset=np.full((config.n_iters, ), config.position),
@@ -247,8 +238,7 @@ if __name__ == '__main__':
         background=np.full((config.n_iters, ), 0),
         threshold=THRESHOLD,
     )
-
-    shape_hat = VoightPeakShape.from_grid(
+    shape_hat = restore_shape_from_grid(
         grid=grid,
         show=True,
     )

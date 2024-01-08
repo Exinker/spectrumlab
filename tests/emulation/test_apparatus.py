@@ -33,9 +33,9 @@ def config() -> Config:
 @pytest.mark.parametrize(
     ['detector', 'shape'],
     [
-        (Detector.BLPP2000, VoigtApparatusShape(width=25, asymmetry=+0, ratio=0)),
-        (Detector.BLPP4000, VoigtApparatusShape(width=25, asymmetry=-0.1, ratio=0)),
-        (Detector.BLPP2000, VoigtApparatusShape(width=25, asymmetry=+0.1, ratio=0)),
+        (Detector.BLPP2000, VoigtApparatusShape(width=28, asymmetry=+0, ratio=0)),
+        (Detector.BLPP4000, VoigtApparatusShape(width=28, asymmetry=-0.1, ratio=0)),
+        (Detector.BLPP2000, VoigtApparatusShape(width=28, asymmetry=+0.1, ratio=0)),
     ]
 )
 def test_integral(detector: Detector, shape: ApparatusShape, config: Config):

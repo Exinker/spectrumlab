@@ -29,7 +29,7 @@ class Config:
 @pytest.fixture
 def config() -> Config:
     return Config(
-        width=25,
+        width=28,
         asymmetry=0,
         ratio=0,
     )
@@ -58,17 +58,29 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     
     config = Config(
-        width=25,
-        asymmetry=0,
-        ratio=0,
+        width=28,
+        asymmetry=0.1,
+        ratio=0.1,
     )
-    detector = Detector.BLPP4000
+    detector = Detector.BLPP2000
     step = detector.config.width
 
     x = config.x
-    f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
+    # f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
+    f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio)
 
-    #
+    # shape
+    from spectrumlab.peak.shape import Grid
+
+    # grid = Grid(x/step, f(x/step, 0, 1))
+    # grid.show()
+
+    VoightPeakShape.from_grid(
+        grid=Grid(x/step, f(x/step, 0, 1)),
+        show=True,
+    )
+
+    # integral
     integral = np.sum(f(x/step, 0, 1)) * (config.dx/step)
     print(f'intergal: {integral:.4f}')
 

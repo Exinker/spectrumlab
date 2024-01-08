@@ -15,9 +15,10 @@ if TYPE_CHECKING:
 
 class GridIterator:
 
-    def __init__(self, xvalues: Array[Number], yvalues: Array[float]):
-        self._xvalues = xvalues
-        self._yvalues = yvalues
+    def __init__(self, x: Array[Number], y: Array[float]):
+        self.x = x
+        self.y = y
+
         self._index = -1
 
     # --------        private        --------
@@ -28,26 +29,29 @@ class GridIterator:
 
         try:
             self._index += 1
-            return self._xvalues[self._index], self._yvalues[self._index]
+            return self.x[self._index], self.y[self._index]
 
         except IndexError:
             raise StopIteration
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Grid:
-    xvalues: Array[Number]
-    yvalues: Array[float]
+    x: Array[Number]
+    y: Array[float]
 
     @property
     def n_points(self) -> int:
-        return len(self.xvalues)
+        return len(self.x)
 
     # --------        handlers        --------
+    def space(self, n_points: int = 1000) -> Array[Number]:
+        return np.linspace(min(self.x), max(self.x), n_points)
+
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        x, y = self.xvalues, self.yvalues
+        x, y = self.x, self.y
         plt.plot(
             x, y,
             color='red', linestyle='none', marker='s', markersize=3,
@@ -134,29 +138,29 @@ class Grid:
         assert len(background) == n_times, f'len of background have to be equal of n_times: {n_times}'
 
         #
-        xvalues, yvalues = [], []
+        _x, _y = [], []
         for t in range(n_times):
             x, y = items[t]
 
-            xvalues.extend(x - offset[t])
-            yvalues.extend((y - background[t]) / scale[t])
-        xvalues, yvalues = np.array(xvalues), np.array(yvalues)
+            _x.extend(x - offset[t])
+            _y.extend((y - background[t]) / scale[t])
+        _x, _y = np.array(_x), np.array(_y)
 
-        index = np.argsort(xvalues)
+        index = np.argsort(_x)
 
         #
         return cls(
-            xvalues=xvalues[index],
-            yvalues=yvalues[index],
+            x=_x[index],
+            y=_y[index],
         )
 
     def __post_init__(self):
-        assert len(self.xvalues) == len(self.yvalues)
+        assert len(self.x) == len(self.y)
 
     def __iter__(self) -> Iterator:
         return GridIterator(
-            xvalues=self.xvalues,
-            yvalues=self.yvalues,
+            x=self.x,
+            y=self.y,
         )
 
     def __repr__(self) -> str:
