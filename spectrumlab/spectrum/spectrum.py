@@ -83,7 +83,7 @@ Spectrum: TypeAlias = EmittedSpectrum | AbsorbedSpectrum
 
 
 # --------        assembly spectrum        --------
-class AssemplySpectrum:
+class AssemblySpectrum:
     """Type of spectrum from assemply device."""
     def __init__(self, items: tuple[Spectrum]):
         self.items = items
