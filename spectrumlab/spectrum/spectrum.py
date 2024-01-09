@@ -25,8 +25,9 @@ def fetch_cmap(filename: str):
 
 class RecordedSpectrum(BaseSpectrum):
     """Base type for any recorded spectrum."""
-    def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
-        deviation = np.zeros(intensity.shape)  # FIXME: refactor!
+    def __init__(self, intensity: Array, deviation: Array | None = None, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
+        if deviation is None:
+            deviation = np.zeros(intensity.shape)
 
         super().__init__(intensity=intensity, deviation=deviation, wavelength=wavelength, number=number, clipped=clipped, detector=detector)
 
@@ -120,8 +121,8 @@ class RecordedSpectrum(BaseSpectrum):
 
 class EmittedSpectrum(RecordedSpectrum):
     """Type for any emitted (or ordinary) spectrum."""
-    def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
-        super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
+    def __init__(self, intensity: Array, deviation: Array | None = None, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
+        super().__init__(intensity=intensity, deviation=deviation, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
 
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None, grid: bool = False) -> None:
@@ -153,8 +154,8 @@ class EmittedSpectrum(RecordedSpectrum):
 
 class AbsorbedSpectrum(RecordedSpectrum):
     """Type for any absorbed spectrum."""
-    def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
-        super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
+    def __init__(self, intensity: Array, deviation: Array | None = None, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
+        super().__init__(intensity=intensity, deviation=deviation, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
 
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None) -> None:
