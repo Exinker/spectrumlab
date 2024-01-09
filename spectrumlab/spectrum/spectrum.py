@@ -1,23 +1,11 @@
-import os
 from typing import TypeAlias
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, NanoMeter, Number
 from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.picture import fetch_cmap
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
-
-
-def fetch_cmap(filename: str):
-
-    filepath = os.path.join('.', 'colormaps', filename)
-    with open(filepath, 'r') as file:
-        lines = [list(map(float, line.strip().split(','))) for line in file.readlines()]
-
-    cmap = mpl.colors.LinearSegmentedColormap.from_list('absorbance', lines)
-
-    return cmap
 
 
 # --------        spectrum        --------
