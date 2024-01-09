@@ -93,3 +93,14 @@ class AbsorbedSpectrum(BaseSpectrum):
 
 
 Spectrum: TypeAlias = EmittedSpectrum | AbsorbedSpectrum
+
+
+# --------        assembly spectrum        --------
+class AssemplySpectrum:
+    """Type of spectrum from assemply device."""
+    def __init__(self, items: tuple[Spectrum]):
+        self.items = items
+
+    # --------        handlers        --------
+    def select(self, index: int) -> Spectrum:
+        return self.items[index]
