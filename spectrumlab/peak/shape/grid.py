@@ -83,15 +83,6 @@ class Grid:
             for t in range(spectrum.n_times)
         )
 
-        for i, item in enumerate(items):
-            plt.plot(
-                item[0] - offset[i],
-                (item[1]) / scale[i],
-                linestyle='none', marker='.',
-            )
-
-        plt.show()
-
         #
         return cls._from_items(
             items=items,
