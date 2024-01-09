@@ -73,7 +73,7 @@ class Grid:
         #
         def _get_item(spectrum: Spectrum, t: int, threshold: float) -> tuple[Array, Array]:
             is_clipped = spectrum.clipped[t]
-            is_low_snr = spectrum.intensity[t] / spectrum.deviation[t] < threshold
+            is_low_snr = np.abs(spectrum.intensity[t]) / spectrum.deviation[t] < threshold
             mask = ~is_clipped & ~is_low_snr
 
             return spectrum.number[mask], spectrum.intensity[t, mask]
@@ -82,6 +82,15 @@ class Grid:
             _get_item(spectrum, t=t, threshold=threshold)
             for t in range(spectrum.n_times)
         )
+
+        for i, item in enumerate(items):
+            plt.plot(
+                item[0] - offset[i],
+                (item[1]) / scale[i],
+                linestyle='none', marker='.',
+            )
+
+        plt.show()
 
         #
         return cls._from_items(
@@ -101,7 +110,7 @@ class Grid:
             lb, ub = blink.minima
 
             is_clipped = spectrum.clipped[lb:ub]
-            is_low_snr = spectrum.intensity[lb:ub] / spectrum.deviation[lb:ub] < threshold
+            is_low_snr = np.abs(spectrum.intensity[lb:ub]) / spectrum.deviation[lb:ub] < threshold
             mask = ~is_clipped & ~is_low_snr
 
             return spectrum.number[lb:ub][mask], spectrum.intensity[lb:ub][mask]
