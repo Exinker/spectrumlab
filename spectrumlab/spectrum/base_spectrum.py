@@ -129,7 +129,7 @@ class BaseSpectrum(ABC):
                 intensity=self.intensity[time],
                 wavelength=self.wavelength,
                 number=self.number,
-                deviation=self.deviation,
+                deviation=self.deviation[time],
                 clipped=self.clipped[time],
                 detector=self.detector,
             )
@@ -141,7 +141,7 @@ class BaseSpectrum(ABC):
                 intensity=self.intensity[time, number],
                 wavelength=self.wavelength[number],
                 number=self.number[number],
-                deviation=self.deviation[number],
+                deviation=self.deviation[time, number],
                 clipped=self.clipped[time, number],
                 detector=self.detector,
             )
