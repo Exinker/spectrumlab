@@ -1,96 +1,19 @@
 from functools import partial
 
 import numpy as np
-import matplotlib.pyplot as plt
 import pytest
 
-from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulation.emulation import convolve
 from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.peak import ShiftedExperiment, ShiftedExperimentConfig
 from spectrumlab.peak.shape import VoightPeakShape, Grid, restore_shape_from_grid
 
-from core import BaseExperimentConfig, BaseExperiment, distance
+from core import distance
+from config import *
 
 
-IS_NOISED = True
-EXPOSURE = 100
-N_ITERS = 100
-THRESHOLD = 0
-
-DETECTOR = Detector.BLPP2000
-SHAPE = VoigtApparatusShape(
-    width=28,
-    asymmetry=+0.1,
-    ratio=0.1,
-)
-
-
-class ExperimentConfig(BaseExperimentConfig):
-
-    @property
-    def exposure(self) -> float:
-        return EXPOSURE
-
-    @property
-    def position(self) -> Array[Number]:
-        return self.n_numbers//2 + np.linspace(-.5, +.5, self.n_iters, endpoint=False)
-
-
-class Experiment(BaseExperiment):
-
-    def __init__(self, config: ExperimentConfig):
-        super().__init__(config=config)
-
-    # --------        handlers        --------
-    def setup(self, seed: int | None = None, verbose: bool = False, show: bool = False) -> 'Experiment':
-        config = self.config
-        detector = self.config.detector
-
-        step = detector.config.width
-
-        # setup seed
-        if seed:
-            np.random.seed(seed)
-
-        # setup intensity
-        rx = 100
-        dx = 1e-2
-        x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
-
-        self._number = np.arange(config.n_numbers)
-        self._background = 0
-
-        intensity = np.zeros((config.n_iters, config.n_numbers))
-        for i, position in enumerate(config.position):
-            intensity[i] = config.exposure * f(self.number - position)
-        self._intensity = intensity
-
-        # show
-        if show:
-            fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
-
-            y = f(x/step)
-            plt.plot(
-                x/step, y,
-                color='black',
-            )
-
-            for i, position in enumerate(config.position):
-                x = self.number - position
-                y = self.intensity[i] / config.exposure
-                plt.plot(
-                    x, y,
-                    color='red', linestyle='none', marker='s', markersize=3,
-                    alpha=1,
-                )
-
-            plt.grid(color='grey', linestyle=':')
-            plt.show()
-
-        return self
+THRESHOLD = 1
 
 
 # --------        fixtures        --------
@@ -105,13 +28,12 @@ def shape() -> VoigtApparatusShape:
 
 
 @pytest.fixture(scope='module')
-def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
+def experiment(detector: Detector, shape: VoightPeakShape) -> ShiftedExperiment:
 
-    experiment = Experiment(
-        config=ExperimentConfig(
-            n_numbers=20,
-            n_frames=1,
-            n_iters=N_ITERS,
+    experiment = ShiftedExperiment(
+        config=ShiftedExperimentConfig(
+            n_numbers=N_NUMBERS,
+            n_frames=N_FRAMES,
 
             detector=detector,
             apparatus=Apparatus(
@@ -122,6 +44,10 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
                 detector=detector,
                 shape=RectangularApertureShape(),
             ),
+
+            exposure=EXPOSURE,
+            position=POSITION + np.linspace(-.5, +.5, N_ITERS, endpoint=False),
+            intensity=INTENSITY,
         ),
     )
     experiment = experiment.setup(
@@ -133,7 +59,7 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> Experiment:
 
 
 @pytest.fixture(scope='module')
-def shape_hat(experiment: Experiment) -> VoightPeakShape:
+def shape_hat(experiment: ShiftedExperiment) -> VoightPeakShape:
     config = experiment.config
 
     # spectrum
@@ -143,7 +69,7 @@ def shape_hat(experiment: Experiment) -> VoightPeakShape:
     grid = Grid.from_frames(
         spectrum=spectrum,
         offset=config.position,
-        scale=np.full((config.n_iters, ), config.exposure),
+        scale=np.full((config.n_iters, ), config.exposure * config.intensity),
         background=np.full((config.n_iters, ), 0),
         threshold=THRESHOLD,
     )
@@ -202,10 +128,9 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
 if __name__ == '__main__':
     detector = DETECTOR
     shape = SHAPE
-    config = ExperimentConfig(
-        n_numbers=20,
-        n_frames=1,
-        n_iters=N_ITERS,
+    config=ShiftedExperimentConfig(
+        n_numbers=N_NUMBERS,
+        n_frames=N_FRAMES,
 
         detector=detector,
         apparatus=Apparatus(
@@ -216,10 +141,14 @@ if __name__ == '__main__':
             detector=detector,
             shape=RectangularApertureShape(),
         ),
+
+        exposure=EXPOSURE,
+        position=POSITION + np.linspace(-.5, +.5, N_ITERS, endpoint=False),
+        intensity=INTENSITY,
     )
 
     # experiment
-    experiment = Experiment(
+    experiment = ShiftedExperiment(
         config=config,
     )
     experiment = experiment.setup(
@@ -234,7 +163,7 @@ if __name__ == '__main__':
     grid = Grid.from_frames(
         spectrum=spectrum,
         offset=config.position,
-        scale=np.full((config.n_iters, ), config.exposure),
+        scale=np.full((config.n_iters, ), config.exposure * config.intensity),
         background=np.full((config.n_iters, ), 0),
         threshold=THRESHOLD,
     )
