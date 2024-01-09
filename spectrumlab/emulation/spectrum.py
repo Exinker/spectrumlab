@@ -5,184 +5,21 @@ Author: Vaschenko Pavel
  Email: vaschenko@vmk.ru
   Date: 2022.08.24
 """
-from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import overload, Literal, TypeAlias
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Percent, Electron, Absorbance, MilliSecond
+from spectrumlab.alias import Array, Percent, Electron, Absorbance, MilliSecond, NanoMeter, Number
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-
-
-@overload
-def reshape(values: Array[float]) -> Array[float]: ...
-@overload
-def reshape(values: None) -> None: ...
-def reshape(values):  
-
-    if values is None:
-        return None
-
-    if (values.ndim == 2) and (values.shape[0] == 1):
-        return values.reshape(-1, )
-
-    return values
-
-
-# ----------------    spectrum    ----------------
-class BaseSpectrum(ABC):
-    """Base type for any spectrum."""
-
-    def __init__(self, intensity: Array, deviation: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, detector: Detector | None = None):
-
-        self.intensity = reshape(intensity)
-        self.deviation = reshape(deviation)
-        self.detector = detector
-
-        self._wavelength = reshape(wavelength)
-        self._number = reshape(number)
-        self._clipped = reshape(clipped)
-
-        assert self.intensity.shape == self.clipped.shape
-
-    @property
-    def n_times(self):
-        if self.intensity.ndim == 1:
-            return 1
-        return self.intensity.shape[0]
-
-    @property
-    def time(self):
-        return np.arange(self.n_times)
-
-    @property
-    def n_numbers(self):
-        if self.intensity.ndim == 1:
-            return self.intensity.shape[0]
-        return self.intensity.shape[1]
-
-    @property
-    def index(self):
-        """internal index of spectrum."""
-        return np.arange(self.n_numbers)
-
-    @property
-    def number(self):
-        """external index of spectrum."""
-        if self._number is None:
-            self._number = self.index
-
-        return self._number
-
-    @property
-    def shape(self):
-        return self.intensity.shape
-
-    @property
-    def wavelength(self):
-        if self._wavelength is None:
-            self._wavelength = np.arange(self.n_numbers)
-
-        return self._wavelength
-
-    @property
-    def clipped(self):
-        if self._clipped is None:
-            self._clipped = np.full(self.shape, False)
-
-        return self._clipped
-
-    # --------        private        --------
-    def __repr__(self):
-        if self.intensity.ndim == 1:
-            n_times, n_numbers = 1, self.shape[-1]
-        else:
-            n_times, n_numbers = self.shape
-
-        cls = self.__class__
-        return f'{cls.__name__}(n_times: {n_times}, n_numbers: {n_numbers})'
-
-    @overload
-    def __getitem__(self, index: int | slice): ...
-    """Get spectrum at selected time or times."""
-    @overload
-    def __getitem__(self, index: tuple[slice | Array, slice | Array]): ...
-    """Get spectrum at selected times and numbers."""
-    def __getitem__(self, index):
-        cls = self.__class__
-
-        if isinstance(index, int | slice):
-            time = index
-
-            return cls(
-                intensity=self.intensity[time],
-                deviation=self.deviation,
-                wavelength=self.wavelength,
-                number=self.number,
-                clipped=self.clipped[time],
-                detector=self.detector,
-            )
-
-        if isinstance(index, tuple):
-            time, number = index
-
-            return cls(
-                intensity=self.intensity[time, number],
-                deviation=self.deviation[number],
-                wavelength=self.wavelength[number],
-                number=self.number[number],
-                clipped=self.clipped[time, number],
-                detector=self.detector,
-            )
-
-    def __add__(self, other: float | Array):
-        cls = self.__class__
-
-        return cls(
-            intensity=self.intensity + other,
-            deviation=self.deviation,
-            wavelength=self.wavelength,
-            number=self.number,
-            clipped=self.clipped,
-            detector=self.detector,
-        )
-
-    def __iadd__(self, other: float | Array):
-        return self + other
-
-    def __radd__(self, other: float | Array):
-        return self + other
-
-    def __sub__(self, other: float | Array):
-        cls = self.__class__
-
-        return cls(
-            intensity=self.intensity - other,
-            deviation=self.deviation,
-            wavelength=self.wavelength,
-            number=self.number,
-            clipped=self.clipped,
-            detector=self.detector,
-        )
-
-    def __isub__(self, other: float | Array):
-        return self - other
-
-    def __rsub__(self, other: float | Array):
-        return self - other
-
-    # --------        handlers        --------
-    @abstractmethod
-    def show(self, canvas, yscale):
-        pass
+from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 
 class EmittedSpectrum(BaseSpectrum):
     """Type for any emitted (or ordinary) spectrum."""
-    def __init__(self, intensity: Array, deviation: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, detector: Detector | None = None):
-        super().__init__(intensity=intensity, deviation=deviation, wavelength=wavelength, number=number, clipped=clipped, detector=detector)
+    def __init__(self, intensity: Array[float], wavelength: Array[NanoMeter] [NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+        super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), yscale: Percent | Electron = Percent) -> None:
@@ -213,36 +50,11 @@ class EmittedSpectrum(BaseSpectrum):
         if not is_filling:
             plt.show()
 
-    # --------        private        --------
-    def __add__(self, other: float | Array):
-        cls = self.__class__
-
-        return cls(
-            intensity=self.intensity + other,
-            deviation=self.deviation,
-            wavelength=self.wavelength,
-            number=self.number,
-            clipped=self.clipped,
-            detector=self.detector,
-        )
-
-    def __sub__(self, other: float | Array):
-        cls = self.__class__
-
-        return cls(
-            intensity=self.intensity - other,
-            deviation=self.deviation,
-            wavelength=self.wavelength,
-            number=self.number,
-            clipped=self.clipped,
-            detector=self.detector,
-        )
-
 
 class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
     """Type for any microwave or ICP spectrum."""
 
-    def __init__(self, number: Array, shorts: Mapping[MilliSecond, EmittedSpectrum], method: Literal['naive', 'weighted'], **kwargs):
+    def __init__(self, number: Array[Number], shorts: Mapping[MilliSecond, EmittedSpectrum], method: Literal['naive', 'weighted'], **kwargs):
         n_shorts = len(shorts)
         n_numbers = len(number)
 
@@ -298,26 +110,26 @@ class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
 
     # --------        private        --------
     @overload
-    def __getitem__(self, index: int | slice): ...
+    def __getitem__(self, index: int | slice) -> 'HighDynamicRangeEmittedSpectrum': ...
     """get spectrum at selected time or times"""
     @overload
-    def __getitem__(self, index: tuple[slice | Array, slice | Array]): ...
+    def __getitem__(self, index: tuple[slice | Array[int], slice | Array[int]]) -> 'HighDynamicRangeEmittedSpectrum': ...
     """get spectrum at selected times and numbers"""
     def __getitem__(self, index):
         raise NotImplementedError
 
-    def __add__(self, other: float | Array):
+    def __add__(self, other: float | Array[float]) -> 'HighDynamicRangeEmittedSpectrum':
         return NotImplemented
 
-    def __sub__(self, other: float | Array):
+    def __sub__(self, other: float | Array[float]) -> 'HighDynamicRangeEmittedSpectrum':
         return NotImplemented
 
 
 class AbsorbedSpectrum(BaseSpectrum):
     """Type for any absorbtion spectrum."""
 
-    def __init__(self, intensity: Array, deviation: Array, base: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, detector: Detector | None = None):
-        super().__init__(intensity=intensity, deviation=deviation, wavelength=wavelength, number=number, clipped=clipped, detector=detector)
+    def __init__(self, intensity: Array[float], base: Array[float], wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+        super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
         self.base = base
 
@@ -350,18 +162,18 @@ class AbsorbedSpectrum(BaseSpectrum):
 
     # --------        private        --------
     @overload
-    def __getitem__(self, index: int | slice): ...
+    def __getitem__(self, index: int | slice) -> 'AbsorbedSpectrum': ...
     """get spectrum at selected time or times"""
     @overload
-    def __getitem__(self, index: tuple[slice | Array, slice | Array]): ...
+    def __getitem__(self, index: tuple[slice | Array[int], slice | Array[int]]) -> 'AbsorbedSpectrum': ...
     """get spectrum at selected times and numbers"""
     def __getitem__(self, index):
         raise NotImplementedError
 
-    def __add__(self, other: float | Array):
+    def __add__(self, other: float | Array[float]) -> 'AbsorbedSpectrum':
         return NotImplemented
 
-    def __sub__(self, other: float | Array):
+    def __sub__(self, other: float | Array[float]) -> 'AbsorbedSpectrum':
         return NotImplemented
 
 
