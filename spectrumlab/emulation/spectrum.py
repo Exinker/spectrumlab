@@ -18,7 +18,7 @@ from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 class EmittedSpectrum(BaseSpectrum):
     """Type for any emitted (or ordinary) spectrum."""
-    def __init__(self, intensity: Array[float], wavelength: Array[NanoMeter] [NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+    def __init__(self, intensity: Array[float], wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
     # --------        handlers        --------

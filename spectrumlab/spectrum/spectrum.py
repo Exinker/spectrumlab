@@ -5,7 +5,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, NanoMeter, Number
-from spectrumlab.emulation.spectrum import BaseSpectrum
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
