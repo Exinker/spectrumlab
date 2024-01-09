@@ -3,10 +3,9 @@ import pytest
 
 import numpy as np
 
-from spectrumlab.emulation.calibration_curve.calibration_curve import CalibrationCurve, CalibrationCurveConfig
+from spectrumlab.emulation.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig, EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.emulation import fetch_emulation, Emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
-from spectrumlab.emulation.experiment import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, AmplitudeIntensityConfig
 
 
@@ -42,42 +41,42 @@ def emulation(config: ExperimentConfig) -> Emulation:
 
 
 @pytest.fixture(scope='module')
-def calibration_curve(config: ExperimentConfig, emulation: Emulation) -> CalibrationCurve:
-    calibration_curve = CalibrationCurve(
+def concentration_calibration(config: ExperimentConfig, emulation: Emulation) -> ConcentrationCalibration:
+    concentration_calibration = ConcentrationCalibration(
         emulation=emulation,
-        config=CalibrationCurveConfig(
+        config=ConcentrationCalibrationConfig(
             intensity_config=config.intensity,
             n_probes=config.n_probes,
             n_parallels=config.n_parallels,
         ),
     )
-    calibration_curve = calibration_curve.setup(
+    concentration_calibration = concentration_calibration.setup(
         position=config.position,
         concentrations=config.concentrations,
     )
-    calibration_curve = calibration_curve.run(
+    concentration_calibration = concentration_calibration.run(
         verbose=False,
         show=False,
         write=False,
     )
 
-    return calibration_curve
+    return concentration_calibration
 
 
-class TestCalibrationCurve:
+class TestConcentrationCalibration:
     tolerance = 1e-9
 
     # --------        coeff        --------
-    def test_calibration_curve_coeff(self, config: ExperimentConfig, calibration_curve: CalibrationCurve):
-        intercept, slope = calibration_curve.coeff
+    def test_concentration_calibration_coeff(self, config: ExperimentConfig, concentration_calibration: ConcentrationCalibration):
+        intercept, slope = concentration_calibration.coeff
 
         assert np.abs(slope - 1) <= self.tolerance
 
     # --------        LOD        --------
-    def test_calibration_curve_lod(self, config: ExperimentConfig, calibration_curve: CalibrationCurve):
+    def test_concentration_calibration_lod(self, config: ExperimentConfig, concentration_calibration: ConcentrationCalibration):
         lod = self.calcualte_lod(detector=config.detector, config=config.intensity)
 
-        assert np.abs(calibration_curve.lod.intensity - lod) < self.tolerance
+        assert np.abs(concentration_calibration.lod.intensity - lod) < self.tolerance
 
     @staticmethod
     def calcualte_lod(detector: Detector, config: IntensityConfig, k: float = 3) -> float:

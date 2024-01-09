@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 from spectrumlab.alias import Array
-from spectrumlab.calibration_curve.metrology import LOD, LOQ
+from spectrumlab.concentration_calibration.metrology import LOD, LOQ
 
 
 # --------        limits (LOD and LOQ)        --------

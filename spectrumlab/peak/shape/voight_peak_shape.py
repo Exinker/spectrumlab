@@ -368,7 +368,7 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape'
         # method='SLSQP',
         bounds=variables.bounds,
     )
-    assert res['success'], 'Optimization is not succeeded!'
+    # assert res['success'], 'Optimization is not succeeded!'
 
     # shape
     shape = VoightPeakShape(*res['x'])

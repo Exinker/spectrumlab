@@ -7,9 +7,9 @@ import pandas as pd
 from tqdm import tqdm
 
 from spectrumlab.alias import Frame
-from spectrumlab.calibration_curve import calibrate_spectra
+from spectrumlab.concentration_calibration import calibrate
 from spectrumlab.emulation.emulation import fetch_emulation, EmittedSpectrumEmulation, SpectrumConfig, EmittedSpectrumEmulationConfig
-from spectrumlab.emulation.experiment import EmittedExperimentConfigNaive as ExperimentConfig
+from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import Spectrum
 from spectrumlab.line import Line
@@ -89,14 +89,14 @@ def calculate_intensity(*args, **kwargs):
     return inner
 
 
-class TestCalibrationCurve:
+class TestConcentrationCalibration:
     tolerance = 1e-2
 
     @pytest.mark.filterwarnings
     def test_calculate_intensity_by_amplitude(self, config: ExperimentConfig, spectra: Frame):
 
         # calibrate
-        calibration_curve = calibrate_spectra(
+        concentration_calibration = calibrate(
             spectra=spectra,
             handler=calculate_intensity(
                 line=Line(
@@ -117,14 +117,14 @@ class TestCalibrationCurve:
         )
 
         #
-        intercept, slope = calibration_curve.coeff
+        intercept, slope = concentration_calibration.coeff
         assert np.abs(slope - 1) < self.tolerance
 
     @pytest.mark.filterwarnings
     def test_calculate_intensity_by_integral(self, config: ExperimentConfig, spectra: Frame):
 
         # calibrate
-        calibration_curve = calibrate_spectra(
+        concentration_calibration = calibrate(
             spectra=spectra,
             handler=calculate_intensity(
                 line=Line(
@@ -148,7 +148,7 @@ class TestCalibrationCurve:
         )
 
         #
-        intercept, slope = calibration_curve.coeff
+        intercept, slope = concentration_calibration.coeff
         assert np.abs(slope - 1) < self.tolerance
 
     @pytest.mark.filterwarnings
@@ -157,7 +157,7 @@ class TestCalibrationCurve:
         apparatus = config.apparatus
 
         # calibrate
-        calibration_curve = calibrate_spectra(
+        concentration_calibration = calibrate(
             spectra=spectra,
             handler=calculate_intensity(
                 line=Line(
@@ -186,5 +186,5 @@ class TestCalibrationCurve:
         )
 
         #
-        intercept, slope = calibration_curve.coeff
+        intercept, slope = concentration_calibration.coeff
         assert np.abs(slope - 1) < self.tolerance

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 
 from spectrumlab.alias import Array, Number
-from spectrumlab.calibration_curve import CalibrationCurve
+from spectrumlab.concentration_calibration import ConcentrationCalibration
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.line.line import Line
 from spectrumlab.peak.base_peak import BasePeak
@@ -25,7 +25,7 @@ class AnalytePeakConfig:
     position: PositionConfig
     intensity: IntensityConfig
 
-    calibration_curve: CalibrationCurve | None = field(default=None)
+    concentration_calibration: ConcentrationCalibration | None = field(default=None)
 
 
 class AnalytePeak(BasePeak):
@@ -101,14 +101,14 @@ class AnalytePeak(BasePeak):
 
         return self._concentration
 
-    def calculate_concentration(self, calibration_curve: CalibrationCurve | None = None) -> float:
+    def calculate_concentration(self, concentration_calibration: ConcentrationCalibration | None = None) -> float:
         """Calculate peak's concentration."""
-        calibration_curve = calibration_curve or self.config.calibration_curve
+        concentration_calibration = concentration_calibration or self.config.concentration_calibration
 
-        if calibration_curve is None:
+        if concentration_calibration is None:
             return np.nan
 
-        return calibration_curve.predict(self.intensity)
+        return concentration_calibration.predict(self.intensity)
 
     # --------            cursor            --------
     @property

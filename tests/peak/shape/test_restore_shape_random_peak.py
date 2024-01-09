@@ -6,13 +6,16 @@ import pytest
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.peak import ScaledExperiment, ScaledExperimentConfig
-from spectrumlab.peak.shape import VoightPeakShape, Grid, restore_shape_from_grid
+from spectrumlab.emulation.peak import RandomPeakExperiment, RandomPeakExperimentConfig
+from spectrumlab.peak.shape import VoightPeakShape, restore_shape_from_spectrum
 
 from core import distance
 from config import *
 
-THRESHOLD = 100
+N_NUMBERS = 2048
+
+MU = -1
+SIGMA = .5
 
 
 # --------        fixtures        --------
@@ -27,10 +30,10 @@ def shape() -> VoigtApparatusShape:
 
 
 @pytest.fixture(scope='module')
-def experiment(detector: Detector, shape: VoightPeakShape) -> ScaledExperiment:
+def experiment(detector: Detector, shape: VoightPeakShape) -> RandomPeakExperiment:
 
-    experiment = ScaledExperiment(
-        config=ScaledExperimentConfig(
+    experiment = RandomPeakExperiment(
+        config=RandomPeakExperimentConfig(
             n_numbers=N_NUMBERS,
             n_frames=N_FRAMES,
 
@@ -44,45 +47,35 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> ScaledExperiment:
                 shape=RectangularApertureShape(),
             ),
 
-            exposure=np.array([2**x for x in range(N_ITERS)]),
-            position=POSITION,
-            intensity=INTENSITY,
+            exposure=EXPOSURE,
+            # position=np.linspace(0, N_NUMBERS, N_ITERS),
+            # intensity=np.full(N_ITERS, 1),
+            position=np.random.uniform(0, N_NUMBERS, size=(N_ITERS,)),
+            intensity=10**np.random.normal(MU, SIGMA, size=(N_ITERS,)),
         ),
     )
     experiment = experiment.setup(
-        verbose=False,
-        show=False,
+        verbose=True,
     )
 
     return experiment
 
 
 @pytest.fixture(scope='module')
-def shape_hat(experiment: ScaledExperiment) -> VoightPeakShape:
-    config = experiment.config
+def shape_hat(experiment: RandomPeakExperiment) -> VoightPeakShape:
 
     # spectrum
     spectrum = experiment.run(is_noised=IS_NOISED)
 
-    # grid
-    grid = Grid.from_frames(
-        spectrum=spectrum,
-        offset=np.full((config.n_iters, ), config.n_numbers//2),
-        scale=config.exposure,
-        background=np.full((config.n_iters, ), 0),
-        threshold=THRESHOLD,
-    )
-
     # shape_hat
-    shape_hat = restore_shape_from_grid(
-        grid=grid,
-        show=False,
+    shape_hat = restore_shape_from_spectrum(
+        spectrum=spectrum,
+        noise=experiment.noise,
     )
 
     return shape_hat
 
 
-# --------        tests        --------
 def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
     tolerance = 1e-3  # 0.1 [%]
     step = detector.config.width
@@ -127,7 +120,7 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
 if __name__ == '__main__':
     detector = DETECTOR
     shape = SHAPE
-    config = ScaledExperimentConfig(
+    config=RandomPeakExperimentConfig(
         n_numbers=N_NUMBERS,
         n_frames=N_FRAMES,
 
@@ -141,32 +134,28 @@ if __name__ == '__main__':
             shape=RectangularApertureShape(),
         ),
 
-        exposure=np.array([2**x for x in range(N_ITERS)]),
-        position=POSITION,
-        intensity=INTENSITY,
+        exposure=EXPOSURE,
+        # position=np.linspace(0, N_NUMBERS, N_ITERS),
+        # intensity=np.full(N_ITERS, 1),
+        position=np.random.uniform(0, N_NUMBERS, size=(N_ITERS,)),
+        intensity=10**np.random.normal(MU, SIGMA, size=(N_ITERS,)),
     )
 
     # experiment
-    experiment = ScaledExperiment(
+    experiment = RandomPeakExperiment(
         config=config,
     )
     experiment = experiment.setup(
-        verbose=False,
-        show=False,
+        verbose=True,
     )
 
     # spectrum
     spectrum = experiment.run(is_noised=IS_NOISED)
 
     # restore shape
-    grid = Grid.from_frames(
+    shape_hat = restore_shape_from_spectrum(
         spectrum=spectrum,
-        offset=np.full((config.n_iters, ), config.position),
-        scale=config.exposure,
-        background=np.full((config.n_iters, ), 0),
-        threshold=THRESHOLD,
-    )
-    shape_hat = restore_shape_from_grid(
-        grid=grid,
+        noise=experiment.noise,
+        verbose=True,
         show=True,
     )
