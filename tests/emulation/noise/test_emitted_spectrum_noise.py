@@ -25,7 +25,7 @@ def config() -> ExperimentConfig:
         (Detector.BLPP4000, ),
     ],
 )
-def test_formula_conversion(detector: Detector):
+def test_percent_units(detector: Detector):
     tolerance = 1e-9
     kc = 100 / detector.config.capacity
 

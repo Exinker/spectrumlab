@@ -71,7 +71,7 @@ class EmittedSpectrumNoise(BaseNoise):
             read_noise = detector.config.read_noise  # [e]
             kc = detector.config.capacity / 100
 
-            return (1/kc**2) * np.sqrt(
+            return (1/kc) * np.sqrt(
                 read_noise**2 + value*kc
             ) / np.sqrt(n_frames)
 
