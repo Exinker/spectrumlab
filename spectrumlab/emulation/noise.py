@@ -68,11 +68,11 @@ class EmittedSpectrumNoise(BaseNoise):
 
         #
         if self.units == Percent:
-            capacity = detector.config.capacity
-            read_noise = detector.config.read_noise
+            read_noise = detector.config.read_noise  # [e]
+            kc = detector.config.capacity / 100
 
-            return np.sqrt(
-                (100/capacity*read_noise)**2 + 100/capacity*value
+            return (1/kc**2) * np.sqrt(
+                read_noise**2 + value*kc
             ) / np.sqrt(n_frames)
 
         if self.units == Electron:
