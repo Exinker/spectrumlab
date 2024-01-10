@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from typing import overload
 
@@ -8,7 +7,7 @@ from scipy import integrate, interpolate, signal
 
 from spectrumlab.alias import Array, Number, MicroMeter, Percent
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.line import Line, PVoigtLineShape
 from spectrumlab.picture.config import COLOR
 

@@ -1,4 +1,3 @@
-
 import os
 from dataclasses import dataclass, field
 from enum import Enum
@@ -8,22 +7,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, Meter, NanoMeter
-from spectrumlab.emulation.detector.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic, DatasheetCharacteristic
-
-
-DATASHEET_DIR = os.path.join(os.path.dirname(__file__), 'datasheets')
-
-print(DATASHEET_DIR)
+from spectrumlab.emulation.photodiode import DATASHEET_DIR
+from spectrumlab.emulation.photodiode.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic, DatasheetCharacteristic
 
 
 @dataclass(frozen=True)
 class DetectorConfig:
-    """Detector's config"""
+    """Detector's config."""
     name: str
     sensitivity: CharacteristicBase
     transmittance: CharacteristicBase
     description: str = field(default='')
 
+    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
         name = self.name
@@ -35,7 +31,7 @@ class DetectorConfig:
 
 
 class Detector(Enum):
-    """Enums with detector's config"""
+    """Enums with detector's config."""
     unicorn = DetectorConfig(
         name='unicorn',
         sensitivity=ConstantCharacteristic(value=1),
@@ -86,12 +82,6 @@ class Detector(Enum):
     def config(self) -> DetectorConfig:
         return self.value
 
-    def __str__(self) -> str:
-        cls = self.__class__
-        name = self.config.name
-
-        return f'{cls.__name__}: {name}'
-
     # --------        handlers        --------
     def responce(self, x: Array[Meter], fill_value: float = np.nan) -> Array[float]:
         config = self.config
@@ -139,3 +129,10 @@ class Detector(Enum):
 
         if not fill:
             plt.show()
+
+    # --------        private        --------
+    def __str__(self) -> str:
+        cls = self.__class__
+        name = self.config.name
+
+        return f'{cls.__name__}: {name}'

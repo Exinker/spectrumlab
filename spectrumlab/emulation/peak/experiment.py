@@ -8,7 +8,7 @@ from tqdm import tqdm
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.aperture import Aperture
 from spectrumlab.emulation.apparatus import Apparatus
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import emulate_emitted_spectrum, convolve
 from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import EmittedSpectrum

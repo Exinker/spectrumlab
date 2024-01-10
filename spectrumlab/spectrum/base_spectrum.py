@@ -11,7 +11,7 @@ from typing import overload
 import numpy as np
 
 from spectrumlab.alias import Array, NanoMeter, Number
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 
 
 @overload

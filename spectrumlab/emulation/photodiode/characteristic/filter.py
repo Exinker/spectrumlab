@@ -1,4 +1,3 @@
-
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -7,20 +6,21 @@ from typing import Literal
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import NanoMeter
-from .characteristic import WindowCharacteristic, DatasheetCharacteristic
+from spectrumlab.emulation.photodiode.characteristic import WindowCharacteristic, DatasheetCharacteristic
 
 
 @dataclass
 class Filter(ABC):
-    """Interface for any filter"""
-
-    @abstractmethod
-    def __repr__(self) -> str:
-        raise NotImplementedError
+    """Interface for any filter."""
 
     # --------        handlers        --------
     @abstractmethod
     def show(self, ax: plt.Axes | None = None) -> None:
+        raise NotImplementedError
+
+    # --------        private        --------
+    @abstractmethod
+    def __repr__(self) -> str:
         raise NotImplementedError
 
 
@@ -30,9 +30,6 @@ class WindowFilter(Filter, WindowCharacteristic):
     smooth: float  # smoothing rectangular edges by gauss
     wavelength_bounds: tuple[float, float]
     wavelength_step: float
-
-    def __str__(self) -> str:
-        return '{}, нм'.format('-'.join(map(str, self.span)))
 
     # --------        handlers        --------
     def show(self, info: Literal['title', 'text', 'none'] = 'text', save: bool = False, ax: plt.Axes | None = None) -> None:
@@ -76,6 +73,10 @@ class WindowFilter(Filter, WindowCharacteristic):
         if not fill:
             plt.show()
 
+    # --------        private        --------
+    def __str__(self) -> str:
+        return '{}, нм'.format('-'.join(map(str, self.span)))
+
 
 @dataclass
 class DatasheetFilter(Filter, DatasheetCharacteristic):
@@ -83,11 +84,11 @@ class DatasheetFilter(Filter, DatasheetCharacteristic):
     xscale: float  # transform to meter units
     norm: float = field(default=1)  # normalization scale
 
-    def __str__(self) -> str:
-        head, tail = os.path.split(self.path)
-        return 'file: {}'.format(head)
-
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None) -> None:
         raise NotImplementedError
 
+    # --------        private        --------
+    def __str__(self) -> str:
+        head, tail = os.path.split(self.path)
+        return 'file: {}'.format(head)

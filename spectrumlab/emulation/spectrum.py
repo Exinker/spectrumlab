@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, Percent, Electron, Absorbance, MilliSecond, NanoMeter, Number
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 

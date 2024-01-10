@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from spectrumlab.alias import Electron, Percent
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 
 

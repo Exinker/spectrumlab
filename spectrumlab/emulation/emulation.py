@@ -6,7 +6,6 @@ Emitted and absorbed spectrum emulation.
     Date: 2013.04.12
 
 """
-
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -18,9 +17,9 @@ from scipy import integrate, interpolate, signal
 
 from spectrumlab.alias import Array, Absorbance, MilliSecond, Percent, MicroMeter, Number
 from spectrumlab.picture.config import COLOR
-from spectrumlab.emulation.detector.linear_array_detector import Detector
 from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.aperture import Aperture
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise, AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation

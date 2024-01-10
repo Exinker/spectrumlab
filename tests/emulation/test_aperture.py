@@ -6,7 +6,7 @@ import pytest
 
 from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 
 
 @dataclass

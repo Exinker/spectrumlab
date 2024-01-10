@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
@@ -11,8 +10,9 @@ from spectrumlab.emulation.curve import gauss, rectangular
 
 # --------        CharacteristicBase        --------
 class CharacteristicBase(ABC):
-    """Interface for any Characteristic"""
+    """Interface for any Characteristic."""
 
+    # --------        private        --------
     @abstractmethod
     def __call__(self, x: Array[Meter], fill_value: float = np.nan) -> Array[float]:
         raise NotImplementedError
@@ -22,6 +22,7 @@ class CharacteristicBase(ABC):
 class ConstantCharacteristic(CharacteristicBase):
     value: float
 
+    # --------        private        --------
     def __call__(self, x: float | Array[Meter], fill_value: float = np.nan) -> Array[float]:
 
         if isinstance(x, float):  # TODO: don't remove! It's for integrate.quad functions!
@@ -41,6 +42,7 @@ class WindowCharacteristic(CharacteristicBase):
     _x: Array[Meter] = field(init=False, repr=False)
     _y: Array[float] = field(init=False, repr=False)
 
+    # --------        private        --------
     def __post_init__(self):
         lb, ub = self.wavelength_bounds
         step = self.wavelength_step
@@ -86,6 +88,7 @@ class DatasheetCharacteristic(CharacteristicBase):
     _x: Array[NanoMeter] = field(init=False, repr=False)
     _y: Array[float] = field(init=False, repr=False)
 
+    # --------        private        --------
     def __post_init__(self):
         dat = np.genfromtxt(self.path, delimiter=self.delimiter, dtype=np.float32)
 

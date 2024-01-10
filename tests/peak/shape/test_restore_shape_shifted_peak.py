@@ -5,7 +5,7 @@ import pytest
 
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.peak import ShiftedExperiment, ShiftedExperimentConfig
 from spectrumlab.peak.shape import VoightPeakShape, Grid, restore_shape_from_grid
 

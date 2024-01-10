@@ -3,23 +3,21 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from spectrumlab.alias import Electron, MicroMeter
-from spectrumlab.emulation.detector.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic
 
 
 @dataclass(frozen=True)
 class DetectorConfig:
-    """Detector's confg"""
+    """Detector's confg."""
     name: str
     capacity: Electron
     read_noise: Electron
     n_pixels: int
     width: MicroMeter
     height: MicroMeter
-    sensitivity: CharacteristicBase = field(default=ConstantCharacteristic(value=1))
-    transmittance: CharacteristicBase = field(default=ConstantCharacteristic(value=1))
     description: str = field(default='')
 
-    def __repr__(self) -> str:
+    # --------        private        --------
+    def __str__(self) -> str:
         cls = self.__class__
         name = self.name
 
@@ -27,7 +25,7 @@ class DetectorConfig:
 
 
 class Detector(Enum):
-    """Enums with detectors's config"""
+    """Enums with detectors's config."""
     BLPP369M1 = DetectorConfig(
         name='БЛПП-369М1',
         capacity=2_000_000,
@@ -66,7 +64,8 @@ class Detector(Enum):
     def config(self) -> DetectorConfig:
         return self.value
 
-    def __repr__(self) -> str:
+    # --------        private        --------
+    def __str__(self) -> str:
         cls = self.__class__
         name = self.config.name
 
@@ -74,4 +73,5 @@ class Detector(Enum):
 
 
 if __name__ == '__main__':
-    print(Detector.BLPP2000)
+    for detector in Detector:
+        print(detector)

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import emulate_absorbed_spectrum
 from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
 

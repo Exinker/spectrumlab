@@ -7,7 +7,7 @@ from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, MicroMeter, Number
 from spectrumlab.emulation.curve import rectangular, pvoigt
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR
 
 
