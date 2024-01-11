@@ -22,7 +22,8 @@ from spectrumlab.emulation.aperture import Aperture
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.line import Line
-from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise, AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
+from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise
+from spectrumlab.emulation.noise.absorbed_spectrum_noise import AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
 from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum, HighDynamicRangeEmittedSpectrum
 
 
