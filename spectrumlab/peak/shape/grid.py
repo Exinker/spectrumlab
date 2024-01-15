@@ -68,14 +68,16 @@ class Grid:
     @classmethod
     def from_frames(cls, spectrum: Spectrum, offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
         """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
-        assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
+        # assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
 
         #
         def _get_item(spectrum: Spectrum, t: int, threshold: float) -> tuple[Array, Array]:
             is_clipped = spectrum.clipped[t]
-            is_low_snr = np.abs(spectrum.intensity[t]) / spectrum.deviation[t] < threshold
-            mask = ~is_clipped & ~is_low_snr
+            is_snr_low = np.abs(spectrum.intensity[t]) / spectrum.deviation[t] < threshold
+            mask = ~is_clipped & ~is_snr_low
 
+            if spectrum.n_times == 1:
+                return spectrum.number[mask], spectrum.intensity[mask]
             return spectrum.number[mask], spectrum.intensity[t, mask]
 
         items = tuple(
@@ -101,8 +103,8 @@ class Grid:
             lb, ub = blink.minima
 
             is_clipped = spectrum.clipped[lb:ub]
-            is_low_snr = np.abs(spectrum.intensity[lb:ub]) / spectrum.deviation[lb:ub] < threshold
-            mask = ~is_clipped & ~is_low_snr
+            is_snr_low = np.abs(spectrum.intensity[lb:ub]) / spectrum.deviation[lb:ub] < threshold
+            mask = ~is_clipped & ~is_snr_low
 
             return spectrum.number[lb:ub][mask], spectrum.intensity[lb:ub][mask]
 
@@ -144,7 +146,7 @@ class Grid:
 
             _x.extend(x - offset[t])
             _y.extend((y - background[t]) / scale[t])
-        _x, _y = np.array(_x), np.array(_y)
+        _x, _y = np.array(_x).squeeze(), np.array(_y).squeeze()
 
         index = np.argsort(_x)
 
