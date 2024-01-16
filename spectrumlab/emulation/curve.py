@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Callable
 
 import numpy as np
 from scipy import interpolate, optimize, signal
@@ -93,17 +94,32 @@ def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float)
 
 
 # --------        utils        --------
-def calculate_fwhm(x: Array[float], y: Array[float]) -> float:
-    def loss(x, f) -> float:
-        return np.sqrt((f(x) - f(0)/2)**2)
+def estimate_fwhm(x: Array[float], y: Array[float]) -> float:
+    """Estimate a full width at half maximum (FWHM).
+
+    A grid values (`x`, `y`) should be centered!
+    """
+
+    def _loss(x: float, f: Callable[[float], float]) -> float:
+        return (f(0)/2 - f(x))**2
+
+    f = interpolate.interp1d(
+        x, y,
+        kind='linear',
+        bounds_error=False,
+        fill_value=0,
+    )
 
     res = optimize.minimize(
-        partial(loss, f=interpolate.interp1d(x, y, kind='linear', bounds_error=False, fill_value=np.nan)),
-        x0=1,
+        partial(_loss, f=f),
+        x0=0,
     )
-    # assert res['success'], 'Optimization is not success!'
+    assert res['success'], 'Optimization is not success!'
 
-    return 2*res['x'].item()
+    fwhm = np.abs(2*res['x'].item())
+
+    # 
+    return fwhm
 
 
 def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tuple[float, float, float]:
