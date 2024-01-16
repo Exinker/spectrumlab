@@ -47,4 +47,3 @@ def test_estimate_fwhm_gauss(w: float, config: Config):
 
     fwhm_hat = estimate_fwhm(x=x, y=f(x))
     assert np.abs((fwhm_hat - fwhm) / fwhm) < config.tolerance
-

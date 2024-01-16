@@ -97,7 +97,7 @@ def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float)
 def estimate_fwhm(x: Array[float], y: Array[float]) -> float:
     """Estimate a full width at half maximum (FWHM).
 
-    A grid values (`x`, `y`) should be centered and symmetric!
+    A grid values (`x`, `y`) should be centered!
     """
 
     def _loss(x: float, f: Callable[[float], float]) -> float:
@@ -113,13 +113,25 @@ def estimate_fwhm(x: Array[float], y: Array[float]) -> float:
     res = optimize.minimize(
         partial(_loss, f=f),
         x0=0,
+        bounds=[
+            (-np.inf, -1e-10),
+        ],
     )
     assert res['success'], 'Optimization is not success!'
+    lb = res['x'].item()
 
-    fwhm = np.abs(2*res['x'].item())
+    res = optimize.minimize(
+        partial(_loss, f=f),
+        x0=0,
+        bounds=[
+            (+1e-10, +np.inf),
+        ],
+    )
+    assert res['success'], 'Optimization is not success!'
+    ub = res['x'].item()
 
     # 
-    return fwhm
+    return ub - lb
 
 
 def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tuple[float, float, float]:
