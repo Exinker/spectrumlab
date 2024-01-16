@@ -97,7 +97,7 @@ def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float)
 def estimate_fwhm(x: Array[float], y: Array[float]) -> float:
     """Estimate a full width at half maximum (FWHM).
 
-    A grid values (`x`, `y`) should be centered!
+    A grid values (`x`, `y`) should be centered and symmetric!
     """
 
     def _loss(x: float, f: Callable[[float], float]) -> float:
