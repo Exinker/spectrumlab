@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate, optimize, signal
 from tqdm import tqdm
 
-from spectrumlab.alias import Array, Number
+from spectrumlab.alias import Array, Number, MicroMeter
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
@@ -126,7 +126,7 @@ class VoightPeakShape(BasePeakShape):
 
     # --------        fabric        --------
     @classmethod
-    def from_grid(cls, grid: Grid, show: bool = False) -> 'VoightPeakShape':
+    def from_grid(cls, grid: Grid, show: bool = False, scale: MicroMeter = 1) -> 'VoightPeakShape':
 
         def _loss(grid: Grid, params: Sequence[float]) -> float:
             shape_variables, scope_variables = AssociatedVoightPeakShapeVariables.parse_params(grid=grid, params=params)
@@ -159,7 +159,7 @@ class VoightPeakShape(BasePeakShape):
 
             x, y = grid.x, grid.y
             plt.plot(
-                x, y,
+                scale*x, y,
                 color='red', linestyle='none', marker='s', markersize=3,
                 alpha=1,
             )
@@ -167,7 +167,7 @@ class VoightPeakShape(BasePeakShape):
             x = grid.space()
             y_hat = shape(x, **scope_variables)
             plt.plot(
-                x, y_hat,
+                scale*x, y_hat,
                 color='black', linestyle='-', linewidth=1,
                 alpha=1,
             )
@@ -175,7 +175,7 @@ class VoightPeakShape(BasePeakShape):
             x, y = grid.x, grid.y
             y_hat = shape(grid.x, **scope_variables)
             plt.plot(
-                x, y - y_hat,
+                scale*x, y - y_hat,
                 color='black', linestyle='none', marker='s', markersize=0.5,
                 alpha=1,
             )
@@ -188,8 +188,9 @@ class VoightPeakShape(BasePeakShape):
                 ha='left', va='top',
             )
 
-            plt.xlim([-10, +10])
-            plt.xlabel(r'$number$')
+            xlim = 5 if scale == 1 else 50
+            plt.xlim([-xlim, +xlim])
+            plt.xlabel(r'$number$' if scale == 1 else r'$x$ [$\mu m$]')
             plt.ylabel(r'$I$ [$\%$]')
             plt.grid(color='grey', linestyle=':')
 
