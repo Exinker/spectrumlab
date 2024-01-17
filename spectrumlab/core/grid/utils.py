@@ -7,17 +7,17 @@ import numpy as np
 from scipy import interpolate, optimize
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Number, MicroMeter
-from spectrumlab.core.grid import Grid
+from spectrumlab.alias import Array, MicroMeter
+from spectrumlab.core.grid import Grid, T
 from spectrumlab.peak.shape.scope import ScopeVariables
 from spectrumlab.peak.shape.voight_peak_shape import VoightPeakShape
 from spectrumlab.utils import mse
 
 
 @overload
-def to_scale(__value: Number, scale: MicroMeter) -> MicroMeter: ...
+def to_scale(__value: T, scale: MicroMeter) -> MicroMeter: ...
 @overload
-def to_scale(__value: Number, scale: None) -> Number: ...
+def to_scale(__value: T, scale: None) -> T: ...
 def to_scale(__value, scale):
     if scale is None:
         return __value
@@ -33,11 +33,11 @@ class BaseHandler(ABC):
         self._scale = scale
 
     @property
-    def f(self) -> Callable[[Array[Number]], Array[float]]:
+    def f(self) -> Callable[[Array[T]], Array[float]]:
         return self._f
 
     # --------        handlers        --------
-    def show(self, bias: Number | None = None):
+    def show(self, bias: T | None = None):
         grid = self._grid
         scale = self._scale
         f = self.f
@@ -81,7 +81,7 @@ class BaseHandler(ABC):
 
     # --------        private        --------
     def __call__(self, x: Array) -> Array:
-        return self.handler(x)
+        return self.f(x)
 
 
 class LinearInterpolationHandler(BaseHandler):
@@ -142,7 +142,7 @@ Handler: TypeAlias = LinearInterpolationHandler | VoightPeakShapeHandler
 
 
 # --------        estimators        --------
-def estimate_bias(grid: Grid, handler: Handler | None = None, scale: MicroMeter | None = None, verbose: bool = False, show: bool = False) -> Number:
+def estimate_bias(grid: Grid, handler: Handler | None = None, scale: MicroMeter | None = None, verbose: bool = False, show: bool = False) -> T:
     '''Estimate a bias of the `grid`.
 
     Params:
@@ -153,7 +153,7 @@ def estimate_bias(grid: Grid, handler: Handler | None = None, scale: MicroMeter 
         handler = LinearInterpolationHandler(grid=grid)
 
     # bias
-    def _loss(x: Number, handler: Callable[[Number], float]) -> float:
+    def _loss(x: T, handler: Callable[[T], float]) -> float:
         return (handler(x - 0.5) - handler(x + 0.5))**2
 
     bias = optimize.minimize(
@@ -220,7 +220,7 @@ def estimate_bias(grid: Grid, handler: Handler | None = None, scale: MicroMeter 
     return bias
 
 
-def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: Number = 0, limit: Number = 0.5, scale: MicroMeter | None = None, verbose: bool = False, show: bool = False) -> Number:
+def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: T = 0, limit: T = 0.5, scale: MicroMeter | None = None, verbose: bool = False, show: bool = False) -> T:
     """Estimate a full width at half maximum (FWHM) of the `grid`.
 
     Params:
@@ -233,7 +233,7 @@ def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: Number = 0, 
         handler = LinearInterpolationHandler(grid=grid)
 
     # fwhm
-    def _loss(x: Number, bias: Number, handler: Callable[[float], float]) -> float:
+    def _loss(x: T, bias: T, handler: Callable[[float], float]) -> float:
         return (handler(bias)/2 - handler(bias + x))**2
 
     res = optimize.minimize(

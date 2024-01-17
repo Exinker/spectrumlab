@@ -1,14 +1,18 @@
 from collections.abc import Iterator
+from typing import NewType
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Number
+from spectrumlab.alias import Array
+
+
+T = NewType('T', float)
 
 
 class GridIterator:
 
-    def __init__(self, x: Array[Number], y: Array[float]):
+    def __init__(self, x: Array[T], y: Array[float]):
         self.x = x
         self.y = y
 
@@ -30,14 +34,14 @@ class GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[Number], y: Array[float]):
+    def __init__(self, x: Array[T], y: Array[float]):
         assert len(x) == len(y)
 
         self._x = x
         self._y = y
 
     @property
-    def x(self) -> Array[Number]:
+    def x(self) -> Array[T]:
         return self._x
 
     @property
@@ -49,7 +53,7 @@ class Grid:
         return len(self.x)
 
     # --------        handlers        --------
-    def space(self, n_points: int = 1000) -> Array[Number]:
+    def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
 
     def show(self) -> None:
