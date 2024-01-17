@@ -94,46 +94,6 @@ def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float)
 
 
 # --------        utils        --------
-def estimate_fwhm(x: Array[float], y: Array[float]) -> float:
-    """Estimate a full width at half maximum (FWHM).
-
-    A grid values (`x`, `y`) should be centered!
-    """
-
-    def _loss(x: float, f: Callable[[float], float]) -> float:
-        return (f(0)/2 - f(x))**2
-
-    f = interpolate.interp1d(
-        x, y,
-        kind='linear',
-        bounds_error=False,
-        fill_value=0,
-    )
-
-    res = optimize.minimize(
-        partial(_loss, f=f),
-        x0=0,
-        bounds=[
-            (-np.inf, -1e-10),
-        ],
-    )
-    assert res['success'], 'Optimization is not success!'
-    lb = res['x'].item()
-
-    res = optimize.minimize(
-        partial(_loss, f=f),
-        x0=0,
-        bounds=[
-            (+1e-10, +np.inf),
-        ],
-    )
-    assert res['success'], 'Optimization is not success!'
-    ub = res['x'].item()
-
-    # 
-    return ub - lb
-
-
 def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tuple[float, float, float]:
     """Approximate `voigt` shape by psevdo-voigt (`pvoigt`) shape."""
 

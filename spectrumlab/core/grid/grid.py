@@ -3,7 +3,7 @@ from collections.abc import Iterator
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.alias import Array, Number
 
 
 class GridIterator:
