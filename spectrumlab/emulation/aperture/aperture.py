@@ -38,13 +38,10 @@ class RectangularApertureShape(BaseApertureShape):
     def __init__(self):
         super().__init__()
 
-        self._f = None
+        self._f = partial(rectangular, x0=0, w=1)
 
     @property
     def f(self) -> Callable[[Number], Array[float]]:
-        if self._f is None:
-            self._f = partial(rectangular, x0=0, w=1)
-
         return self._f
 
 
@@ -55,26 +52,22 @@ class RoundedRectangularApertureShape(BaseApertureShape):
         super().__init__()
         self.width = width
 
-        self._f = None
+        x = self.x
+        dx = self.dx
+        self._f = interpolate.interp1d(
+            x,
+            signal.convolve(
+                rectangular(x, x0=0, w=1),
+                pvoigt(x, 0, w=self.width, a=0, r=0),
+                mode='same',
+            ) * dx,
+            kind='linear',
+            bounds_error=False,
+            fill_value=0,
+        )
 
     @property
     def f(self) -> Callable[[Number], Array[float]]:
-        if self._f is None:
-            x = self.x
-            dx = self.dx
-
-            self._f = interpolate.interp1d(
-                x,
-                signal.convolve(
-                    rectangular(x, x0=0, w=1),
-                    pvoigt(x, 0, w=self.width, a=0, r=0),
-                    mode='same',
-                ) * dx,
-                kind='linear',
-                bounds_error=False,
-                fill_value=0,
-            )
-
         return self._f
 
 
@@ -87,26 +80,22 @@ class VoightApertureShape(BaseApertureShape):
         self.asymmetry = asymmetry
         self.ratio = ratio
 
-        self._f = None
+        x = self.x
+        dx = self.dx
+        self._f = interpolate.interp1d(
+            x,
+            signal.convolve(
+                rectangular(x, x0=0, w=1),
+                pvoigt(x, 0, w=self.width, a=self.asymmetry, r=self.ratio),
+                mode='same',
+            ) * dx,
+            kind='linear',
+            bounds_error=False,
+            fill_value=0,
+        )
 
     @property
     def f(self) -> Callable[[Number], Array[float]]:
-        if self._f is None:
-            x = self.x
-            dx = self.dx
-
-            self._f = interpolate.interp1d(
-                x,
-                signal.convolve(
-                    rectangular(x, x0=0, w=1),
-                    pvoigt(x, 0, w=self.width, a=self.asymmetry, r=self.ratio),
-                    mode='same',
-                ) * dx,
-                kind='linear',
-                bounds_error=False,
-                fill_value=0,
-            )
-
         return self._f
 
     # --------        fabric        --------
