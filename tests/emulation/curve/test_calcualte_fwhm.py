@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 from spectrumlab.alias import Array
-from spectrumlab.emulation.curve import gauss, estimate_fwhm
+from spectrumlab.core.grid import Grid, estimate_fwhm
+from spectrumlab.emulation.curve import gauss
 
 
 # --------        fixtures        --------
@@ -45,5 +46,7 @@ def test_estimate_fwhm_gauss(w: float, config: Config):
     f = partial(gauss, x0=0, w=w)
     fwhm = 2*np.sqrt(2*np.log(2)) * w
 
-    fwhm_hat = estimate_fwhm(x=x, y=f(x))
+    fwhm_hat = estimate_fwhm(
+        grid=Grid(x=x, y=f(x)),
+    )
     assert np.abs((fwhm_hat - fwhm) / fwhm) < config.tolerance

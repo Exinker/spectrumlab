@@ -70,7 +70,7 @@ if __name__ == '__main__':
     f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio)
 
     # shape
-    from spectrumlab.peak.shape import Grid
+    from spectrumlab.core.grid import Grid
 
     # grid = Grid(x/step, f(x/step, 0, 1))
     # grid.show()

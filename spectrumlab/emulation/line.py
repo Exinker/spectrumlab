@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 
 from spectrumlab.alias import Array, PicoMeter
-from spectrumlab.emulation.curve import gauss, voigt, pvoigt, voigt2pvoigt, estimate_fwhm
+from spectrumlab.core.grid import Grid, estimate_fwhm
+from spectrumlab.emulation.curve import gauss, voigt, pvoigt, voigt2pvoigt
 from spectrumlab.picture.config import COLOR
 
 
@@ -53,13 +54,15 @@ class VoigtLineShape:
         return self(self.x, 0, 1)
 
     # --------        handlers        --------
-    def estimate_fwhm(self) -> PicoMeter:
-        """Estimate FWHM of the shape [by formula](https://en.wikipedia.org/wiki/Voigt_profile#The_width_of_the_Voigt_profile)."""
+    def calculate_fwhm(self) -> PicoMeter:
+        """Calculate FWHM of the shape [by formula](https://en.wikipedia.org/wiki/Voigt_profile#The_width_of_the_Voigt_profile)."""
         return self.l/2 + np.sqrt((self.l/2)**2 + self.g**2)
 
     def estimate_fwhm(self) -> PicoMeter:
-        """Calculate FWHM of the shape."""
-        hwhm = estimate_fwhm(self.x, self.y)
+        """Estimate FWHM of the shape."""
+        hwhm = estimate_fwhm(
+            grid=Grid(x=self.x, y=self.y)
+        )
 
         return hwhm
     

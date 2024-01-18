@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from spectrumlab.alias import Frame, Series, Number
 from spectrumlab.concentration_calibration import BaseConcentrationCalibration, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
-from spectrumlab.emulation import Emulation
+from spectrumlab.emulation.emulation import Emulation
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
 from spectrumlab.picture.config import COLOR, ALPHA
 

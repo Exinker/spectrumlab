@@ -8,14 +8,15 @@ from scipy import interpolate, optimize, signal
 from tqdm import tqdm
 
 from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.core.grid import Grid
+from spectrumlab.core.approximate.base_variables import Variable, BaseVariables
+from spectrumlab.core.approximate.scope import ScopeVariables
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
-from spectrumlab.peak.shape.base_variables import Variable, BaseVariables
 from spectrumlab.peak.shape.base_shape import BasePeakShape
-from spectrumlab.peak.shape.grid import Grid
-from spectrumlab.peak.shape.scope import ScopeVariables
+from spectrumlab.peak.shape._grid import _Grid
 from spectrumlab.utils import mse
 
 
@@ -464,7 +465,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
         pbar.update(1)
 
         # update shape
-        grid = Grid.from_blinks(
+        grid = _Grid.from_blinks(
             spectrum=spectrum,
             blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
             offset=[offset[i] for i, mask in enumerate(mask) if not mask],
@@ -524,7 +525,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             )
 
         plt.sca(ax_mid)
-        grid = Grid.from_blinks(
+        grid = _Grid.from_blinks(
             spectrum=spectrum,
             blinks=[blinks[i] for i, mask in enumerate(mask) if mask],
             offset=[offset[i] for i, mask in enumerate(mask) if mask],
@@ -538,7 +539,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             alpha=.5,
         )
 
-        grid = Grid.from_blinks(
+        grid = _Grid.from_blinks(
             spectrum=spectrum,
             blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
             offset=[offset[i] for i, mask in enumerate(mask) if not mask],
