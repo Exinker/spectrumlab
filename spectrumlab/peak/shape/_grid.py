@@ -1,11 +1,10 @@
-from collections.abc import Sequence, Iterator
-from dataclasses import dataclass
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, Number
+from spectrumlab.core.grid import Grid
 from spectrumlab.spectrum import Spectrum
 
 
@@ -13,60 +12,18 @@ if TYPE_CHECKING:
     from spectrumlab.peak.blink_peak import BlinkPeak
 
 
-class GridIterator:
-
+class _Grid(Grid):
+    
     def __init__(self, x: Array[Number], y: Array[float]):
-        self.x = x
-        self.y = y
-
-        self._index = -1
-
-    # --------        private        --------
-    def __iter__(self) -> Iterator:
-        return self
-
-    def __next__(self) -> tuple[float, float]:
-
-        try:
-            self._index += 1
-            return self.x[self._index], self.y[self._index]
-
-        except IndexError:
-            raise StopIteration
-
-
-@dataclass(frozen=True, slots=True)
-class Grid:
-    x: Array[Number]
-    y: Array[float]
+        super().__init__(x=x, y=y)
 
     @property
     def n_points(self) -> int:
         return len(self.x)
 
-    # --------        handlers        --------
-    def space(self, n_points: int = 1000) -> Array[Number]:
-        return np.linspace(min(self.x), max(self.x), n_points)
-
-    def show(self) -> None:
-        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
-
-        x, y = self.x, self.y
-        plt.plot(
-            x, y,
-            color='red', linestyle='none', marker='s', markersize=3,
-            alpha=1,
-        )
-
-        plt.xlabel(r'$number$')
-        plt.ylabel(r'$f$')
-        plt.grid(color='grey', linestyle=':')
-
-        plt.show()
-
     # --------        fabric        --------
     @classmethod
-    def from_frames(cls, spectrum: Spectrum, offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
+    def from_frames(cls, spectrum: Spectrum, offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> '_Grid':
         """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
         # assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
 
@@ -94,7 +51,7 @@ class Grid:
         )
 
     @classmethod
-    def from_blinks(cls, spectrum: Spectrum, blinks: Sequence['BlinkPeak'], offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
+    def from_blinks(cls, spectrum: Spectrum, blinks: Sequence['BlinkPeak'], offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> '_Grid':
         """Get a grid from sequence of blinks from spectrum."""
         assert spectrum.n_times == 1, 'kinetics spectra are not supported!'
 
@@ -123,7 +80,7 @@ class Grid:
 
     # --------        private        --------
     @classmethod
-    def _from_items(cls, items: Sequence[tuple[Array, Array]], offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> 'Grid':
+    def _from_items(cls, items: Sequence[tuple[Array, Array]], offset: Array[Number] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None) -> '_Grid':
         """Get a grid from sequence of items."""
         n_times = len(items)
 
@@ -155,17 +112,3 @@ class Grid:
             x=_x[index],
             y=_y[index],
         )
-
-    def __post_init__(self):
-        assert len(self.x) == len(self.y)
-
-    def __iter__(self) -> Iterator:
-        return GridIterator(
-            x=self.x,
-            y=self.y,
-        )
-
-    def __repr__(self) -> str:
-        cls = self.__class__
-
-        return f'{cls.__name__}(n_points={self.n_points})'

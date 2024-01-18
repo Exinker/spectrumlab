@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.core.grid import Grid, T
-from spectrumlab.peak.shape.scope import ScopeVariables
+from spectrumlab.core.approximate.scope import ScopeVariables
 from spectrumlab.peak.shape.voight_peak_shape import VoightPeakShape
 from spectrumlab.utils import mse
 

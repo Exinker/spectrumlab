@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from spectrumlab.alias import Array, Number
-from spectrumlab.peak.shape import VoightPeakShape, Grid, restore_shape_from_grid
+from spectrumlab.core.grid import Grid
+from spectrumlab.peak.shape import VoightPeakShape, restore_shape_from_grid
 
 from core import distance
 
