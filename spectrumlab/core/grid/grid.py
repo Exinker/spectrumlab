@@ -1,8 +1,9 @@
 from collections.abc import Iterator
-from typing import NewType
+from typing import Callable, NewType
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import interpolate
 
 from spectrumlab.alias import Array
 
@@ -66,6 +67,16 @@ class Grid:
         return Grid(
             x=self.x,
             y=self.y / coeff,
+        )
+
+    def interpolate(self) -> Callable[[Array[T]], Array[float]]:
+        """Interpolate `grid` by linear interpolation."""
+
+        return interpolate.interp1d(
+            self.x, self.y,
+            kind='linear',
+            bounds_error=False,
+            fill_value=0,
         )
 
     # --------        handlers        --------
