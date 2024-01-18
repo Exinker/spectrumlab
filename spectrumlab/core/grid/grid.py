@@ -3,7 +3,7 @@ from typing import Callable, NewType
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import interpolate
+from scipy import integrate, interpolate
 
 from spectrumlab.alias import Array
 
@@ -61,8 +61,14 @@ class Grid:
             y=self.y,
         )
 
-    def normalize(self, coeff: float) -> 'Grid':
+    def normalize(self, coeff: float | None = None) -> 'Grid':
         """Normalize grid by `coeff`."""
+        if coeff is None:
+            coeff = integrate.quad(
+                self.interpolate(),
+                a=min(self.x),
+                b=max(self.x),
+            )[0]
 
         return Grid(
             x=self.x,
