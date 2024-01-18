@@ -52,6 +52,22 @@ class Grid:
     def n_points(self) -> int:
         return len(self.x)
 
+    def centralize(self, bias: T) -> 'Grid':
+        """Centralize grid by `bias`."""
+
+        return Grid(
+            x=self.x - bias,
+            y=self.y,
+        )
+
+    def normalize(self, coeff: float) -> 'Grid':
+        """Normalize grid by `coeff`."""
+
+        return Grid(
+            x=self.x,
+            y=self.y / coeff,
+        )
+
     # --------        handlers        --------
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
