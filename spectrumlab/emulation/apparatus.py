@@ -101,6 +101,23 @@ if __name__ == '__main__':
     # apparatus
     apparatus = Apparatus(
         detector=detector,
-        shape=VoigtApparatusShape(width=25, asymmetry=.3, ratio=.0),
+        shape=VoigtApparatusShape(width=25, asymmetry=0.0, ratio=0.0),
     )
     apparatus.show()
+
+    # 
+    rx = 100
+    dx = 1e-2
+    x = np.linspace(-rx, +rx, 2*int(rx/dx))
+
+    integral = np.sum(apparatus(x, x0=0))*dx
+    print(f'integral: {integral:.4f}')
+
+    # 
+    step = detector.config.width
+
+    rx = 10
+    dx = 1e-2/step
+    x = np.linspace(-rx, +rx, 2*int(rx/dx))
+    integral = np.sum(apparatus(step*x, x0=0))*(step*dx)
+    print(f'integral: {integral:.4f}')
