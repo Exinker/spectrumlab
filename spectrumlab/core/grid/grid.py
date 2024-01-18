@@ -53,29 +53,8 @@ class Grid:
     def n_points(self) -> int:
         return len(self.x)
 
-    def centralize(self, bias: T) -> 'Grid':
-        """Centralize grid by `bias`."""
-
-        return Grid(
-            x=self.x - bias,
-            y=self.y,
-        )
-
-    def normalize(self, coeff: float | None = None) -> 'Grid':
-        """Normalize grid by `coeff`."""
-        if coeff is None:
-            coeff = integrate.quad(
-                self.interpolate(),
-                a=min(self.x),
-                b=max(self.x),
-            )[0]
-
-        return Grid(
-            x=self.x,
-            y=self.y / coeff,
-        )
-
-    def interpolate(self) -> Callable[[Array[T]], Array[float]]:
+    @property
+    def interpolation(self) -> Callable[[Array[T]], Array[float]]:
         """Interpolate `grid` by linear interpolation."""
 
         return interpolate.interp1d(
@@ -88,6 +67,28 @@ class Grid:
     # --------        handlers        --------
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
+
+    def centralize(self, bias: T) -> 'Grid':
+        """Centralize grid by `bias`."""
+
+        return Grid(
+            x=self.x - bias,
+            y=self.y,
+        )
+
+    def normalize(self, coeff: float | None = None) -> 'Grid':
+        """Normalize grid by `coeff`."""
+        if coeff is None:
+            coeff = integrate.quad(
+                self.interpolation,
+                a=min(self.x),
+                b=max(self.x),
+            )[0]
+
+        return Grid(
+            x=self.x,
+            y=self.y / coeff,
+        )
 
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
