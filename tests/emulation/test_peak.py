@@ -5,7 +5,7 @@ import pytest
 
 from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.peak.shape import VoightPeakShape
+from spectrumlab.peak.shape import VoigtPeakShape
 
 
 @dataclass
@@ -48,7 +48,7 @@ def test_integral(detector: Detector, config: Config):
     step = detector.config.width
 
     x = config.x
-    f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
+    f = VoigtPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
 
     integral = np.sum(f(x/step, 0, 1)) * (config.dx/step)
     assert np.abs(integral - 1) < tolerance
@@ -66,8 +66,8 @@ if __name__ == '__main__':
     step = detector.config.width
 
     x = config.x
-    # f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
-    f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio)
+    # f = VoigtPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
+    f = VoigtPeakShape(config.width/step, config.asymmetry, config.ratio)
 
     # shape
     from spectrumlab.core.grid import Grid
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     # grid = Grid(x/step, f(x/step, 0, 1))
     # grid.show()
 
-    VoightPeakShape.from_grid(
+    VoigtPeakShape.from_grid(
         grid=Grid(x/step, f(x/step, 0, 1)),
         show=True,
     )

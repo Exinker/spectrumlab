@@ -7,7 +7,7 @@ from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.peak import RandomPeakExperiment, RandomPeakExperimentConfig
-from spectrumlab.peak.shape import VoightPeakShape, restore_shape_from_spectrum
+from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_spectrum
 
 from core import distance
 from config import *
@@ -30,7 +30,7 @@ def shape() -> VoigtApparatusShape:
 
 
 @pytest.fixture(scope='module')
-def experiment(detector: Detector, shape: VoightPeakShape) -> RandomPeakExperiment:
+def experiment(detector: Detector, shape: VoigtPeakShape) -> RandomPeakExperiment:
 
     experiment = RandomPeakExperiment(
         config=RandomPeakExperimentConfig(
@@ -62,7 +62,7 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> RandomPeakExperime
 
 
 @pytest.fixture(scope='module')
-def shape_hat(experiment: RandomPeakExperiment) -> VoightPeakShape:
+def shape_hat(experiment: RandomPeakExperiment) -> VoigtPeakShape:
 
     # spectrum
     spectrum = experiment.run(is_noised=IS_NOISED)
@@ -76,7 +76,7 @@ def shape_hat(experiment: RandomPeakExperiment) -> VoightPeakShape:
     return shape_hat
 
 
-def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
+def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-3  # 0.1 [%]
     step = detector.config.width
 
@@ -95,7 +95,7 @@ def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat:
     ) < tolerance
 
 
-def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
+def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-6
     step = detector.config.width
 

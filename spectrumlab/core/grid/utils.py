@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.core.grid import Grid, T
 from spectrumlab.core.approximate.scope import ScopeVariables
-from spectrumlab.peak.shape.voight_peak_shape import VoightPeakShape
+from spectrumlab.peak.shape.voigt_peak_shape import VoigtPeakShape
 from spectrumlab.utils import mse
 
 
@@ -102,16 +102,16 @@ class LinearInterpolationHandler(BaseHandler):
             self.show(scale=scale)
 
 
-class VoightPeakShapeHandler(BaseHandler):
+class VoigtPeakShapeHandler(BaseHandler):
 
     def __init__(self, grid: Grid, scale: MicroMeter | None = None, show: bool = False):
         super().__init__(grid=grid, scale=scale)
 
         # shape
-        shape = VoightPeakShape.from_grid(grid=grid)
+        shape = VoigtPeakShape.from_grid(grid=grid)
 
         # scope
-        def _loss(params: Sequence[float], grid: Grid, shape: VoightPeakShape) -> float:
+        def _loss(params: Sequence[float], grid: Grid, shape: VoigtPeakShape) -> float:
             scope_variables = ScopeVariables(grid, *params)
 
             y = grid.y
@@ -138,7 +138,7 @@ class VoightPeakShapeHandler(BaseHandler):
             self.show(bias=scope_variables['position'])
 
 
-Handler: TypeAlias = LinearInterpolationHandler | VoightPeakShapeHandler
+Handler: TypeAlias = LinearInterpolationHandler | VoigtPeakShapeHandler
 
 
 # --------        estimators        --------
@@ -146,7 +146,7 @@ def estimate_bias(grid: Grid, handler: Handler | None = None, scale: MicroMeter 
     '''Estimate a bias of the `grid`.
 
     Params:
-        handler: Handler | None = None - approximate the grid by smooth function (peak's voight shape)
+        handler: Handler | None = None - approximate the grid by smooth function (peak's voigt shape)
     
     '''
     if handler is None:

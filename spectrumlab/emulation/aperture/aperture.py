@@ -71,8 +71,8 @@ class RoundedRectangularApertureShape(BaseApertureShape):
         return self._f
 
 
-class VoightApertureShape(BaseApertureShape):
-    """Voight aperture's profile shape."""
+class VoigtApertureShape(BaseApertureShape):
+    """Voigt aperture's profile shape."""
 
     def __init__(self, width: Number, asymmetry: float, ratio: float):
         super().__init__()
@@ -100,7 +100,7 @@ class VoightApertureShape(BaseApertureShape):
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, detector: Detector, kind: Literal[405] = 405) -> 'VoightApertureShape':
+    def from_ini(cls, detector: Detector, kind: Literal[405] = 405) -> 'VoigtApertureShape':
         PARAMS = {
             Detector.BLPP369M1: {
                 405: (4.9173 / detector.config.width, 0, 1.0000),  # (!) bad approximation
@@ -117,7 +117,7 @@ class VoightApertureShape(BaseApertureShape):
 
 
 class MeasuredApertureShape(BaseApertureShape):
-    """Voight aperture's profile shape."""
+    """Voigt aperture's profile shape."""
 
     def __init__(self, grid: Grid):
         super().__init__()
@@ -154,7 +154,7 @@ class MeasuredApertureShape(BaseApertureShape):
 
 
 
-ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | VoightApertureShape
+ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | VoigtApertureShape
 
 
 # --------        aperture interface        --------
@@ -226,7 +226,7 @@ if __name__ == '__main__':
         detector=detector,
         # shape=RectangularApertureShape(),
         # shape=RoundedRectangularApertureShape(),
-        # shape=VoightApertureShape.from_ini(detector=detector),
+        # shape=VoigtApertureShape.from_ini(detector=detector),
         shape=MeasuredApertureShape.from_datasheet(detector=detector),
     )
     aperture.show()

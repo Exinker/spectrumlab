@@ -8,7 +8,7 @@ from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
-from spectrumlab.peak.shape import VoightPeakShape
+from spectrumlab.peak.shape import VoigtPeakShape
 
 
 @dataclass
@@ -45,7 +45,7 @@ class Effect:
 
 
 @dataclass
-class EffectedVoightPeakShape(VoightPeakShape):
+class EffectedVoigtPeakShape(VoigtPeakShape):
     width: Number
     asymmetry: float
     ratio: float
@@ -89,7 +89,7 @@ class EffectedVoightPeakShape(VoightPeakShape):
 
     # --------        fabric        --------
     @classmethod
-    def from_emulation(cls, emulation: Emulation, position: Number, concentrations: tuple[float]) -> 'EffectedVoightPeakShape':
+    def from_emulation(cls, emulation: Emulation, position: Number, concentrations: tuple[float]) -> 'EffectedVoigtPeakShape':
 
         frames = []
         for i, concentration in enumerate(tqdm(concentrations)):
@@ -122,14 +122,14 @@ class EffectedVoightPeakShape(VoightPeakShape):
 #         ratio=ratio,
 #     )
 
-#     shape = EffectedVoightPeakShape(
+#     shape = EffectedVoigtPeakShape(
 #         width=width,
 #         asymmetry=asymmetry,
 #         ratio=ratio,
 #         effect=effect,
 #         dy=dy,
 #     )
-#     shape_hat = EffectedVoightPeakShape(
+#     shape_hat = EffectedVoigtPeakShape(
 #         width=width,
 #         asymmetry=asymmetry,
 #         ratio=ratio,

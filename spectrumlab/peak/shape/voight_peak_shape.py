@@ -20,8 +20,8 @@ from spectrumlab.peak.shape._grid import _Grid
 from spectrumlab.utils import mse
 
 
-# --------        voight peak shape        --------
-class VoightPeakShapeVariables(BaseVariables):
+# --------        voigt peak shape        --------
+class VoigtPeakShapeVariables(BaseVariables):
 
     def __init__(self, width: Number | None = None, asymmetry: float | None = None, ratio: float | None = None):
         super().__init__([
@@ -33,11 +33,11 @@ class VoightPeakShapeVariables(BaseVariables):
         self.name = 'shape'
 
 
-class AssociatedVoightPeakShapeVariables(BaseVariables):
+class AssociatedVoigtPeakShapeVariables(BaseVariables):
 
     def __init__(self, grid: Grid, *args, **kwargs):
         super().__init__([
-            VoightPeakShapeVariables(),
+            VoigtPeakShapeVariables(),
             ScopeVariables(grid, *args, **kwargs),
         ])
 
@@ -76,19 +76,19 @@ class AssociatedVoightPeakShapeVariables(BaseVariables):
 
     # --------        handlers        --------
     @classmethod
-    def parse_params(cls, grid: Grid, params: Sequence[float]) -> tuple[VoightPeakShapeVariables, ScopeVariables]:
+    def parse_params(cls, grid: Grid, params: Sequence[float]) -> tuple[VoigtPeakShapeVariables, ScopeVariables]:
         assert len(params) == 6
 
-        shape_variables = VoightPeakShapeVariables(*params[:3])
+        shape_variables = VoigtPeakShapeVariables(*params[:3])
         scope_variables = ScopeVariables(grid, *params[3:])
 
         return shape_variables, scope_variables
 
 
-class VoightPeakShape(BasePeakShape):
+class VoigtPeakShape(BasePeakShape):
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = 1e-2) -> None:
-        """Voight peak's shape. A convolution of apparatus shape and aperture shape (rectangular) of a detector.
+        """Voigt peak's shape. A convolution of apparatus shape and aperture shape (rectangular) of a detector.
 
         Params:
             width: Number - apparatus shape's width
@@ -127,11 +127,11 @@ class VoightPeakShape(BasePeakShape):
 
     # --------        fabric        --------
     @classmethod
-    def from_grid(cls, grid: Grid, show: bool = False, scale: MicroMeter = 1) -> 'VoightPeakShape':
+    def from_grid(cls, grid: Grid, show: bool = False, scale: MicroMeter = 1) -> 'VoigtPeakShape':
 
         def _loss(grid: Grid, params: Sequence[float]) -> float:
-            shape_variables, scope_variables = AssociatedVoightPeakShapeVariables.parse_params(grid=grid, params=params)
-            shape = VoightPeakShape(**shape_variables)
+            shape_variables, scope_variables = AssociatedVoigtPeakShapeVariables.parse_params(grid=grid, params=params)
+            shape = VoigtPeakShape(**shape_variables)
 
             return mse(
                 y=grid.y,
@@ -139,7 +139,7 @@ class VoightPeakShape(BasePeakShape):
             )
 
         # approx
-        variables = AssociatedVoightPeakShapeVariables(grid=grid)
+        variables = AssociatedVoigtPeakShapeVariables(grid=grid)
 
         res = optimize.minimize(
             partial(_loss, grid),
@@ -149,7 +149,7 @@ class VoightPeakShape(BasePeakShape):
         )
         # assert res['success'], 'Optimization is not succeeded!'
 
-        shape_variables, scope_variables = AssociatedVoightPeakShapeVariables.parse_params(grid=grid, params=res['x'])
+        shape_variables, scope_variables = AssociatedVoigtPeakShapeVariables.parse_params(grid=grid, params=res['x'])
 
         # shape
         shape = cls(**shape_variables)
@@ -222,8 +222,8 @@ class VoightPeakShape(BasePeakShape):
         return f'{cls.__name__}({self.get_content()})'
 
 
-class SelfReversedVoightPeakShape(BasePeakShape):
-    """Effected voight peak's shape type."""
+class SelfReversedVoigtPeakShape(BasePeakShape):
+    """Effected voigt peak's shape type."""
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01, de: float = 0.25, re: float = 4) -> None:
         super().__init__()
@@ -280,10 +280,10 @@ class SelfReversedVoightPeakShape(BasePeakShape):
 
 
 # --------        handlers        --------
-def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple[ScopeVariables, float]:
-    """Approximate grid by VoightPeakShape."""
+def approx_grid(grid: Grid, shape: VoigtPeakShape, show: bool = False) -> tuple[ScopeVariables, float]:
+    """Approximate grid by VoigtPeakShape."""
 
-    def _loss(params: Sequence[float], grid: Grid, shape: VoightPeakShape) -> float:
+    def _loss(params: Sequence[float], grid: Grid, shape: VoigtPeakShape) -> float:
         scope_variables = ScopeVariables(grid, *params)
 
         y = grid.y
@@ -350,11 +350,11 @@ def approx_grid(grid: Grid, shape: VoightPeakShape, show: bool = False) -> tuple
     return scope_variables, error
 
 
-def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape':
-    """Restore voight peaks's shape from standardized grid."""
+def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoigtPeakShape':
+    """Restore voigt peaks's shape from standardized grid."""
 
     def _loss(grid: Grid, params: Sequence[float]) -> float:
-        shape = VoightPeakShape(*params)
+        shape = VoigtPeakShape(*params)
 
         return mse(
             y=grid.y,
@@ -362,7 +362,7 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape'
         )
 
     # variables
-    variables = VoightPeakShapeVariables()
+    variables = VoigtPeakShapeVariables()
 
     res = optimize.minimize(
         partial(_loss, grid),
@@ -373,7 +373,7 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape'
     # assert res['success'], 'Optimization is not succeeded!'
 
     # shape
-    shape = VoightPeakShape(*res['x'])
+    shape = VoigtPeakShape(*res['x'])
 
     # show
     if show:
@@ -420,7 +420,7 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoightPeakShape'
     return shape
 
 
-def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose: bool = False, show: bool = False) -> VoightPeakShape:
+def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose: bool = False, show: bool = False) -> VoigtPeakShape:
 
     # draft blinks
     blinks = draft_blinks(
@@ -454,7 +454,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
 
         scope_variables, error[i] = approx_grid(
             grid=grid,
-            shape=VoightPeakShape.from_grid(
+            shape=VoigtPeakShape.from_grid(
                 grid=grid,
             ),
         )

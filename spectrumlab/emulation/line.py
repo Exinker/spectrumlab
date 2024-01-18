@@ -67,7 +67,7 @@ class VoigtLineShape:
         return hwhm
     
     def to_pseudo(self, show: bool = False) -> 'PVoigtLineShape':
-        """Approx voight shape by pvoigt shape."""
+        """Approx voigt shape by pvoigt shape."""
         
         params = voigt2pvoigt(self.x, x0=0, sigma=self.sigma, gamma=self.gamma)
         shape = PVoigtLineShape(*params)
