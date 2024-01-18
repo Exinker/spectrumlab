@@ -68,18 +68,19 @@ class Grid:
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
 
-    def centralize(self, bias: T) -> 'Grid':
-        """Centralize grid by `bias`."""
+    def xscale(self, scale: T, bias: T) -> 'Grid':
+        """Scale `x` values of the `grid`."""
 
         return Grid(
-            x=self.x - bias,
+            x=scale*self.x - bias,
             y=self.y,
         )
 
-    def normalize(self, coeff: float | None = None) -> 'Grid':
-        """Normalize grid by `coeff`."""
-        if coeff is None:
-            coeff = integrate.quad(
+    def yscale(self, scale: float | None = None) -> 'Grid':
+        """Scale `y` values of the `grid`."""
+
+        if scale is None:
+            scale = 1/integrate.quad(
                 self.interpolation,
                 a=min(self.x),
                 b=max(self.x),
@@ -87,7 +88,7 @@ class Grid:
 
         return Grid(
             x=self.x,
-            y=self.y / coeff,
+            y=scale*self.y,
         )
 
     def show(self) -> None:
