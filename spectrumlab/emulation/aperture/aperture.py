@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, MicroMeter, Number
+from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.curve import rectangular, pvoigt
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR
@@ -124,16 +125,6 @@ class VoightApertureShape(BaseApertureShape):
         }
 
         return cls(*PARAMS[detector][kind])
-
-
-@dataclass(frozen=True, slots=True)
-class Grid:
-    x: Array[Number]
-    y: Array[float]
-
-    @property
-    def n_points(self) -> int:
-        return len(self.x)
 
 
 class MeasuredApertureShape(BaseApertureShape):
