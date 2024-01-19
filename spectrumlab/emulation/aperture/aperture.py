@@ -176,58 +176,55 @@ class Aperture:
 
     # --------        handlers        --------
     def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, xscale: Number | MicroMeter = Number) -> None:
-        n_steps = rx // self.step + 1
 
         # 
+        x = np.linspace(-rx/2, +rx/2, int(rx/5/dx) + 1)
+        grid = Grid(x=x, y=self(x, n=0))
+        if xscale == Number:
+            grid = grid.xscale(scale=1/self.step)
+
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        xvalues = np.linspace(-rx/5, +rx/5, int(rx/5/dx) + 1)
-        x = xvalues if xscale == MicroMeter else xvalues/self.step
-        y = self(xvalues, n=0)
         plt.plot(
-            x, y,
+            grid.x, grid.y,
             color=COLOR['blue'],
             label='$S(x - x_{{0}})$',
         )
-
         plt.xlabel(r'$x$ $[\mu]$' if xscale == MicroMeter else r'$k$')
         plt.ylabel('$S(x - x_{k})$')
-        plt.grid(
-            color='grey', linestyle=':',
-        )
+        plt.grid(color='grey', linestyle=':')
         plt.legend(loc='upper right')
 
         plt.show()
 
         # integral
+        n_moves = int(rx // self.step) + 1
+        x = np.linspace(0, rx, int(rx/dx) + 1)
+
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        xvalues = np.linspace(0, rx, int(rx/dx) + 1)
-        integral = np.zeros(xvalues.shape)
-        for n in range(n_steps):
-            x = xvalues if xscale == MicroMeter else xvalues/self.step
-            y = self(xvalues, n=n)
+        integral = np.zeros(x.shape)
+        for n in range(n_moves):
+            grid = Grid(x=x, y=self(x, n=n))
+            if xscale == Number:
+                grid = grid.xscale(scale=1/self.step)
+            
             plt.plot(
-                x, y,
+                grid.x, grid.y,
                 color=COLOR['blue'],
                 label='$S(x - x_{k})$' if n==0 else None,
             )
+            integral += grid.y
 
-            integral += y
-
-        x = xvalues if xscale == MicroMeter else xvalues/self.step
-        y = integral
         plt.plot(
-            x, y,
+            grid.x, integral,
             color='k', linestyle=':',
             label='Integral',
         )
 
         plt.xlabel(r'$x$ $[\mu]$' if xscale == MicroMeter else r'$k$')
         plt.ylabel('$S(x - x_{k})$')
-        plt.grid(
-            color='grey', linestyle=':',
-        )
+        plt.grid(color='grey', linestyle=':')
         plt.legend(loc='upper right')
 
         plt.show()
@@ -240,7 +237,7 @@ class Aperture:
 if __name__ == '__main__':
 
     # detector
-    detector = Detector.BLPP369M1
+    detector = Detector.BLPP2000
 
     # aperture
     aperture = Aperture(
@@ -250,4 +247,4 @@ if __name__ == '__main__':
         # shape=VoigtApertureShape.from_ini(detector=detector),
         shape=MeasuredApertureShape.from_datasheet(detector=detector),
     )
-    aperture.show()
+    aperture.show(xscale=Number)

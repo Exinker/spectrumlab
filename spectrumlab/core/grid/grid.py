@@ -69,13 +69,13 @@ class Grid:
         return np.linspace(min(self.x), max(self.x), n_points)
 
     def xscale(self, scale: T | None = None, bias: T | None = None) -> 'Grid':
-        """Scale `x` values of the `grid`."""
+        """Scale `x`, `y` values of the `grid`."""
         if scale is None: scale = 1
         if bias is None: bias = 0
 
         return Grid(
-            x=scale*self.x - bias,
-            y=self.y,
+            x=self.x*scale - bias,
+            y=self.y/scale,
         )
 
     def yscale(self, scale: float | None = None) -> 'Grid':
@@ -84,7 +84,7 @@ class Grid:
 
         return Grid(
             x=self.x,
-            y=scale*self.y,
+            y=self.y*scale,
         )
 
     def show(self) -> None:
