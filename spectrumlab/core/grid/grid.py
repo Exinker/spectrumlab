@@ -1,14 +1,14 @@
 from collections.abc import Iterator
-from typing import Callable, NewType
+from typing import Callable, TypeVar
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate, interpolate
 
-from spectrumlab.alias import Array
+from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter, PicoMeter
 
 
-T = NewType('T', float)
+T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
 class GridIterator:
