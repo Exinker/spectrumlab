@@ -178,7 +178,28 @@ class Aperture:
     def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, xscale: Number | MicroMeter = Number) -> None:
         n_steps = rx // self.step + 1
 
-        #
+        # 
+        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
+
+        xvalues = np.linspace(-rx/5, +rx/5, int(rx/5/dx) + 1)
+        x = xvalues if xscale == MicroMeter else xvalues/self.step
+        y = self(xvalues, n=0)
+        plt.plot(
+            x, y,
+            color=COLOR['blue'],
+            label='$S(x - x_{{0}})$',
+        )
+
+        plt.xlabel(r'$x$ $[\mu]$' if xscale == MicroMeter else r'$k$')
+        plt.ylabel('$S(x - x_{k})$')
+        plt.grid(
+            color='grey', linestyle=':',
+        )
+        plt.legend(loc='upper right')
+
+        plt.show()
+
+        # integral
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
         xvalues = np.linspace(0, rx, int(rx/dx) + 1)
@@ -219,7 +240,7 @@ class Aperture:
 if __name__ == '__main__':
 
     # detector
-    detector = Detector.BLPP4000
+    detector = Detector.BLPP369M1
 
     # aperture
     aperture = Aperture(
