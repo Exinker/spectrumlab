@@ -35,11 +35,12 @@ class GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[T], y: Array[float]):
+    def __init__(self, x: Array[T], y: Array[float], step: T | None = None):
         assert len(x) == len(y)
 
         self._x = x
         self._y = y
+        self._step = step or 1
 
     @property
     def x(self) -> Array[T]:
@@ -48,6 +49,10 @@ class Grid:
     @property
     def y(self) -> Array[float]:
         return self._y
+
+    @property
+    def step(self) -> T:
+        return self._step
 
     @property
     def n_points(self) -> int:
@@ -69,13 +74,14 @@ class Grid:
         return np.linspace(min(self.x), max(self.x), n_points)
 
     def xscale(self, scale: T | None = None, bias: T | None = None) -> 'Grid':
-        """Scale `x` values of the `grid`."""
+        """Scale `x`, `y` values of the `grid`."""
         if scale is None: scale = 1
         if bias is None: bias = 0
 
         return Grid(
-            x=scale*self.x - bias,
-            y=self.y,
+            x=self.x*scale - bias,
+            y=self.y/scale,
+            step=self.step/scale,
         )
 
     def yscale(self, scale: float | None = None) -> 'Grid':
@@ -84,7 +90,8 @@ class Grid:
 
         return Grid(
             x=self.x,
-            y=scale*self.y,
+            y=self.y*scale,
+            step=self.step,
         )
 
     def show(self) -> None:
@@ -97,7 +104,7 @@ class Grid:
             alpha=1,
         )
 
-        plt.xlabel(r'$number$')
+        plt.xlabel(r'$number$' if self.step == 1 else r'$x$ [$\mu m$]')
         plt.ylabel(r'$f$')
         plt.grid(color='grey', linestyle=':')
 
