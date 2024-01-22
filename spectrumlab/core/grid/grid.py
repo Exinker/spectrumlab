@@ -74,7 +74,7 @@ class Grid:
         return np.linspace(min(self.x), max(self.x), n_points)
 
     def xscale(self, scale: T | None = None, bias: T | None = None) -> 'Grid':
-        """Scale `x`, `y` values of the `grid`."""
+        """Scale `x` values of the `grid`."""
         if scale is None: scale = 1
         if bias is None: bias = 0
 

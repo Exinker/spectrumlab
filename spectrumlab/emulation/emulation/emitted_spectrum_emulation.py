@@ -235,7 +235,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number | Sequence[Number], concentration: float, environment: Array[Percent] | None = None, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
+    def setup(self, position: Number | Array[Number], concentration: float, environment: Array[Percent] | None = None, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
         """Setup emulation of emitted spectrum."""
         self.position = position
         self.concentration = concentration
@@ -245,10 +245,10 @@ class EmittedSpectrumEmulation(EmulationInterface):
             self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
 
         if isinstance(position, np.ndarray):
-            self._intensity = np.array([
+            self._intensity = np.sum([
                 self._get_intensity(number=self.number, position=x, concentration=concentration, show=show, ylim=ylim)
                 for x in position
-            ])
+            ], axis=0)
 
         # add spectral environment
         if isinstance(environment, np.ndarray):
@@ -377,7 +377,7 @@ if __name__ == '__main__':
         ),
     )
     emulation = emulation.setup(
-        position=10,
+        position=np.array([10, 12]),
         concentration=1,
         show=True,
     )
