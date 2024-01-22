@@ -8,36 +8,37 @@ from spectrumlab.spectrum import Spectrum
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 
-def calculate_ratio(step: MicroMeter, move: MicroMeter, tolerance: float = 1e-9) -> int:
-    ratio = step/move
+def calculate_power(step: MicroMeter, move: MicroMeter, tolerance: float = 1e-9) -> int:
+    power = step/move
 
     for n in range(1, 10):
-        if n*ratio % 1 < tolerance:
-            return int(n*ratio)
+        if n*power % 1 < tolerance:
+            return int(n*power)
         
     raise ValueError
 
 
 class HighResolutionSpectrum(BaseSpectrum):
 
-    def __init__(self, intensity: Array[float], wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+    def __init__(self, intensity: Array[float], power: int, wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
+
+        self.power = power  # points per step
 
     # 
     @classmethod
     def from_spectrum(cls, spectrum: Spectrum, move: MicroMeter, detector: Detector, show: bool = False, tolerance: float = 1e-9) -> 'HighResolutionSpectrum':
 
-        def inner(spectrum: Spectrum, move: MicroMeter, step: MicroMeter) -> Grid:
+        def inner(spectrum: Spectrum, move: MicroMeter, step: MicroMeter, power: int) -> Grid:
             n_times, n_numbers = spectrum.shape
-            ratio = calculate_ratio(step=step, move=move)
 
             # x_grid
-            x_grid: Array[MicroMeter] = np.linspace(0, n_numbers, n_numbers*ratio + 1) * step
+            x_grid: Array[MicroMeter] = np.linspace(0, n_numbers, n_numbers*power + 1) * step
 
             # y_grid
             number = np.arange(n_numbers)
 
-            y_grid = [[] for i in range(n_numbers*ratio + 1)]
+            y_grid = [[] for i in range(n_numbers*power + 1)]
             for i, x in enumerate(x_grid):
                 for t in range(n_times):
                     mask = np.abs(number*step - x - t*move) < tolerance
@@ -66,10 +67,12 @@ class HighResolutionSpectrum(BaseSpectrum):
 
         # 
         step = detector.config.width
+        power = calculate_power(step, move)
         grid = inner(
             spectrum,
             move=move,
             step=step,
+            power=power,
         )
 
         # show
@@ -103,37 +106,14 @@ class HighResolutionSpectrum(BaseSpectrum):
         #
         return cls(
             intensity=grid.y,
+            power=power,
             number=grid.x / grid.step,
             detector=detector,
         )
 
     # --------        handlers        --------
-    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None, grid: bool = False) -> None:
-        is_filling = ax is not None
-
-        if not is_filling:
-            fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
-
-        if self.n_times > 1:
-            raise NotImplementedError
-
-        else:
-            x, y = self.wavelength, self.intensity
-            ax.step(
-                x, y,
-                where='mid',
-                color='black',
-            )
-
-            ax.set_xlabel('$\lambda, nm$')
-            ax.set_ylabel('$I, \%$')
-
-            if grid:
-                ax.grid(color='grey', linestyle=':')
-
-        if not is_filling:
-            plt.show()
-
+    def show(self) -> None:
+        raise NotImplementedError
 
 
 if __name__ == '__main__':
@@ -150,8 +130,8 @@ if __name__ == '__main__':
 
 
     # emulation
-    move = 1
-    n_times, n_numbers = 30, 50
+    move: MicroMeter = .5
+    n_times, n_numbers = 28, 50
 
     detector = Detector.BLPP2000
     aperture = Aperture(
