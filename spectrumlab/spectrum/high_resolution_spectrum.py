@@ -8,112 +8,85 @@ from spectrumlab.spectrum import Spectrum
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 
-def calculate_power(step: MicroMeter, move: MicroMeter, tolerance: float = 1e-9) -> int:
-    power = step/move
+def calculate_factor(ratio: float) -> int:
+    """Resolution enhancement factor."""
 
     for n in range(1, 10):
-        if n*power % 1 < tolerance:
-            return int(n*power)
+        if n*ratio % 1 < 1e-9:
+            return int(n*ratio)
         
     raise ValueError
 
 
 class HighResolutionSpectrum(BaseSpectrum):
 
-    def __init__(self, intensity: Array[float], power: int, wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
-        super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
+    def __init__(self, shots: tuple[Spectrum], number: Array[Number], move: MicroMeter, detector: Detector | None = None, **kwargs):
+        n_numbers = len(number)
+        n_moves = len(shots)
 
-        self.power = power  # points per step
+        for spectrum in shots:
+            assert spectrum.n_times == 1
+            assert spectrum.n_numbers == n_numbers
 
-    # 
-    @classmethod
-    def from_spectrum(cls, spectrum: Spectrum, move: MicroMeter, detector: Detector, show: bool = False, tolerance: float = 1e-9) -> 'HighResolutionSpectrum':
-
-        def inner(spectrum: Spectrum, move: MicroMeter, step: MicroMeter, power: int) -> Grid:
-            n_times, n_numbers = spectrum.shape
-
-            # x_grid
-            x_grid: Array[MicroMeter] = np.linspace(0, n_numbers, n_numbers*power + 1) * step
-
-            # y_grid
-            number = np.arange(n_numbers)
-
-            y_grid = [[] for i in range(n_numbers*power + 1)]
-            for i, x in enumerate(x_grid):
-                for t in range(n_times):
-                    mask = np.abs(number*step - x - t*move) < tolerance
-
-                    if np.any(mask):
-                        y_grid[i].extend(spectrum.intensity[t, mask])
-
-            y_grid = np.array([np.nanmean(value) for value in y_grid])
-
-            # mask nan
-            mask = np.isfinite(y_grid)
-            x_grid = x_grid[mask]
-            y_grid = y_grid[mask]
-
-            # sort
-            index = np.argsort(x_grid)
-            x_grid = x_grid[index]
-            y_grid = y_grid[index]
-
-            #
-            return Grid(
-                x=x_grid,
-                y=y_grid,
-                step=step,
-            )
-
-        # 
-        step = detector.config.width
-        power = calculate_power(step, move)
-        grid = inner(
-            spectrum,
-            move=move,
-            step=step,
-            power=power,
+        # factor
+        factor = calculate_factor(
+            ratio=detector.pitch/move,
         )
 
-        # show
-        if show:
-            n_times, n_numbers = spectrum.shape
-            number = np.arange(n_numbers)
+        # grid
+        x_grid: Array[MicroMeter] = np.linspace(0, n_numbers, n_numbers*factor + 1) * detector.pitch
 
-            for t in range(n_times):
-                x = number*grid.step - t*move
-                y = spectrum.intensity[t, :]
-                plt.plot(
-                    x, y,
-                    color='red', linestyle='none', marker='s', markersize=3,
-                    alpha=1,
-                )
+        y_grid = [[] for _ in x_grid]
+        for i, x in enumerate(x_grid):
+            for t, spectrum in enumerate(shots):
+                mask = np.abs(number*detector.pitch - x - t*move) < 1e-9
 
-            x = grid.x
-            y = grid.y
+                if np.any(mask):
+                    y_grid[i].extend(spectrum.intensity[mask])
+        y_grid = np.array([np.nanmean(value) if value else np.nan for value in y_grid])
+
+        mask = np.isfinite(y_grid)
+        x_grid, y_grid = x_grid[mask], y_grid[mask]
+
+        grid = Grid(
+            x=x_grid,
+            y=y_grid,
+            step=detector.pitch/factor,
+        )
+
+        #
+        super().__init__(intensity=grid.y, number=grid.x/detector.pitch, detector=detector, **kwargs)
+
+        self.move = move
+        self.factor = factor  # points per pitch
+        self.shots = shots
+        self.grid = grid
+
+    # --------        handlers        --------
+    def show(self):
+        detector = self.detector
+        grid = self.grid
+
+        for t, spectrum in enumerate(self.shots):
+            x = spectrum.number*detector.pitch - t*self.move
+            y = spectrum.intensity
             plt.plot(
                 x, y,
-                color='black', linestyle='-', linewidth=1, marker='s', markersize=1.5,
+                color='red', linestyle='none', marker='s', markersize=3,
                 alpha=1,
             )
 
-            plt.xlabel(r'$x$ [$\mu m$]')
-            plt.ylabel(r'$f(x)$')
-            plt.grid(True, linestyle=':')
-
-            plt.show()
-
-        #
-        return cls(
-            intensity=grid.y,
-            power=power,
-            number=grid.x / grid.step,
-            detector=detector,
+        plt.plot(
+            grid.x, grid.y,
+            color='black', linestyle='-', linewidth=1, marker='s', markersize=1.5,
+            alpha=1,
         )
 
-    # --------        handlers        --------
-    def show(self) -> None:
-        raise NotImplementedError
+        plt.xlabel(r'$x$ [$\mu m$]')
+        plt.ylabel(r'$f(x)$')
+        plt.grid(True, linestyle=':')
+
+        plt.show()
 
 
 if __name__ == '__main__':
@@ -168,7 +141,7 @@ if __name__ == '__main__':
     )
 
     # intensity
-    intensity = []
+    shots = []
     for t in range(n_times):
         spectrum = emulation.setup(
             position=n_numbers//2 + t*(move/detector.config.width),
@@ -176,15 +149,13 @@ if __name__ == '__main__':
         ).run(
             is_noised=True,
         )
-        intensity.append(spectrum.intensity)
-    intensity = np.array(intensity)
+        shots.append(spectrum)
 
     # spectrum
-    spectrum = HighResolutionSpectrum.from_spectrum(
-        spectrum=EmittedSpectrum(
-            intensity=intensity,
-        ),
+    spectrum = HighResolutionSpectrum(
+        shots=shots,
+        number=emulation.number,
         move=move,
-        detector=detector,
-        show=True,
+        detector=emulation.detector,
     )
+    spectrum.show()
