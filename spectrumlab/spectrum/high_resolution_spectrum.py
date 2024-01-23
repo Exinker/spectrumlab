@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from spectrumlab.alias import Array, Number, MicroMeter
 from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.spectrum import Spectrum
+from spectrumlab.spectrum import EmittedSpectrum
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 
@@ -20,7 +20,7 @@ def calculate_factor(ratio: float) -> int:
 
 class HighResolutionSpectrum(BaseSpectrum):
 
-    def __init__(self, shots: tuple[Spectrum], number: Array[Number], move: MicroMeter, detector: Detector | None = None, **kwargs):
+    def __init__(self, shots: tuple[EmittedSpectrum], number: Array[Number], move: MicroMeter, detector: Detector | None = None, **kwargs):
         n_numbers = len(number)
 
         for spectrum in shots:
@@ -61,6 +61,27 @@ class HighResolutionSpectrum(BaseSpectrum):
         self.shots = shots
         self.grid = grid
 
+    # --------        factory        --------
+    @classmethod
+    def from_spectrum(cls, spectrum: EmittedSpectrum, move: MicroMeter):
+        assert spectrum.n_times > 1
+
+        shots = []
+        for t in range(spectrum.n_times):
+            spe = EmittedSpectrum(
+                intensity=spectrum.intensity[t,:],
+                detector=spectrum.detector,
+            )
+            shots.append(spe)
+        shots = tuple(shots)
+
+        return cls(
+            shots=shots,
+            number=spectrum.number,
+            move=move,
+            detector=spectrum.detector,
+        )
+
     # --------        handlers        --------
     def show(self):
         detector = self.detector
@@ -94,8 +115,6 @@ if __name__ == '__main__':
     from spectrumlab.emulation.detector import Detector
     from spectrumlab.emulation.device import Device
     from spectrumlab.emulation.emulation import fetch_emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
-    from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum
-
 
     import warnings
     warnings.filterwarnings('ignore')
@@ -139,8 +158,8 @@ if __name__ == '__main__':
         )
     )
 
-    # intensity
-    shots = []
+    # shots
+    intensity = []
     for t in range(n_times):
         spectrum = emulation.setup(
             position=n_numbers//2 + t*(move/detector.pitch),
@@ -148,13 +167,15 @@ if __name__ == '__main__':
         ).run(
             is_noised=True,
         )
-        shots.append(spectrum)
+        intensity.append(spectrum.intensity)
+    intensity = np.array(intensity)
 
     # spectrum
-    spectrum = HighResolutionSpectrum(
-        shots=shots,
-        number=emulation.number,
+    spectrum = HighResolutionSpectrum.from_spectrum(
+        spectrum=EmittedSpectrum(
+            intensity=intensity,
+            detector=emulation.detector,
+        ),
         move=move,
-        detector=emulation.detector,
     )
     spectrum.show()
