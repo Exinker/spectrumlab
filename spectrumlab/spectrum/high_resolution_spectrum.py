@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter
+from spectrumlab.alias import Array, Number, MicroMeter
 from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum import Spectrum
@@ -22,7 +22,6 @@ class HighResolutionSpectrum(BaseSpectrum):
 
     def __init__(self, shots: tuple[Spectrum], number: Array[Number], move: MicroMeter, detector: Detector | None = None, **kwargs):
         n_numbers = len(number)
-        n_moves = len(shots)
 
         for spectrum in shots:
             assert spectrum.n_times == 1
@@ -144,7 +143,7 @@ if __name__ == '__main__':
     shots = []
     for t in range(n_times):
         spectrum = emulation.setup(
-            position=n_numbers//2 + t*(move/detector.config.width),
+            position=n_numbers//2 + t*(move/detector.pitch),
             concentration=1,
         ).run(
             is_noised=True,
