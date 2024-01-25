@@ -11,9 +11,11 @@ from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter, PicoMeter
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
-class GridIterator:
+class _GridIterator:
 
     def __init__(self, x: Array[T], y: Array[float]):
+        raise DeprecationWarning('Iteration on the `grid` by points will be removed i nthe future!')
+
         self.x = x
         self.y = y
 
@@ -119,7 +121,7 @@ class Grid:
 
     # --------        private        --------
     def __iter__(self) -> Iterator:
-        return GridIterator(
+        return _GridIterator(
             x=self.x,
             y=self.y,
         )
