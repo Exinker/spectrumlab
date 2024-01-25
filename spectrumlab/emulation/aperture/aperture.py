@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, MicroMeter, Number
-from spectrumlab.core.grid import Grid
+from spectrumlab.core.grid import Grid, T
 from spectrumlab.emulation.curve import rectangular, pvoigt
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR
@@ -147,11 +147,11 @@ class MeasuredApertureShape(BaseApertureShape):
 
         return cls(
             grid=Grid(
-                x=datasheet[:,0]/detector.config.width,
+                x=datasheet[:,0] / detector.pitch,
                 y=datasheet[:,1],
+                units=Number,
             ),
         )
-
 
 
 ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | VoigtApertureShape
@@ -171,18 +171,26 @@ class Aperture:
     shape: ApertureShape
 
     @property
-    def step(self) -> MicroMeter:
-        return self.detector.config.width
+    def pitch(self) -> MicroMeter:
+        return self.detector.pitch
 
     # --------        handlers        --------
-    def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, xscale: Number | MicroMeter = Number) -> None:
+    def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, units: Number | MicroMeter = Number) -> None:
+        scale = {
+            Number: self.pitch,
+            MicroMeter: 1,
+        }.get(units)
+
 
         # 
-        x = np.linspace(-rx/2, +rx/2, int(rx/5/dx) + 1)
-        grid = Grid(x=x, y=self(x, n=0))
-        if xscale == Number:
-            grid = grid.xscale(scale=1/self.step)
+        x = np.linspace(-rx/2, +rx/2, int(rx/dx) + 1)
+        grid = Grid(
+            x=x/scale,
+            y=self(x, n=0)*scale,
+            units=units,
+        )
 
+        #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
         plt.plot(
@@ -190,7 +198,7 @@ class Aperture:
             color=COLOR['blue'],
             label='$S(x - x_{{0}})$',
         )
-        plt.xlabel(r'$x$ $[\mu]$' if xscale == MicroMeter else r'$k$')
+        plt.xlabel(grid.xlabel)
         plt.ylabel('$S(x - x_{k})$')
         plt.grid(color='grey', linestyle=':')
         plt.legend(loc='upper right')
@@ -198,17 +206,18 @@ class Aperture:
         plt.show()
 
         # integral
-        n_moves = int(rx // self.step) + 1
+        n_pixels = int(rx // self.pitch) + 1
         x = np.linspace(0, rx, int(rx/dx) + 1)
 
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
         integral = np.zeros(x.shape)
-        for n in range(n_moves):
-            grid = Grid(x=x, y=self(x, n=n))
-            if xscale == Number:
-                grid = grid.xscale(scale=1/self.step)
-            
+        for n in range(n_pixels):
+            grid = Grid(
+                x=x/scale,
+                y=self(x, n=n)*scale,
+                units=units,
+            )
             plt.plot(
                 grid.x, grid.y,
                 color=COLOR['blue'],
@@ -222,7 +231,7 @@ class Aperture:
             label='Integral',
         )
 
-        plt.xlabel(r'$x$ $[\mu]$' if xscale == MicroMeter else r'$k$')
+        plt.xlabel(grid.xlabel)
         plt.ylabel('$S(x - x_{k})$')
         plt.grid(color='grey', linestyle=':')
         plt.legend(loc='upper right')
@@ -231,7 +240,7 @@ class Aperture:
 
     # --------        private        --------
     def __call__(self, x: MicroMeter | Array[MicroMeter], n: Number = 0) -> Array[float]:
-        return self.shape(x/self.step, n=n)/self.step
+        return self.shape(x/self.pitch, n=n)/self.pitch
 
 
 if __name__ == '__main__':
@@ -247,4 +256,4 @@ if __name__ == '__main__':
         # shape=VoigtApertureShape.from_ini(detector=detector),
         shape=MeasuredApertureShape.from_datasheet(detector=detector),
     )
-    aperture.show(xscale=Number)
+    aperture.show(units=MicroMeter)
