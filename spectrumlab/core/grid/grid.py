@@ -63,10 +63,6 @@ class Grid:
         return self._units
 
     @property
-    def n_points(self) -> int:
-        return len(self.x)
-
-    @property
     def interpolation(self) -> Callable[[Array[T]], Array[float]]:
         """Interpolate `grid` by linear interpolation."""
 
@@ -140,6 +136,9 @@ class Grid:
         plt.show()
 
     # --------        private        --------
+    def __len__(self) -> int:
+        return len(self.x)
+        
     def __iter__(self) -> Iterator:
         return _GridIterator(
             x=self.x,
