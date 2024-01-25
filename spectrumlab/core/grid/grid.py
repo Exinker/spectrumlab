@@ -37,12 +37,12 @@ class _GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[T], y: Array[float], w: Array[NanoMeter] | None = None, pitch: MicroMeter | None = None):
+    def __init__(self, x: Array[T], y: Array[float], wavelength: Array[NanoMeter] | None = None, pitch: MicroMeter | None = None):
         assert len(x) == len(y)
 
         self._x = x
         self._y = y
-        self._w = w
+        self._wavelength = wavelength
         self._pitch = pitch or 1
 
     @property
@@ -54,8 +54,8 @@ class Grid:
         return self._y
 
     @property
-    def w(self) -> Array[NanoMeter] | None:
-        return self._w
+    def wavelength(self) -> Array[NanoMeter] | None:
+        return self._wavelength
 
     @property
     def pitch(self) -> MicroMeter:
@@ -89,7 +89,7 @@ class Grid:
         return Grid(
             x=self.x*scale - bias,
             y=self.y/scale,
-            w=self.w,
+            wavelength=self.wavelength,
             pitch=self.pitch/scale,
         )
 
@@ -100,7 +100,7 @@ class Grid:
         return Grid(
             x=self.x,
             y=self.y*scale,
-            w=self.w,
+            wavelength=self.wavelength,
             pitch=self.pitch,
         )
 
