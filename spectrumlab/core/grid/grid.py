@@ -37,7 +37,7 @@ class _GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[T], y: Array[float], w: Array[NanoMeter] | None = None, pitch: T | None = None):
+    def __init__(self, x: Array[T], y: Array[float], w: Array[NanoMeter] | None = None, pitch: MicroMeter | None = None):
         assert len(x) == len(y)
 
         self._x = x
@@ -59,7 +59,7 @@ class Grid:
 
     @property
     def pitch(self) -> MicroMeter:
-        """Detector's width."""
+        """Convertion factor from `x` to `number`."""
         return self._pitch
 
     @property
