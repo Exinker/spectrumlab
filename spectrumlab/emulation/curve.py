@@ -1,19 +1,24 @@
 from functools import partial
-from typing import Callable
+from typing import TypeVar
 
 import numpy as np
-from scipy import interpolate, optimize, signal
+from scipy import optimize, signal
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.utils import mse
 
+from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter, PicoMeter
 
-def gauss(x: Number | Array[Number], x0: Number, w: Number) -> Array[float]:
+
+T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
+
+
+def gauss(x: T | Array[T], x0: T, w: T) -> Array[float]:
     """Gauss (or normal) distribution with position `x0` and unit intensity.
 
     Params:
-        x0: Number - position
-        w: Number - width 
+        x0 - position
+        w - width 
     """
 
     F = np.exp( -(1/2)*((x - x0) / w)**2 ) / ( np.sqrt(2*np.pi) * w )
@@ -21,12 +26,12 @@ def gauss(x: Number | Array[Number], x0: Number, w: Number) -> Array[float]:
     return F
 
 
-def lanczos(x: Number | Array[Number], x0: Number, a: int = 2) -> Array[float]:
+def lanczos(x: T | Array[T], x0: T, a: int = 2) -> Array[float]:
     """Lanczos distribution with position `x0`.
     
     Params:
-        x0: Number - position
-        a: float - window width
+        x0 - position
+        a - window width
     """
 
     F = np.sinc(x - x0) * np.sinc((x - x0) / a)
@@ -35,12 +40,12 @@ def lanczos(x: Number | Array[Number], x0: Number, a: int = 2) -> Array[float]:
     return F
 
 
-def rectangular(x: Number | Array[Number], x0: Number, w: Number) -> Array[float]:
+def rectangular(x: T | Array[T], x0: T, w: T) -> Array[float]:
     """Rectangular distribution with position `x0` and unit intensity.
 
     Params:
-        x0: Number - position
-        w: Number - width (full width)
+        x0 - position
+        w - width (full width)
     """
 
     if isinstance(x, float):  # TODO: don't remove! It's for integrate.quad functions!
@@ -54,13 +59,13 @@ def rectangular(x: Number | Array[Number], x0: Number, w: Number) -> Array[float
     return F
 
 
-def voigt(x: Number | Array[Number], x0: Number, sigma: float, gamma: float) -> Array[float]:
+def voigt(x: T | Array[T], x0: T, sigma: float, gamma: float) -> Array[float]:
     """Voigt distribution with position `x0` and unit intensity.
 
     Params:
-        x0: Number - position;
-        sigma: float - width of Gaussian shape
-        gamma: float - width of Lorentzian shape
+        x0 - position
+        sigma - width of Gaussian shape
+        gamma - width of Lorentzian shape
     """
     rx = (x[-1] - x[0]) / 2
 
@@ -71,14 +76,14 @@ def voigt(x: Number | Array[Number], x0: Number, sigma: float, gamma: float) -> 
     return F
 
 
-def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float) -> Array[float]:
+def pvoigt(x: T | Array[T], x0: T, w: T, a: float, r: float) -> Array[float]:
     """Pseudo-Voigt distribution with position `x0` and unit intensity.
 
     Params:
-        x0: Number - position
-        w: Number - width (full width at half maximum)
-        a: float - assymetry
-        r: float - ratio (in range [0; 1])
+        x0 - position
+        w - width (full width at half maximum)
+        a - assymetry
+        r - ratio (in range [0; 1])
 
     A simple asymmetric line shape shape for fitting infrared absorption spectra.
     Aaron L. Stancik, Eric B. Brauns
@@ -94,10 +99,10 @@ def pvoigt(x: Number | Array[Number], x0: Number, w: Number, a: float, r: float)
 
 
 # --------        utils        --------
-def voigt2pvoigt(x: Array[float], x0: float, sigma: float, gamma: float) -> tuple[float, float, float]:
+def voigt2pvoigt(x: Array[T], x0: T, sigma: float, gamma: float) -> tuple[T, float, float]:
     """Approximate `voigt` shape by psevdo-voigt (`pvoigt`) shape."""
 
-    def loss(x: float, x0: float, y: Array[float], params) -> float:
+    def loss(x: T, x0: T, y: Array[float], params) -> float:
         y_hat = pvoigt(x, x0, *params)
 
         return mse(y, y_hat)
