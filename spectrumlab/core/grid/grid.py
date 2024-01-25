@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Callable, TypeVar
+from typing import Callable, Literal, TypeVar
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,7 +8,7 @@ from scipy import integrate, interpolate
 from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter, PicoMeter
 
 
-T = TypeVar('T', MicroMeter, PicoMeter)
+T = TypeVar('T', Number, MicroMeter, PicoMeter)
 
 
 class _GridIterator:
@@ -37,13 +37,14 @@ class _GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[T], y: Array[float], wavelength: Array[NanoMeter] | None = None, pitch: MicroMeter | None = None):
+    def __init__(self, x: Array[T], y: Array[float], wavelength: Array[NanoMeter] | None = None, units: T | None = None):
         assert len(x) == len(y)
 
+        #
         self._x = x
         self._y = y
         self._wavelength = wavelength
-        self._pitch = pitch or 1
+        self._units = units
 
     @property
     def x(self) -> Array[T]:
@@ -58,9 +59,8 @@ class Grid:
         return self._wavelength
 
     @property
-    def pitch(self) -> MicroMeter:
-        """Convertion factor from `x` to `number`."""
-        return self._pitch
+    def units(self) -> T | None:
+        return self._units
 
     @property
     def n_points(self) -> int:
@@ -81,16 +81,14 @@ class Grid:
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
 
-    def xscale(self, scale: T | None = None, bias: T | None = None) -> 'Grid':
-        """Scale `x` values of the `grid`."""
-        if scale is None: scale = 1
-        if bias is None: bias = 0
+    def shift(self, bias: T) -> 'Grid':
+        """Shift `x` values of the `grid`."""
 
         return Grid(
-            x=self.x*scale - bias,
-            y=self.y/scale,
+            x=self.x - bias,
+            y=self.y,
             wavelength=self.wavelength,
-            pitch=self.pitch/scale,
+            units=self.units,
         )
 
     def yscale(self, scale: float | None = None) -> 'Grid':
@@ -101,12 +99,33 @@ class Grid:
             x=self.x,
             y=self.y*scale,
             wavelength=self.wavelength,
-            pitch=self.pitch,
+            units=self.units,
         )
 
-    def show(self) -> None:
-        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
+    @property
+    def xlabel(self) -> str:
+        return '{label} {units}'.format(
+            label={
+                Number: r'$number$',
+                MicroMeter: r'$x$',
+                PicoMeter: r'$x$',
+            }.get(self.units, ''),
+            units=self.xunits,
+        )
 
+    @property
+    def xunits(self) -> str:
+        return {
+            Number: r'',
+            MicroMeter: r'[$\mu m$]',
+            PicoMeter: r'[$pm$]',
+        }.get(self.units, '')
+
+    def show(self) -> None:
+
+        #
+        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
+        
         x, y = self.x, self.y
         plt.plot(
             x, y,
@@ -114,7 +133,7 @@ class Grid:
             alpha=1,
         )
 
-        plt.xlabel(r'$number$' if self.pitch == 1 else r'$x$ [$\mu m$]')
+        plt.xlabel(self.xlabel)
         plt.ylabel(r'$f$')
         plt.grid(color='grey', linestyle=':')
 

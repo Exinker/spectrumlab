@@ -50,7 +50,8 @@ class HighResolutionSpectrum(BaseSpectrum):
         grid = Grid(
             x=x_grid,
             y=y_grid,
-            step=detector.pitch/factor,  # FIXME:
+            # pitch=detector.pitch/factor,
+            units=MicroMeter,
         )
 
         #

@@ -19,7 +19,7 @@ class Config:
     dx: Number = field(default=1e-2)
 
     @property
-    def x(self) -> Array[float]:
+    def number(self) -> Array[Number]:
         return np.linspace(-self.rx, +self.rx, self.n)
 
     @property
@@ -41,11 +41,11 @@ def config() -> Config:
 def test_restore_shape_from_grid(config: Config):
     tolerance = 1e-4
 
-    x = config.x
+    number = config.number
     shape = VoigtPeakShape(config.width, config.asymmetry, config.ratio)
 
     #
-    grid = Grid(x, shape(x, 0, 1))
+    grid = Grid(x=number, y=shape(number, 0, 1), units=Number)
     shape_hat = restore_shape_from_grid(
         grid=grid,
         show=False,
@@ -73,11 +73,11 @@ if __name__ == '__main__':
     )
 
     # shape
-    x = config.x
+    number = config.number
     shape = VoigtPeakShape(config.width, config.asymmetry, config.ratio)
 
     # shape_hat
     shape_hat = restore_shape_from_grid(
-        grid=Grid(x, shape(x, 0, 1)),
+        grid=Grid(x=number, y=shape(number, 0, 1), units=Number),
         show=True,
     )

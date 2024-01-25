@@ -1,13 +1,13 @@
 from abc import ABC
 from collections.abc import Sequence
 from functools import partial
-from typing import Callable, TypeAlias
+from typing import Callable, Literal, TypeAlias, NewType
 
 import numpy as np
 from scipy import interpolate, optimize
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array
+from spectrumlab.alias import Array, Number, MicroMeter
 from spectrumlab.core.grid import Grid, T
 from spectrumlab.core.approximate.scope import ScopeVariables
 from spectrumlab.peak.shape.voigt_peak_shape import VoigtPeakShape
@@ -61,7 +61,7 @@ class BaseHandler(ABC):
             alpha=1,
         )
 
-        plt.xlabel(r'$number$' if grid.step == 1 else r'$x$ [$\mu m$]')
+        plt.xlabel(grid.xlabel)
         plt.ylabel(r'$f(x)$')
         plt.grid(color='grey', linestyle=':')
 
@@ -130,22 +130,17 @@ Handler: TypeAlias = LinearInterpolationHandler | VoigtPeakShapeHandler
 
 
 # --------        estimators        --------
-def estimate_bias(grid: Grid, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
-    '''Estimate a bias of the `grid`.
-
-    Params:
-        handler: Handler | None = None - approximate the grid by smooth function (peak's voigt shape)
-    
-    '''
+def estimate_bias(grid: Grid, pitch: T, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
+    '''Estimate a bias of the `grid`.'''
     if handler is None:
         handler = LinearInterpolationHandler(grid=grid)
 
     # bias
-    def _loss(x: T, handler: Callable[[T], float], step: T) -> float:
-        return (handler(x - step/2) - handler(x + step/2))**2
+    def _loss(x: T, handler: Callable[[T], float], pitch: T) -> float:
+        return (handler(x - pitch/2) - handler(x + pitch/2))**2
 
     bias = optimize.minimize(
-        partial(_loss, handler=handler, step=grid.step),
+        partial(_loss, handler=handler, pitch=pitch),
         x0=grid.x[np.argmax(grid.y)],  # FIXME: change to maximum of `handler`!
     )['x'][0]
 
@@ -154,7 +149,7 @@ def estimate_bias(grid: Grid, handler: Handler | None = None, verbose: bool = Fa
         content = '\n'.join([
             'bias: {value:.4f} {units}'.format(
                 value=bias,
-                units='' if grid.step == 1 is None else r'[micro]',
+                units=grid.xunits,
             ),
         ])
         print(content)
@@ -188,7 +183,7 @@ def estimate_bias(grid: Grid, handler: Handler | None = None, verbose: bool = Fa
         content = '\n'.join([
             'bias: {value:.4f} {units}'.format(
                 value=bias,
-                units='' if grid.step == 1 is None else r'[micro]',
+                units=grid.xunits,
             ),
         ])
         plt.text(
@@ -198,7 +193,7 @@ def estimate_bias(grid: Grid, handler: Handler | None = None, verbose: bool = Fa
             ha='left', va='top',
         )
 
-        plt.xlabel(r'$number$' if grid.step == 1 else r'$x$ [$\mu m$]')
+        plt.xlabel(grid.xlabel)
         plt.ylabel(r'$f(x)$')
         plt.grid(color='grey', linestyle=':')
 
@@ -208,20 +203,11 @@ def estimate_bias(grid: Grid, handler: Handler | None = None, verbose: bool = Fa
     return bias
 
 
-def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: T = 0, lim: float = 1, verbose: bool = False, show: bool = False) -> T:
-    """Estimate a full width at half maximum (FWHM) of the `grid`.
-
-    Params:
-        handler: 
-        lim: float - the lowest lim of full width at half maximum 
-
-    A grid should be centered!
-    """
-    if handler is None:
-        handler = LinearInterpolationHandler(grid=grid)
-
+def estimate_fwhm(grid: Grid, pitch: T, handler: Handler | None = None, bias: T = 0, verbose: bool = False, show: bool = False) -> T:
+    """Estimate a full width at half maximum (FWHM) of the `grid`."""
+    handler = handler or LinearInterpolationHandler(grid=grid)
     x0 = bias
-    rx = grid.step*lim/2
+    rx = pitch/2
 
     # fwhm
     def _loss(x: T, handler: Callable[[T], float], y: float) -> float:
@@ -255,7 +241,7 @@ def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: T = 0, lim: 
         content = '\n'.join([
             'FWHM: {value:.4f} {units}'.format(
                 value=fwhm,
-                units='' if grid.step == 1 else r'[micro]',
+                units=grid.xunits,
             ),
         ])
         print(content)
@@ -309,7 +295,7 @@ def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: T = 0, lim: 
         content = '\n'.join([
             'FWHM: {value:.2f} {units}'.format(
                 value=fwhm,
-                units='' if grid.step == 1 else r'[$\mu m$]',
+                units=grid.xunits,
             ),
         ])
         plt.text(
@@ -319,7 +305,7 @@ def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: T = 0, lim: 
             ha='left', va='top',
         )
 
-        plt.xlabel(r'$number$' if grid.step == 1 else r'$x$ [$\mu m$]')
+        plt.xlabel(grid.xlabel)
         plt.ylabel(r'$f(x)$')
         plt.grid(color='grey', linestyle=':')
 

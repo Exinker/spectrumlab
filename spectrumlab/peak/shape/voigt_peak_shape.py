@@ -450,7 +450,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
     mask = np.full(n_blinks, False)
     for i, blink in tqdm(enumerate(blinks), total=n_blinks, desc='Initializing:', unit='blinks', disable=not verbose):
         lb, ub = blink.minima
-        grid = Grid(spectrum.number[lb:ub], spectrum.intensity[lb:ub])
+        grid = Grid(spectrum.number[lb:ub], spectrum.intensity[lb:ub], units=Number)
 
         scope_variables, error[i] = approx_grid(
             grid=grid,
@@ -481,7 +481,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
         for i, blink in enumerate(blinks):
             lb, ub = blink.minima
             scope_variables, error[i] = approx_grid(
-                grid=Grid(spectrum.number[lb:ub], spectrum.intensity[lb:ub]),
+                grid=Grid(spectrum.number[lb:ub], spectrum.intensity[lb:ub], units=Number),
                 shape=shape,
                 show=False,
             )
