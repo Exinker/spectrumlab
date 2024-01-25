@@ -14,6 +14,8 @@ T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 class GridIterator:
 
     def __init__(self, x: Array[T], y: Array[float]):
+        raise DeprecationWarning()
+
         self.x = x
         self.y = y
 
@@ -35,11 +37,12 @@ class GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[T], y: Array[float], step: T | None = None):
+    def __init__(self, x: Array[T], y: Array[float], w: Array[NanoMeter] | None = None, step: T | None = None):
         assert len(x) == len(y)
 
         self._x = x
         self._y = y
+        self._w = w
         self._step = step or 1
 
     @property
@@ -49,6 +52,10 @@ class Grid:
     @property
     def y(self) -> Array[float]:
         return self._y
+
+    @property
+    def w(self) -> Array[NanoMeter] | None:
+        return self._w
 
     @property
     def step(self) -> T:
@@ -81,6 +88,7 @@ class Grid:
         return Grid(
             x=self.x*scale - bias,
             y=self.y/scale,
+            w=self.w,
             step=self.step/scale,
         )
 
@@ -91,6 +99,7 @@ class Grid:
         return Grid(
             x=self.x,
             y=self.y*scale,
+            w=self.w,
             step=self.step,
         )
 
