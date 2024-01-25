@@ -14,7 +14,7 @@ T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 class _GridIterator:
 
     def __init__(self, x: Array[T], y: Array[float]):
-        raise DeprecationWarning('Iteration on the `grid` by points will be removed i nthe future!')
+        raise DeprecationWarning('Iteration on the `grid` by points will be removed in the future!')
 
         self.x = x
         self.y = y
@@ -37,13 +37,13 @@ class _GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[T], y: Array[float], w: Array[NanoMeter] | None = None, step: T | None = None):
+    def __init__(self, x: Array[T], y: Array[float], w: Array[NanoMeter] | None = None, pitch: T | None = None):
         assert len(x) == len(y)
 
         self._x = x
         self._y = y
         self._w = w
-        self._step = step or 1
+        self._pitch = pitch or 1
 
     @property
     def x(self) -> Array[T]:
@@ -58,8 +58,9 @@ class Grid:
         return self._w
 
     @property
-    def step(self) -> T:
-        return self._step
+    def pitch(self) -> MicroMeter:
+        """Detector's width."""
+        return self._pitch
 
     @property
     def n_points(self) -> int:
@@ -89,7 +90,7 @@ class Grid:
             x=self.x*scale - bias,
             y=self.y/scale,
             w=self.w,
-            step=self.step/scale,
+            pitch=self.pitch/scale,
         )
 
     def yscale(self, scale: float | None = None) -> 'Grid':
@@ -100,7 +101,7 @@ class Grid:
             x=self.x,
             y=self.y*scale,
             w=self.w,
-            step=self.step,
+            pitch=self.pitch,
         )
 
     def show(self) -> None:
@@ -113,7 +114,7 @@ class Grid:
             alpha=1,
         )
 
-        plt.xlabel(r'$number$' if self.step == 1 else r'$x$ [$\mu m$]')
+        plt.xlabel(r'$number$' if self.pitch == 1 else r'$x$ [$\mu m$]')
         plt.ylabel(r'$f$')
         plt.grid(color='grey', linestyle=':')
 
