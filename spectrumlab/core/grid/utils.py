@@ -219,7 +219,6 @@ def estimate_fwhm(grid: Grid, handler: Handler | None = None, bias: T = 0, lim: 
     """
     if handler is None:
         handler = LinearInterpolationHandler(grid=grid)
-        handler.show()
 
     x0 = bias
     rx = grid.step*lim/2
