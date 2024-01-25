@@ -14,8 +14,6 @@ T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 class GridIterator:
 
     def __init__(self, x: Array[T], y: Array[float]):
-        raise DeprecationWarning()
-
         self.x = x
         self.y = y
 
