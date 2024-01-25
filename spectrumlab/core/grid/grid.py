@@ -63,8 +63,8 @@ class Grid:
         return self._units
 
     @property
-    def interpolation(self) -> Callable[[Array[T]], Array[float]]:
-        """Interpolate `grid` by linear interpolation."""
+    def interpolate(self) -> Callable[[Array[T]], Array[float]]:
+        """Interpolate `grid` by linear interpolate."""
 
         return interpolate.interp1d(
             self.x, self.y,
@@ -89,7 +89,7 @@ class Grid:
 
     def yscale(self, scale: float | None = None) -> 'Grid':
         """Scale `y` values of the `grid`."""
-        if scale is None: scale = 1/integrate.quad(self.interpolation, a=min(self.x), b=max(self.x))[0]
+        if scale is None: scale = 1/integrate.quad(self.interpolate, a=min(self.x), b=max(self.x))[0]
 
         return Grid(
             x=self.x,
