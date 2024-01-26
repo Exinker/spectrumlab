@@ -29,23 +29,17 @@ class BaseHandler(ABC):
         return self._f
 
     # --------        handlers        --------
-    def show(self, bias: T | None = None):
-        grid = self._grid
-
-        if bias is None:
-            bias = 1
-
-        #
+    def show(self, bias: T = 0):
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        x, y = grid.x, grid.y
+        x, y = self.grid.x, self.grid.y
         plt.plot(
             x - bias, y,
             color='red', linestyle='none', marker='s', markersize=3,
             alpha=1,
         )
 
-        x = grid.space()
+        x = self.grid.space()
         y_hat = self.f(x)
         plt.plot(
             x - bias, y_hat,
@@ -53,15 +47,15 @@ class BaseHandler(ABC):
             alpha=1,
         )
 
-        x, y = grid.x, grid.y
-        y_hat = self.f(grid.x)
+        x, y = self.grid.x, self.grid.y
+        y_hat = self.f(x)
         plt.plot(
             x - bias, y - y_hat,
             color='black', linestyle='none', marker='s', markersize=0.5,
             alpha=1,
         )
 
-        plt.xlabel(grid.xlabel)
+        plt.xlabel(self.grid.xlabel)
         plt.ylabel(r'$f(x)$')
         plt.grid(color='grey', linestyle=':')
 
@@ -132,8 +126,7 @@ Handler: TypeAlias = LinearInterpolationHandler | VoigtPeakShapeHandler
 # --------        estimators        --------
 def estimate_bias(grid: Grid, pitch: T, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
     '''Estimate a bias of the `grid`.'''
-    if handler is None:
-        handler = LinearInterpolationHandler(grid=grid)
+    handler = handler or LinearInterpolationHandler(grid=grid)
 
     # bias
     def _loss(x: T, handler: Callable[[T], float], pitch: T) -> float:

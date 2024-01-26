@@ -15,12 +15,6 @@ T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 class _GridIterator:
 
     def __init__(self, x: Array[T], y: Array[float]):
-        warn(
-            message='Iteration on the `grid` by points will be removed in the future!',
-            type=DeprecationWarning,
-            stacklevel=1,
-        )
-
         self.x = x
         self.y = y
 
@@ -122,8 +116,6 @@ class Grid:
         }.get(self.units, '')
 
     def show(self) -> None:
-
-        #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
         
         x, y = self.x, self.y
@@ -144,6 +136,12 @@ class Grid:
         return len(self.x)
         
     def __iter__(self) -> Iterator:
+        warn(
+            message='Iteration on the `grid` by points will be removed in the future!',
+            category=DeprecationWarning,
+            stacklevel=1,
+        )
+
         return _GridIterator(
             x=self.x,
             y=self.y,
