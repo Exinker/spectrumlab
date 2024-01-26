@@ -80,13 +80,13 @@ class Grid:
             units=self.units,
         )
 
-    def rescale(self, value: float) -> 'Grid':
+    def rescale(self, value: float, units: T) -> 'Grid':
         """Rescale `grid` by the `value`. It is used to change `units`!"""
 
         return Grid(
             x=self.x/value,
             y=self.y*value,
-            units=self.units,
+            units=units,
         )
 
     def normalize(self, value: float | None = None) -> 'Grid':
