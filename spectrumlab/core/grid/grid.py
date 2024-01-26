@@ -72,22 +72,28 @@ class Grid:
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
 
-    def shift(self, bias: T) -> 'Grid':
-        """Shift `x` values of the `grid`."""
+    def shift(self, __value: T) -> 'Grid':
+        """Shift `grid` by the `__value`."""
 
         return Grid(
-            x=self.x - bias,
+            x=self.x - __value,
             y=self.y,
             units=self.units,
         )
 
-    def yscale(self, scale: float | None = None) -> 'Grid':
-        """Scale `y` values of the `grid`."""
-        if scale is None: scale = 1/integrate.quad(self.interpolate, a=min(self.x), b=max(self.x))[0]
+    def normalize(self) -> 'Grid':
+        """Normalize `grid`."""
+
+        return self.rescale(
+            1/integrate.quad(self.interpolate, a=min(self.x), b=max(self.x))[0]
+        )
+
+    def rescale(self, __value: float) -> 'Grid':
+        """Rescale `grid` by the `__value`."""
 
         return Grid(
             x=self.x,
-            y=self.y*scale,
+            y=self.y*__value,
             units=self.units,
         )
 
