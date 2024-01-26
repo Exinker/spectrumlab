@@ -9,7 +9,7 @@ from scipy import integrate, interpolate
 from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter, PicoMeter
 
 
-T = TypeVar('T', Number, MicroMeter, PicoMeter)
+T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
 class _GridIterator:
