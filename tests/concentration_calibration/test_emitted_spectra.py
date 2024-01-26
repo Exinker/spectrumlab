@@ -16,7 +16,7 @@ from spectrumlab.line import Line
 from spectrumlab.peak.analyte_peak import GatherAnalytePeakConfig, gather_analyte_peak
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig
 from spectrumlab.peak.position import InterpolationPositionConfig
-from spectrumlab.peak.shape import VoightPeakShape
+from spectrumlab.peak.shape import VoigtPeakShape
 
 
 @pytest.fixture(scope='module')
@@ -173,7 +173,7 @@ class TestConcentrationCalibration:
                     noise_level=5,
                     position=InterpolationPositionConfig(),
                     intensity=ApproxIntensityConfig(
-                        approx_shape=VoightPeakShape(
+                        approx_shape=VoigtPeakShape(
                             width=apparatus.shape.width/detector.config.width,
                             asymmetry=apparatus.shape.asymmetry,
                             ratio=apparatus.shape.ratio,

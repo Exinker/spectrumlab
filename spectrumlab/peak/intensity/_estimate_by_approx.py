@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-from spectrumlab.peak.shape import PeakShape, VoightPeakShape, SelfReversedVoightPeakShape
+from spectrumlab.peak.shape import PeakShape, VoigtPeakShape, SelfReversedVoigtPeakShape
 from spectrumlab.utils import mse
 
 
@@ -32,13 +32,13 @@ class Variables:
     def __post_init__(self):
         shape = self.shape
 
-        if isinstance(shape, VoightPeakShape):
-            self._init_voight_shape()
+        if isinstance(shape, VoigtPeakShape):
+            self._init_voigt_shape()
 
-        if isinstance(shape, SelfReversedVoightPeakShape):
-            self._init_effected_voight_shape()
+        if isinstance(shape, SelfReversedVoigtPeakShape):
+            self._init_effected_voigt_shape()
 
-    def _init_voight_shape(self):
+    def _init_voigt_shape(self):
         peak = self.peak
         config = peak.config.intensity
 
@@ -61,7 +61,7 @@ class Variables:
             (0, np.inf),
         )
 
-    def _init_effected_voight_shape(self):
+    def _init_effected_voigt_shape(self):
         peak = self.peak
 
         config = peak.config.intensity

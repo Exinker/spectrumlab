@@ -33,10 +33,6 @@ def config() -> Config:
     )
 
 
-def test_config(config: Config):
-    assert len(config.x) == config.n
-
-
 # --------        tests        --------
 @pytest.mark.parametrize(
     ['curve', 'params'],

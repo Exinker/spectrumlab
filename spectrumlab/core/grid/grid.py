@@ -1,17 +1,18 @@
 from collections.abc import Iterator
-from typing import Callable, NewType
+from typing import Callable, Literal, TypeVar
+from warnings import warn
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate, interpolate
 
-from spectrumlab.alias import Array
+from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter, PicoMeter
 
 
-T = NewType('T', float)
+T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
-class GridIterator:
+class _GridIterator:
 
     def __init__(self, x: Array[T], y: Array[float]):
         self.x = x
@@ -35,11 +36,13 @@ class GridIterator:
 
 class Grid:
 
-    def __init__(self, x: Array[T], y: Array[float]):
+    def __init__(self, x: Array[T], y: Array[float] | None = None, units: T | None = None):
         assert len(x) == len(y)
 
+        #
         self._x = x
         self._y = y
+        self._units = units
 
     @property
     def x(self) -> Array[T]:
@@ -50,12 +53,12 @@ class Grid:
         return self._y
 
     @property
-    def n_points(self) -> int:
-        return len(self.x)
+    def units(self) -> T | None:
+        return self._units
 
     @property
-    def interpolation(self) -> Callable[[Array[T]], Array[float]]:
-        """Interpolate `grid` by linear interpolation."""
+    def interpolate(self) -> Callable[[Array[T]], Array[float]]:
+        """Interpolate `grid` by linear interpolate."""
 
         return interpolate.interp1d(
             self.x, self.y,
@@ -68,28 +71,53 @@ class Grid:
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
 
-    def xscale(self, scale: T | None = None, bias: T | None = None) -> 'Grid':
-        """Scale `x` values of the `grid`."""
-        if scale is None: scale = 1
-        if bias is None: bias = 0
+    def shift(self, __value: T) -> 'Grid':
+        """Shift `grid` by the `__value`."""
 
         return Grid(
-            x=scale*self.x - bias,
+            x=self.x - __value,
             y=self.y,
+            units=self.units,
         )
 
-    def yscale(self, scale: float | None = None) -> 'Grid':
-        """Scale `y` values of the `grid`."""
-        if scale is None: scale = 1/integrate.quad(self.interpolation, a=min(self.x), b=max(self.x))[0]
+    def normalize(self) -> 'Grid':
+        """Normalize `grid`."""
+
+        return self.rescale(
+            1/integrate.quad(self.interpolate, a=min(self.x), b=max(self.x))[0]
+        )
+
+    def rescale(self, __value: float) -> 'Grid':
+        """Rescale `grid` by the `__value`."""
 
         return Grid(
             x=self.x,
-            y=scale*self.y,
+            y=self.y*__value,
+            units=self.units,
         )
+
+    @property
+    def xlabel(self) -> str:
+        return '{label} {units}'.format(
+            label={
+                Number: r'$number$',
+                MicroMeter: r'$x$',
+                PicoMeter: r'$x$',
+            }.get(self.units, ''),
+            units=self.xunits,
+        )
+
+    @property
+    def xunits(self) -> str:
+        return {
+            Number: r'',
+            MicroMeter: r'[$\mu m$]',
+            PicoMeter: r'[$pm$]',
+        }.get(self.units, '')
 
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
-
+        
         x, y = self.x, self.y
         plt.plot(
             x, y,
@@ -97,15 +125,24 @@ class Grid:
             alpha=1,
         )
 
-        plt.xlabel(r'$number$')
+        plt.xlabel(self.xlabel)
         plt.ylabel(r'$f$')
         plt.grid(color='grey', linestyle=':')
 
         plt.show()
 
     # --------        private        --------
+    def __len__(self) -> int:
+        return len(self.x)
+        
     def __iter__(self) -> Iterator:
-        return GridIterator(
+        warn(
+            message='Iteration on the `grid` by points will be removed in the future!',
+            category=DeprecationWarning,
+            stacklevel=1,
+        )
+
+        return _GridIterator(
             x=self.x,
             y=self.y,
         )

@@ -137,7 +137,7 @@ class AnalytePeak(BasePeak):
             fill_value=0,
         )(number)
 
-    def space(self, kind: Literal['index', 'wavelength'] = 'wavelength', n_points: int = 1000) -> Array:
+    def space(self, n_points: int = 1000, kind: Literal['index', 'wavelength'] = 'wavelength') -> Array:
         """Transform index or wavelength to space (n_points grid)."""
         left, right = self.minima
 

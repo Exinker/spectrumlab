@@ -25,7 +25,7 @@ class ScopeVariables(BaseVariables):
         return Variable('position', initial, bounds, final)
 
     def _init_intensity(self, grid: Grid, intensity: float | None = None) -> Variable:
-        initial = np.sum(grid.y)*(grid.x[-1] - grid.x[0])/grid.n_points if intensity is None else intensity
+        initial = np.sum(grid.y)*(grid.x[-1] - grid.x[0])/len(grid) if intensity is None else intensity
         bounds = (0, +np.inf) if intensity is None else (intensity - 1e-10, intensity + 1e-10)
         final = intensity
 

@@ -8,7 +8,7 @@ from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import convolve
-from spectrumlab.peak.shape import VoightPeakShape
+from spectrumlab.peak.shape import VoigtPeakShape
 
 
 @dataclass
@@ -61,7 +61,7 @@ def test_shape(detector: Detector, config: Config):
     )
 
     x = config.x
-    f = VoightPeakShape(
+    f = VoigtPeakShape(
         width=apparatus.shape.width/step,
         asymmetry=apparatus.shape.asymmetry,
         ratio=apparatus.shape.ratio,
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     step = detector.config.width
 
     x = config.x
-    f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio)
+    f = VoigtPeakShape(config.width/step, config.asymmetry, config.ratio)
     f_hat = convolve(x/step, apparatus=apparatus, aperture=aperture, step=step)
 
     #

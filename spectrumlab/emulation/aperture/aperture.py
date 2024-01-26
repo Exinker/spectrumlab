@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate, signal
 
 from spectrumlab.alias import Array, MicroMeter, Number
-from spectrumlab.core.grid import Grid
+from spectrumlab.core.grid import Grid, T
 from spectrumlab.emulation.curve import rectangular, pvoigt
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR
@@ -71,8 +71,8 @@ class RoundedRectangularApertureShape(BaseApertureShape):
         return self._f
 
 
-class VoightApertureShape(BaseApertureShape):
-    """Voight aperture's profile shape."""
+class VoigtApertureShape(BaseApertureShape):
+    """Voigt aperture's profile shape."""
 
     def __init__(self, width: Number, asymmetry: float, ratio: float):
         super().__init__()
@@ -100,7 +100,7 @@ class VoightApertureShape(BaseApertureShape):
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, detector: Detector, kind: Literal[405] = 405) -> 'VoightApertureShape':
+    def from_ini(cls, detector: Detector, kind: Literal[405] = 405) -> 'VoigtApertureShape':
         PARAMS = {
             Detector.BLPP369M1: {
                 405: (4.9173 / detector.config.width, 0, 1.0000),  # (!) bad approximation
@@ -117,7 +117,7 @@ class VoightApertureShape(BaseApertureShape):
 
 
 class MeasuredApertureShape(BaseApertureShape):
-    """Voight aperture's profile shape."""
+    """Voigt aperture's profile shape."""
 
     def __init__(self, grid: Grid):
         super().__init__()
@@ -147,14 +147,14 @@ class MeasuredApertureShape(BaseApertureShape):
 
         return cls(
             grid=Grid(
-                x=datasheet[:,0]/detector.config.width,
+                x=datasheet[:,0] / detector.pitch,
                 y=datasheet[:,1],
+                units=Number,
             ),
         )
 
 
-
-ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | VoightApertureShape
+ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | VoigtApertureShape
 
 
 # --------        aperture interface        --------
@@ -171,62 +171,89 @@ class Aperture:
     shape: ApertureShape
 
     @property
-    def step(self) -> MicroMeter:
-        return self.detector.config.width
+    def pitch(self) -> MicroMeter:
+        return self.detector.pitch
 
     # --------        handlers        --------
-    def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, xscale: Number | MicroMeter = Number) -> None:
-        n_steps = rx // self.step + 1
+    def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, units: Number | MicroMeter = Number) -> None:
+        scale = {
+            Number: self.pitch,
+            MicroMeter: 1,
+        }.get(units)
+
+
+        # 
+        x = np.linspace(-rx/2, +rx/2, int(rx/dx) + 1)
+        grid = Grid(
+            x=x/scale,
+            y=self(x, n=0)*scale,
+            units=units,
+        )
 
         #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        xvalues = np.linspace(0, rx, int(rx/dx) + 1)
-        integral = np.zeros(xvalues.shape)
-        for n in range(n_steps):
-            x = xvalues if xscale == MicroMeter else xvalues/self.step
-            y = self(xvalues, n=n)
+        plt.plot(
+            grid.x, grid.y,
+            color=COLOR['blue'],
+            label='$S(x - x_{{0}})$',
+        )
+        plt.xlabel(grid.xlabel)
+        plt.ylabel('$S(x - x_{k})$')
+        plt.grid(color='grey', linestyle=':')
+        plt.legend(loc='upper right')
+
+        plt.show()
+
+        # integral
+        n_pixels = int(rx // self.pitch) + 1
+        x = np.linspace(0, rx, int(rx/dx) + 1)
+
+        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
+
+        integral = np.zeros(x.shape)
+        for n in range(n_pixels):
+            grid = Grid(
+                x=x/scale,
+                y=self(x, n=n)*scale,
+                units=units,
+            )
             plt.plot(
-                x, y,
+                grid.x, grid.y,
                 color=COLOR['blue'],
                 label='$S(x - x_{k})$' if n==0 else None,
             )
+            integral += grid.y
 
-            integral += y
-
-        x = xvalues if xscale == MicroMeter else xvalues/self.step
-        y = integral
         plt.plot(
-            x, y,
+            grid.x, integral,
             color='k', linestyle=':',
             label='Integral',
         )
 
-        plt.xlabel(r'$x$ $[\mu]$' if xscale == MicroMeter else r'$k$')
+        plt.xlabel(grid.xlabel)
         plt.ylabel('$S(x - x_{k})$')
-        plt.grid(
-            color='grey', linestyle=':',
-        )
+        plt.grid(color='grey', linestyle=':')
         plt.legend(loc='upper right')
 
         plt.show()
 
     # --------        private        --------
     def __call__(self, x: MicroMeter | Array[MicroMeter], n: Number = 0) -> Array[float]:
-        return self.shape(x/self.step, n=n)/self.step
+        return self.shape(x/self.pitch, n=n)/self.pitch
 
 
 if __name__ == '__main__':
 
     # detector
-    detector = Detector.BLPP4000
+    detector = Detector.BLPP2000
 
     # aperture
     aperture = Aperture(
         detector=detector,
         # shape=RectangularApertureShape(),
         # shape=RoundedRectangularApertureShape(),
-        # shape=VoightApertureShape.from_ini(detector=detector),
+        # shape=VoigtApertureShape.from_ini(detector=detector),
         shape=MeasuredApertureShape.from_datasheet(detector=detector),
     )
-    aperture.show()
+    aperture.show(units=MicroMeter)

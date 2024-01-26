@@ -126,6 +126,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
             x_grid = self.x_grid
             rx = config.rx
+            dx = config.dx
 
             # physical line function
             if line is None:
@@ -140,7 +141,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             else:
                 self._apparatus_line = interpolate.interp1d(
                     x_grid,
-                    signal.convolve(self._physical_line(x_grid), apparatus(x_grid, 0), mode='same') * 2*rx/len(x_grid),
+                    signal.convolve(self._physical_line(x_grid), apparatus(x_grid, 0), mode='same') * dx,
                     kind='linear',
                     bounds_error=False,
                     fill_value=np.nan,
@@ -161,14 +162,14 @@ class EmittedSpectrumEmulation(EmulationInterface):
         detector = config.detector
         step = detector.config.width
 
-        L = config.concentration_ratio  # path length (concentration coefficient to agreement between theory and emulation)
-
         # number
         number = self.number
 
         # I
-        I = L * concentration * (detector.config.width * detector.config.height)
-        I *= (100/detector.config.capacity)  # to percent
+        I = concentration
+        I *= config.concentration_ratio  # normalize to path length (concentration coefficient to agreement between theory and emulation)
+        I *= (detector.config.width * detector.config.height)  # normalize to detector's square
+        I *= (100/detector.config.capacity)  # normalize to detector's capacity
 
         # intensity (detector's output signal)
         f = interpolate.interp1d(
@@ -194,11 +195,11 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
             if self._physical_line is not None:
                 plt.plot(
-                    x/step + position, background + I*self._physical_line(x),
+                    x/step + position, step*I*(background + self._physical_line(x)),
                     label=r'$I(\lambda)$',
                 )
             plt.plot(
-                x/step + position, background + I*self._apparatus_line(x),
+                x/step + position, step*I*(background + self._apparatus_line(x)),
                 label=r'$I^{F}(\lambda)$',
             )
             plt.fill_between(
@@ -234,7 +235,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number | Sequence[Number], concentration: float, environment: Array[Percent] | None = None, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
+    def setup(self, position: Number | Array[Number], concentration: float, environment: Array[Percent] | None = None, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
         """Setup emulation of emitted spectrum."""
         self.position = position
         self.concentration = concentration
@@ -244,10 +245,10 @@ class EmittedSpectrumEmulation(EmulationInterface):
             self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
 
         if isinstance(position, np.ndarray):
-            self._intensity = np.array([
+            self._intensity = np.sum([
                 self._get_intensity(number=self.number, position=x, concentration=concentration, show=show, ylim=ylim)
                 for x in position
-            ])
+            ], axis=0)
 
         # add spectral environment
         if isinstance(environment, np.ndarray):
@@ -341,8 +342,6 @@ if __name__ == '__main__':
     from spectrumlab.emulation.aperture import RectangularApertureShape
     from spectrumlab.emulation.apparatus import VoigtApparatusShape
 
-    line_width = 1.68  # in pm
-
     # device
     device = Device.COLIBRI2
     dispersion = device.config.dispersion
@@ -378,8 +377,8 @@ if __name__ == '__main__':
         ),
     )
     emulation = emulation.setup(
-        position=10,
-        concentration=100,
+        position=np.array([10, 12]),
+        concentration=1,
         show=True,
     )
 

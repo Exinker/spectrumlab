@@ -7,7 +7,7 @@ from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.peak import ScaledExperiment, ScaledExperimentConfig
-from spectrumlab.peak.shape import VoightPeakShape, restore_shape_from_grid
+from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
 from spectrumlab.peak.shape._grid import _Grid
 
 from core import distance
@@ -28,7 +28,7 @@ def shape() -> VoigtApparatusShape:
 
 
 @pytest.fixture(scope='module')
-def experiment(detector: Detector, shape: VoightPeakShape) -> ScaledExperiment:
+def experiment(detector: Detector, shape: VoigtPeakShape) -> ScaledExperiment:
 
     experiment = ScaledExperiment(
         config=ScaledExperimentConfig(
@@ -59,7 +59,7 @@ def experiment(detector: Detector, shape: VoightPeakShape) -> ScaledExperiment:
 
 
 @pytest.fixture(scope='module')
-def shape_hat(experiment: ScaledExperiment) -> VoightPeakShape:
+def shape_hat(experiment: ScaledExperiment) -> VoigtPeakShape:
     config = experiment.config
 
     # spectrum
@@ -84,7 +84,7 @@ def shape_hat(experiment: ScaledExperiment) -> VoightPeakShape:
 
 
 # --------        tests        --------
-def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
+def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-3  # 0.1 [%]
     step = detector.config.width
 
@@ -103,7 +103,7 @@ def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat:
     ) < tolerance
 
 
-def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoightPeakShape):
+def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-6
     step = detector.config.width
 
