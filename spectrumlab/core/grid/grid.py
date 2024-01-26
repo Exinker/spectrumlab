@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from typing import Callable, Literal, TypeVar
+from warnings import warn
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +15,11 @@ T = TypeVar('T', Number, MicroMeter, PicoMeter)
 class _GridIterator:
 
     def __init__(self, x: Array[T], y: Array[float]):
-        raise DeprecationWarning('Iteration on the `grid` by points will be removed in the future!')
+        warn(
+            message='Iteration on the `grid` by points will be removed in the future!',
+            type=DeprecationWarning,
+            stacklevel=1,
+        )
 
         self.x = x
         self.y = y
