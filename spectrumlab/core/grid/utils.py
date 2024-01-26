@@ -1,17 +1,49 @@
 from abc import ABC
-from collections.abc import Sequence
+from dataclasses import dataclass, field
 from functools import partial
-from typing import Callable, Literal, TypeAlias, NewType
+from typing import Callable, TypeAlias
 
 import numpy as np
-from scipy import interpolate, optimize
+from scipy import interpolate, optimize, signal
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.core.grid import Grid, T
-from spectrumlab.core.approximate.scope import ScopeVariables
-from spectrumlab.peak.shape.voigt_peak_shape import VoigtPeakShape
-from spectrumlab.utils import mse
+from spectrumlab.emulation.curve import pvoigt, rectangular
+
+
+@dataclass
+class VoigtShape:
+    width: T
+    asymmetry: float
+    ratio: float
+
+    pitch: T
+    dx: float = field(default=1e-2)  # шаг построения интерполяции
+    rx: float = field(default=10)  # границы построения интерполяции
+
+    def __post_init__(self):
+        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)*self.pitch
+
+        f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
+        s = lambda x: rectangular(x, x0=0, w=self.pitch)
+        y = signal.convolve(f(x), s(x), mode='same') * self.dx
+
+        self._f = interpolate.interp1d(
+            x, y,
+            kind='linear',
+            bounds_error=False,
+            fill_value=0,
+        )
+
+    def __call__(self, x: T | Array[T], position: T, intensity: float, background: float = 0) -> Array[float]:
+        '''interpolate by grip'''
+        f = self._f
+
+        return background + intensity*f(x - position)
+
+    def __repr__(self) -> str:
+        return f'{type(self).__name__} (w={self.width:.4f}; a={self.asymmetry:.4f}; r={self.ratio:.4f})'
 
 
 # --------        handlers        --------
@@ -84,43 +116,48 @@ class LinearInterpolationHandler(BaseHandler):
             self.show()
 
 
-class VoigtPeakShapeHandler(BaseHandler):
+class VoigtShapeHandler(BaseHandler):
 
-    def __init__(self, grid: Grid, show: bool = False):
+    def __init__(self, grid: Grid, pitch: T, show: bool = False):
         super().__init__(grid=grid)
 
+        def _loss(grid: Grid, pitch: T, position: MicroMeter, width: MicroMeter, asymmetry: float, ratio: float, intensity: float) -> float:
+            shape = VoigtShape(
+                width=width,
+                asymmetry=asymmetry,
+                ratio=ratio,
+                pitch=pitch,
+            )
+
+            f = partial(shape, position=position, intensity=intensity)
+            return np.sum(
+                (grid.y - f(grid.x))**2
+            )
+
         # shape
-        shape = VoigtPeakShape.from_grid(grid=grid)
+        x0 = grid.x[np.argmax(grid.y)]
+        position, width, asymmetry, ratio, intensity = optimize.minimize(
+            lambda x: _loss(grid, pitch, *x),
+            x0=[x0, pitch, 0, .1, np.sum(grid.y) / pitch],
+            bounds=[(x0-pitch/2, x0+pitch/2), (pitch/2, 100), (-1, 1), (0, 1), (0, np.inf)]
+        )['x']
 
-        # scope
-        def _loss(params: Sequence[float], grid: Grid, shape: VoigtPeakShape) -> float:
-            scope_variables = ScopeVariables(grid, *params)
-
-            y = grid.y
-            y_hat = shape(x=grid.x, **scope_variables)
-
-            return mse(y, y_hat)
-
-        variables = ScopeVariables(grid=grid)
-        res = optimize.minimize(
-            partial(_loss, grid=grid, shape=shape),
-            variables.initial,
-            method='SLSQP',
-            bounds=variables.bounds,
+        shape = VoigtShape(
+            width=width,
+            asymmetry=asymmetry,
+            ratio=ratio,
+            pitch=pitch,
         )
-        assert res['success'], 'Optimization is not succeeded!'
-
-        scope_variables = ScopeVariables(grid, *res['x'])
 
         # f
-        self._f = partial(shape, **scope_variables)
+        self._f = partial(shape, position=position, intensity=intensity)
 
         # show
         if show:
-            self.show(bias=scope_variables['position'])
+            self.show()
 
 
-Handler: TypeAlias = LinearInterpolationHandler | VoigtPeakShapeHandler
+Handler: TypeAlias = LinearInterpolationHandler | VoigtShapeHandler
 
 
 # --------        estimators        --------

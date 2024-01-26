@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Callable, Literal, TypeVar
+from typing import Callable, TypeVar
 from warnings import warn
 
 import numpy as np
