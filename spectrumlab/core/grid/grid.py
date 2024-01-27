@@ -150,7 +150,7 @@ class Grid:
             y=self.y,
         )
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         cls = self.__class__
 
-        return f'{cls.__name__}(n_points={self.n_points})'
+        return f'{cls.__name__}({self.units})'
