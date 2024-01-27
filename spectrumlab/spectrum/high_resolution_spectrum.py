@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import interpolate
 
-from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter
 from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum import EmittedSpectrum
@@ -20,7 +21,7 @@ def calculate_factor(ratio: float) -> int:
 
 class HighResolutionSpectrum(BaseSpectrum):
 
-    def __init__(self, shots: tuple[EmittedSpectrum], number: Array[Number], move: MicroMeter, detector: Detector | None = None, **kwargs):
+    def __init__(self, shots: tuple[EmittedSpectrum], number: Array[Number], wavelength: Array[NanoMeter], move: MicroMeter, detector: Detector | None = None, **kwargs):
         n_numbers = len(number)
 
         for spectrum in shots:
@@ -44,18 +45,24 @@ class HighResolutionSpectrum(BaseSpectrum):
                     y_grid[i].extend(spectrum.intensity[mask])
         y_grid = np.array([np.nanmean(value) if value else np.nan for value in y_grid])
 
+        w_grid = interpolate.interp1d(
+            number, wavelength,
+            kind='linear',
+            bounds_error=False,
+            fill_value=0,
+        )(x_grid/detector.pitch)
+
         mask = np.isfinite(y_grid)
-        x_grid, y_grid = x_grid[mask], y_grid[mask]
+        x_grid, y_grid, w_grid = x_grid[mask], y_grid[mask], w_grid[mask]
 
         grid = Grid(
             x=x_grid,
             y=y_grid,
-            # pitch=detector.pitch/factor,
             units=MicroMeter,
         )
 
         #
-        super().__init__(intensity=grid.y, number=grid.x/detector.pitch, detector=detector, **kwargs)
+        super().__init__(intensity=y_grid, number=x_grid/detector.pitch, wavelength=w_grid, detector=detector, **kwargs)
 
         self.move = move
         self.factor = factor  # points per pitch
@@ -79,6 +86,7 @@ class HighResolutionSpectrum(BaseSpectrum):
         return cls(
             shots=shots,
             number=spectrum.number,
+            wavelength=spectrum.wavelength,
             move=move,
             detector=spectrum.detector,
         )
