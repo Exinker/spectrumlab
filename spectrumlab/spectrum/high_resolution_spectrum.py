@@ -78,6 +78,7 @@ class HighResolutionSpectrum(BaseSpectrum):
         for t in range(spectrum.n_times):
             spe = EmittedSpectrum(
                 intensity=spectrum.intensity[t,:],
+                wavelength=spectrum.wavelength,
                 detector=spectrum.detector,
             )
             shots.append(spe)
