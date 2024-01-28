@@ -8,14 +8,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, MicroMeter, Number
-from spectrumlab.core.grid import Grid, T
+from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.curve import rectangular, pvoigt
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR
 
 
-# --------        shapes        --------
+# --------        aperture shapes        --------
 class BaseApertureShape(ABC):
     dx: Number = 1e-2  # шаг построения интерполяции
     rx: Number = 10  # границы построения интерполяции
@@ -103,13 +103,13 @@ class VoigtApertureShape(BaseApertureShape):
     def from_ini(cls, detector: Detector, kind: Literal[405] = 405) -> 'VoigtApertureShape':
         PARAMS = {
             Detector.BLPP369M1: {
-                405: (4.9173 / detector.config.width, 0, 1.0000),  # (!) bad approximation
+                405: (4.9173/detector.pitch, 0, 1.0000),  # (!) bad approximation
             },
             Detector.BLPP2000: {
-                405: (17.9677 / detector.config.width, 0, 0.4186),
+                405: (17.9677/detector.pitch, 0, 0.4186),
             },
             Detector.BLPP4000: {
-                405: (3.5592 / detector.config.width, 0, 0.4578),
+                405: (3.5592/detector.pitch, 0, 0.4578),
             },
         }
 
@@ -147,14 +147,14 @@ class MeasuredApertureShape(BaseApertureShape):
 
         return cls(
             grid=Grid(
-                x=datasheet[:,0] / detector.pitch,
+                x=datasheet[:,0]/detector.pitch,
                 y=datasheet[:,1],
                 units=Number,
             ),
         )
 
 
-ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | VoigtApertureShape
+ApertureShape = RectangularApertureShape | RoundedRectangularApertureShape | VoigtApertureShape | MeasuredApertureShape
 
 
 # --------        aperture interface        --------
@@ -244,7 +244,6 @@ class Aperture:
 
 
 if __name__ == '__main__':
-
     # detector
     detector = Detector.BLPP2000
 
