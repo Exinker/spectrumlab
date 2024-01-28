@@ -26,7 +26,9 @@ setup(
     packages=find_packages(),
 
 	# setup data
-    include_package_data=True,
+    package_data = {
+        '': ['*.txt', '*.xml', '*.csv'],
+    },
 
 	# requires
     install_requires=install_requires,
