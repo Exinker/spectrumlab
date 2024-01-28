@@ -147,9 +147,10 @@ class MeasuredApertureShape(BaseApertureShape):
 
         return cls(
             grid=Grid(
-                x=datasheet[:,0]/detector.pitch,
+                x=datasheet[:,0],
                 y=datasheet[:,1],
-                units=Number,
+            ).rescale(
+                detector.pitch, units=Number,
             ),
         )
 
@@ -245,7 +246,7 @@ class Aperture:
 
 if __name__ == '__main__':
     # detector
-    detector = Detector.BLPP2000
+    detector = Detector.BLPP369M1
 
     # aperture
     aperture = Aperture(
@@ -255,4 +256,4 @@ if __name__ == '__main__':
         # shape=VoigtApertureShape.from_ini(detector=detector),
         shape=MeasuredApertureShape.from_datasheet(detector=detector),
     )
-    aperture.show(units=MicroMeter)
+    aperture.show(units=Number)
