@@ -15,11 +15,11 @@ def estimate_bias(grid: Grid, pitch: T, handler: Handler | None = None, verbose:
     handler = handler or LinearInterpolationHandler(grid=grid)
 
     # bias
-    def _loss(x: T, handler: Callable[[T], float], pitch: T) -> float:
+    def calculate_loss(x: T, handler: Callable[[T], float], pitch: T) -> float:
         return (handler(x - pitch/2) - handler(x + pitch/2))**2
 
     bias = optimize.minimize(
-        partial(_loss, handler=handler, pitch=pitch),
+        partial(calculate_loss, handler=handler, pitch=pitch),
         x0=grid.x[np.argmax(grid.y)],  # FIXME: change to maximum of `handler`!
     )['x'][0]
 
@@ -82,33 +82,33 @@ def estimate_bias(grid: Grid, pitch: T, handler: Handler | None = None, verbose:
     return bias
 
 
-def estimate_fwhm(grid: Grid, pitch: T, bias: T = 0, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
+def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
     """Estimate a full width at half maximum (FWHM) of the `grid`."""
     handler = handler or LinearInterpolationHandler(grid=grid)
-    x0 = bias
-    rx = pitch/2
 
     # fwhm
-    def _loss(x: T, handler: Callable[[T], float], y: float) -> float:
+    def calculate_loss(x: T, handler: Callable[[T], float], y: float) -> float:
         y_hat = handler(x)
         return (y_hat - y)**2
 
     res = optimize.minimize(
-        partial(_loss, handler=handler, y=handler(x0)/2),
-        x0=x0-rx,
+        partial(calculate_loss, handler=handler, y=handler(position)/2),
+        position - pitch/2,
         bounds=[
-            (-np.inf, x0-rx),
+            (-np.inf, position - pitch/2),
         ],
+        tol=1e-10,
     )
     assert res['success'], 'Optimization is not success!'
     lb = res['x'].item()
 
     res = optimize.minimize(
-        partial(_loss, handler=handler, y=handler(x0)/2),
-        x0=x0+rx,
+        partial(calculate_loss, handler=handler, y=handler(position)/2),
+        position + pitch/2,
         bounds=[
-            (x0+rx, +np.inf),
+            (position + pitch/2, +np.inf),
         ],
+        tol=1e-10,
     )
     assert res['success'], 'Optimization is not success!'
     rb = res['x'].item()
@@ -129,21 +129,18 @@ def estimate_fwhm(grid: Grid, pitch: T, bias: T = 0, handler: Handler | None = N
     if show:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        x = x0-rx
         plt.axvline(
-            x,
+            lb,
             color='grey', linestyle=':', linewidth=1,
             alpha=1,
         )
-        x = x0 + rx
         plt.axvline(
-            x,
+            rb,
             color='grey', linestyle=':', linewidth=1,
             alpha=1,
         )
-        y = handler(x0)/2
         plt.axhline(
-            y,
+            handler(position)/2,
             color='grey', linestyle=':', linewidth=1,
             alpha=1,
         )
@@ -192,3 +189,29 @@ def estimate_fwhm(grid: Grid, pitch: T, bias: T = 0, handler: Handler | None = N
 
     # 
     return fwhm
+
+
+if __name__ == '__main__':
+    from spectrumlab.alias import Array, Number, MicroMeter
+    from spectrumlab.emulation.aperture import MeasuredApertureShape
+    from spectrumlab.emulation.detector import Detector
+
+    for detector in [Detector.BLPP369M1, Detector.BLPP2000, Detector.BLPP4000]:
+        rx = 5
+        dx = 1e-2
+        x: Array[float] = np.linspace(-rx, +rx, 2*int(rx/dx))
+        f = MeasuredApertureShape.from_datasheet(detector)
+
+        grid = Grid(
+            x=x, y=f(x, 0),
+            units=Number,
+        ).rescale(
+            1/detector.pitch, units=MicroMeter,
+        )
+
+        fwhm = estimate_fwhm(
+            grid=grid,
+            pitch=detector.pitch,
+            verbose=True,
+            show=True,
+        )
