@@ -8,6 +8,7 @@ Author: Vaschenko Pavel
 from abc import ABC, abstractmethod
 
 from spectrumlab.alias import Array
+from spectrumlab.emulation.noise import Noise
 from spectrumlab.spectrum import Spectrum
 
 
@@ -25,5 +26,5 @@ class BaseBackground(ABC):
 
     # --------        handlers        --------
     @abstractmethod
-    def fit(self, spectrum: Spectrum) -> Array[float]:
+    def fit(self, spectrum: Spectrum, noise: Noise) -> Array[float]:
         raise NotImplementedError
