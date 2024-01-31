@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pytest
 
-from spectrumlab.background.savitzky_golay_background import SavitzkyGolayConfig, approximate_savitzky_golay
+from spectrumlab.background.savitzky_golay_background import SavitzkyGolayBackgroundConfig, approximate_savitzky_golay
 
 
 class TestSavitzkyGolayConfig:
@@ -14,7 +14,7 @@ class TestSavitzkyGolayConfig:
     )
     def test_savitzky_golay_config_exception(self, width: int, degree: int, expected_exception: Exception):
         with pytest.raises(expected_exception):
-            SavitzkyGolayConfig(
+            SavitzkyGolayBackgroundConfig(
                 width=width,
                 degree=degree,
             )
@@ -28,7 +28,7 @@ def test_approximate_savitzky_golay(tol: float = 1e-2):
     y_hat = approximate_savitzky_golay(
         y,
         mask=np.full(n, True),
-        config=SavitzkyGolayConfig(width=3, degree=1),
+        config=SavitzkyGolayBackgroundConfig(width=3, degree=1),
     )
 
     assert np.all(np.abs(y - y_hat) < tol)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     y_hat = approximate_savitzky_golay(
         y,
         mask=np.full(n, True),
-        config=SavitzkyGolayConfig(width=3, degree=1),
+        config=SavitzkyGolayBackgroundConfig(width=3, degree=1),
     )
 
     # show
