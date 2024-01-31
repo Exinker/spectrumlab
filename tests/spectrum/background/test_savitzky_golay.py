@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pytest
 
-from spectrumlab.spectrum.background.savitzky_golay import SavitzkyGolayConfig, approximate_savitzky_golay
+from spectrumlab.background.savitzky_golay_background import SavitzkyGolayConfig, approximate_savitzky_golay
 
 
 class TestSavitzkyGolayConfig:
