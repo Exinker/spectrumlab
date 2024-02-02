@@ -26,5 +26,5 @@ class BaseBackground(ABC):
 
     # --------        handlers        --------
     @abstractmethod
-    def fit(self, spectrum: Spectrum, noise: Noise) -> Array[float]:
+    def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Array[float]:
         raise NotImplementedError
