@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 import numpy as np
@@ -16,9 +16,7 @@ class SavitzkyGolayBackgroundConfig(BaseBackgroundConfig):
     width: int
     degree: int
 
-    def __post_init__(self):
-        if self.width % 2 == 0:
-            raise ValueError('SavitzkyGolay width: {width} is not valid! Use odd value only.')  # FIXME: add custom exception
+    n_counts_min: int = field(default=10)
 
 
 class SavitzkyGolayBackground(BaseBackground):
@@ -79,7 +77,7 @@ class SavitzkyGolayBackground(BaseBackground):
 
 
 # --------        handlers        --------
-def filter_savitzky_golay(intensity: Array[float], mask: Array[bool], n_counts_min: int = 10) -> Callable:
+def filter_savitzky_golay(intensity: Array[float], mask: Array[bool], n_counts_min: int) -> Callable:
     """Savitzky-Gloay filter with mask."""
     n_numbers = len(intensity)
 
@@ -92,12 +90,14 @@ def filter_savitzky_golay(intensity: Array[float], mask: Array[bool], n_counts_m
             index = index[(index >= 0) & (index < n_numbers)]
             index = index[~mask[index]]
 
+            #
             n_counts = index.size
-            if (n_counts >= n_counts_min) or (hw > n_numbers):
+            if n_counts >= n_counts_min:
+                break
+            if  hw >= n_numbers:
                 break
 
-            else:
-                hw *= 2
+            hw *= 2
 
         #
         return np.polyval(
@@ -106,3 +106,15 @@ def filter_savitzky_golay(intensity: Array[float], mask: Array[bool], n_counts_m
         )
 
     return inner
+
+
+def approximate_savitzky_golay(intensity: Array[float], mask: Array[bool], config: SavitzkyGolayBackgroundConfig) -> Array[float]:
+    """Approximate y values with Savitzky-Gloay filtration."""
+    width = config.width
+    degree = config.degree
+    filter = filter_savitzky_golay(intensity, mask, n_counts_min=config.n_counts_min)
+
+    return np.array([
+        filter(n, width=width, degree=degree)
+        for n, _ in enumerate(intensity)
+    ])
