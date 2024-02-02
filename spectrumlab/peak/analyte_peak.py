@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-from spectrumlab.alias import Array, Number
+from spectrumlab.alias import Array, Number, NanoMeter
 from spectrumlab.concentration_calibration import ConcentrationCalibration
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.line.line import Line
@@ -137,12 +137,12 @@ class AnalytePeak(BasePeak):
             fill_value=0,
         )(number)
 
-    def space(self, n_points: int = 1000, kind: Literal['index', 'wavelength'] = 'wavelength') -> Array:
+    def space(self, n_points: int = 1000, units: Number | NanoMeter = Number) -> Array:
         """Transform index or wavelength to space (n_points grid)."""
-        left, right = self.minima
-
-        if kind == 'wavelength':
-            left, right = self.wavelength[[left, right]]
+        left, right = {
+            Number: self.minima,
+            NanoMeter: self.wavelength[self.minima],
+        }.get(units)
 
         return np.linspace(left, right, n_points)
 
