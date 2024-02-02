@@ -139,10 +139,9 @@ class AnalytePeak(BasePeak):
 
     def space(self, n_points: int = 1000, units: Number | NanoMeter = Number) -> Array:
         """Transform index or wavelength to space (n_points grid)."""
-        left, right = {
-            Number: self.minima,
-            NanoMeter: self.wavelength[self.minima],
-        }.get(units)
+        left, right = self.minima
+        if units == NanoMeter:
+            left, right = self.wavelength[[left, right]]
 
         return np.linspace(left, right, n_points)
 
@@ -224,12 +223,12 @@ class AnalytePeak(BasePeak):
             )
 
             # draw intensity
-            x = self.space(kind='index')
-            x_hat = self.space(kind='wavelength')
+            x = self.space(units=Number)
+            x_hat = self.space(units=NanoMeter)
             y_hat = config.approx_shape(x=x, **config.approx_params)
             ax.plot(
                 x_hat, y_hat,
-                color='red',
+                color='black', linestyle='-', linewidth=1,
             )
 
             if np.any(self.spectrum.clipped):
