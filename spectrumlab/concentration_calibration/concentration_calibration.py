@@ -1,6 +1,5 @@
 import os
 from abc import ABC, abstractmethod, abstractproperty
-from functools import partial
 from typing import Callable, Literal
 
 import numpy as np
@@ -8,10 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from spectrumlab.alias import Frame, Series
-from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import Spectrum
-from spectrumlab.line import Line
-from spectrumlab.peak.analyte_peak import gather_analyte_peak, GatherAnalytePeakConfig
 from spectrumlab.picture.config import COLOR, ALPHA
 
 from .exceptions import FitError
@@ -346,17 +342,6 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
 
 
 # --------        handlers        --------
-def calculate_intensity_handler(line: Line, noise: Noise, config: GatherAnalytePeakConfig, verbose: bool = False, show: bool = False):
-    handler = partial(gather_analyte_peak, line=line, noise=noise, config=config, verbose=verbose, show=show)
-
-    def inner(spectrum: Spectrum) -> float:
-        peak = handler(spectrum=spectrum)
-
-        return peak.intensity
-
-    return inner
-
-
 def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool = False) -> ConcentrationCalibration:
 
     # blank
