@@ -1,5 +1,5 @@
 import os
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from typing import Callable, Literal
 
 import numpy as np
@@ -16,19 +16,23 @@ from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_l
 
 class BaseConcentrationCalibration(ABC):
 
-    @abstractmethod
-    def fit(self, intensity: Series, concentration: Series):
-        pass
-    
-    @abstractmethod
-    def predict(self, intensity: Series) -> Series:
-        pass
+    @abstractproperty
+    def coeff(self) -> tuple[Intercept, Slope]:
+        raise NotImplementedError
 
     # --------        handlers        --------
     @abstractmethod
+    def fit(self, intensity: Series, concentration: Series):
+        raise NotImplementedError
+    
+    @abstractmethod
+    def predict(self, intensity: Series) -> Series:
+        raise NotImplementedError
+
+    @abstractmethod
     def show(self, save: bool = False):
         """Show calibration curve."""
-        pass
+        raise NotImplementedError
 
     def write(self):
         """Write calibration curve's data to file."""
@@ -53,7 +57,7 @@ class BaseConcentrationCalibration(ABC):
     # --------        private        --------
     @abstractmethod
     def _get_filename(extension: Literal['png', 'txt']) -> str:
-        pass
+        raise NotImplementedError
 
     def _get_color(self, mask: Series, color: str) -> list[str]:
         mapping = {
