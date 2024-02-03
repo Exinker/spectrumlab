@@ -229,7 +229,7 @@ class RandomPeakExperimentConfig(BaseExperimentConfig):
         assert len(self.position) == len(self.intensity)
 
         return tuple([
-            Line(id=0, symbol='NA', wavelength=position, database_intensity=intensity)
+            Line(symbol='NA', wavelength=position, database_intensity=intensity)
             for position, intensity in zip(self.position, self.intensity)
         ])
 
@@ -263,7 +263,7 @@ class RandomPeakExperiment(BaseExperiment):
         self._number = np.arange(config.n_numbers)
         self._background = 0
         self._intensity = np.sum(np.array([
-            config.exposure * line.intensity * f(self.number - line.position)
+            config.exposure * line.intensity * f(self.number - line.wavelength)
             for line in tqdm(config.lines, total=config.n_iters, disable=not verbose)
         ]), axis=0)
 
@@ -273,7 +273,7 @@ class RandomPeakExperiment(BaseExperiment):
 
             for line in config.lines:
                 plt.plot(
-                    [line.position, line.position], [0, config.exposure*line.intensity],
+                    [line.wavelength, line.wavelength], [0, config.exposure*line.intensity],
                     color=COLOR['blue'], linestyle=':',
                 )
             plt.plot(

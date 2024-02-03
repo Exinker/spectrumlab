@@ -100,7 +100,6 @@ class TestConcentrationCalibration:
             spectra=spectra,
             handler=calculate_intensity(
                 line=Line(
-                    id=0,
                     symbol='NA',
                     wavelength=config.position,
                 ),
@@ -128,7 +127,6 @@ class TestConcentrationCalibration:
             spectra=spectra,
             handler=calculate_intensity(
                 line=Line(
-                    id=0,
                     symbol='NA',
                     wavelength=config.position,
                 ),
@@ -161,8 +159,7 @@ class TestConcentrationCalibration:
             spectra=spectra,
             handler=calculate_intensity(
                 line=Line(
-                    id=0,
-                    symbol='',
+                    symbol='NA',
                     wavelength=25,
                 ),
                 noise=EmittedSpectrumNoise(
