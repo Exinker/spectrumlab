@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from spectrumlab.emulation.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig, EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import fetch_emulation, Emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, AmplitudeIntensityConfig
 

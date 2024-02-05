@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.alias import Array, MicroMeter
-from spectrumlab.emulation.curve import rectangular, pvoigt
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.curve import pvoigt, rectangular
+from spectrumlab.emulation.detector import Detector
 
 
 # --------        shape        --------
@@ -14,8 +14,8 @@ class RectangularApparatusShape:
     """Rectangular device's apparatus shape."""
     width: MicroMeter
 
-    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
-        f = rectangular(x/step, x0=x0/step, w=self.width/step)/step
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, pitch: MicroMeter) -> Array[float]:
+        f = rectangular(x/pitch, x0=x0/pitch, w=self.width/pitch)/pitch
 
         return f
 
@@ -29,7 +29,7 @@ class TriangularApparatusShape:
         raise NotImplementedError
 
 
-@dataclass 
+@dataclass
 class VoigtApparatusShape:
     """Voigt device's apparatus shape.
 
@@ -41,8 +41,8 @@ class VoigtApparatusShape:
     asymmetry: float
     ratio: float
 
-    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
-        f = pvoigt(x/step, x0=x0/step, w=self.width/step, a=self.asymmetry, r=self.ratio)/step
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, pitch: MicroMeter) -> Array[float]:
+        f = pvoigt(x/pitch, x0=x0/pitch, w=self.width/pitch, a=self.asymmetry, r=self.ratio)/pitch
 
         return f
 
@@ -64,12 +64,12 @@ class Apparatus:
     shape: ApparatusShape
 
     @property
-    def step(self) -> MicroMeter:
-        return self.detector.config.width
+    def pitch(self) -> MicroMeter:
+        return self.detector.pitch
 
     # --------        handlers        --------
     def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
-        
+
         #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -90,7 +90,7 @@ class Apparatus:
 
     # --------        private        --------
     def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter = 0) -> Array[float]:
-        return self.shape(x, x0=x0, step=self.step)
+        return self.shape(x, x0=x0, pitch=self.pitch)
 
 
 if __name__ == '__main__':
@@ -101,6 +101,21 @@ if __name__ == '__main__':
     # apparatus
     apparatus = Apparatus(
         detector=detector,
-        shape=VoigtApparatusShape(width=25, asymmetry=.3, ratio=.0),
+        shape=VoigtApparatusShape(width=25, asymmetry=0.0, ratio=0.0),
     )
     apparatus.show()
+
+    #
+    rx = 100
+    dx = 1e-2
+    x = np.linspace(-rx, +rx, 2*int(rx/dx))
+
+    integral = np.sum(apparatus(x, x0=0))*dx
+    print(f'integral: {integral:.4f}')
+
+    #
+    rx = 10
+    dx = 1e-2/detector.pitch
+    x = np.linspace(-rx, +rx, 2*int(rx/dx))
+    integral = np.sum(apparatus(detector.pitch*x, x0=0))*(detector.pitch*dx)
+    print(f'integral: {integral:.4f}')

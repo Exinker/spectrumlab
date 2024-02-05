@@ -8,8 +8,8 @@ Author: Vaschenko Pavel
 from dataclasses import dataclass, field
 from typing import Literal
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.alias import Array
 
@@ -42,7 +42,7 @@ class ADC:
             ax_left.plot(
                 y_hat,
                 color='red',
-                label='$\hat{y}$',
+                label=r'$\hat{y}$',
             )
             ax_left.set_xlabel('x')
             ax_left.set_ylabel('y')

@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.aperture import Aperture
 from spectrumlab.emulation.apparatus import Apparatus
-from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.emulation.emulation import emulate_emitted_spectrum, convolve
-from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise
+from spectrumlab.emulation.detector import Detector
+from spectrumlab.emulation.emulation import convolve, emulate_emitted_spectrum
+from spectrumlab.emulation.noise import EmittedSpectrumNoise, Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.line import Line
 from spectrumlab.picture.config import COLOR
@@ -49,28 +49,21 @@ class BaseExperiment(ABC):
     @property
     def intensity(self) -> Array[float]:
         if self._intensity is None:
-            raise Exception  # add 
+            raise Exception  # add custom exception!
 
         return self._intensity
 
     @property
     def number(self) -> Array[Number]:
         if self._number is None:
-            raise Exception  # add 
+            raise Exception  # add custom exception!
 
         return self._number
 
     @property
-    def intensity(self) -> Array[float]:
-        if self._intensity is None:
-            raise Exception  # add 
-
-        return self._intensity
-
-    @property
     def background(self) -> Array[float]:
         if self._background is None:
-            raise Exception  # add 
+            raise Exception  # add custom exception!
 
         return self._background
 
@@ -113,8 +106,6 @@ class ShiftedExperiment(BaseExperiment):
         config = self.config
         detector = self.config.detector
 
-        step = detector.config.width
-
         # setup seed
         if seed:
             np.random.seed(seed)
@@ -123,7 +114,7 @@ class ShiftedExperiment(BaseExperiment):
         rx = 100
         dx = 1e-2
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
+        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, pitch=detector.pitch)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0
@@ -137,9 +128,9 @@ class ShiftedExperiment(BaseExperiment):
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            y = f(x/step)
+            y = f(x/detector.pitch)
             plt.plot(
-                x/step, y,
+                x/detector.pitch, y,
                 color='black',
             )
 
@@ -176,8 +167,6 @@ class ScaledExperiment(BaseExperiment):
         config = self.config
         detector = self.config.detector
 
-        step = detector.config.width
-
         # setup seed
         if seed:
             np.random.seed(seed)
@@ -186,7 +175,7 @@ class ScaledExperiment(BaseExperiment):
         rx = 100
         dx = .01
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
+        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, pitch=detector.pitch)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0
@@ -200,9 +189,9 @@ class ScaledExperiment(BaseExperiment):
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            x, y = x, f(x/step)
+            x, y = x, f(x/detector.pitch)
             plt.plot(
-                x/step, y,
+                x/detector.pitch, y,
                 color='black',
             )
 
@@ -229,7 +218,7 @@ class RandomPeakExperimentConfig(BaseExperimentConfig):
         assert len(self.position) == len(self.intensity)
 
         return tuple([
-            Line(id=0, symbol='NA', wavelength=position, database_intensity=intensity)
+            Line(symbol='NA', wavelength=position, database_intensity=intensity)
             for position, intensity in zip(self.position, self.intensity)
         ])
 
@@ -248,8 +237,6 @@ class RandomPeakExperiment(BaseExperiment):
         config = self.config
         detector = self.config.detector
 
-        step = detector.config.width
-
         # setup seed
         if seed:
             np.random.seed(seed)
@@ -258,12 +245,12 @@ class RandomPeakExperiment(BaseExperiment):
         rx = 100
         dx = .01
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
+        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, pitch=detector.pitch)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0
         self._intensity = np.sum(np.array([
-            config.exposure * line.intensity * f(self.number - line.position)
+            config.exposure * line.intensity * f(self.number - line.wavelength)
             for line in tqdm(config.lines, total=config.n_iters, disable=not verbose)
         ]), axis=0)
 
@@ -273,7 +260,7 @@ class RandomPeakExperiment(BaseExperiment):
 
             for line in config.lines:
                 plt.plot(
-                    [line.position, line.position], [0, config.exposure*line.intensity],
+                    [line.wavelength, line.wavelength], [0, config.exposure*line.intensity],
                     color=COLOR['blue'], linestyle=':',
                 )
             plt.plot(

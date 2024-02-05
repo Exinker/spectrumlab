@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Iterator, Sequence
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.peak.base_peak import BasePeak
@@ -100,6 +100,7 @@ class BlinkPeak(BasePeak):
         self.amplitude = amplitude
         self.deviation = deviation
 
+    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
 
@@ -124,14 +125,19 @@ class DraftBlinkPeakConfig:
     slope_max: float = field(default=1)  # if the slope is more, this is a tail of a peak
 
 
-def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig, show: bool = False) -> tuple[BlinkPeak]:
+def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig | None = None, show: bool = False) -> tuple[BlinkPeak]:
     """Draft blinks from the spectrum.
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
       Date: 2016.04.09
     """
+    config = config or DraftBlinkPeakConfig()
+
     assert spectrum.n_times == 1, 'kinetics spectra are not supported yet!'
+
+    # deviation
+    deviation = noise(spectrum.intensity)
 
     # find pairs of local minima for each maximum
     maxima = find_maxima(spectrum.intensity)
@@ -163,10 +169,10 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
             continue
 
         # check blink's amplitude
-        amplitude = spectrum.intensity[maximum] - (spectrum.intensity[left] + spectrum.intensity[right])/2  # от среднего значения на границах до максимума
-        deviation = (noise(spectrum.intensity[maximum])**2 + .25*noise(spectrum.intensity[left])**2 + .25*noise(spectrum.intensity[right])**2)**0.5
+        _amplitude = spectrum.intensity[maximum] - (spectrum.intensity[left] + spectrum.intensity[right])/2  # от среднего значения на границах до максимума
+        _deviation = (deviation[maximum]**2 + .25*deviation[left]**2 + .25*deviation[right]**2)**0.5
 
-        if amplitude < config.noise_level * deviation:
+        if _amplitude < config.noise_level * _deviation:
             continue
 
         # check clipped counts
@@ -176,9 +182,9 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
 
         # check blink's slope
         if config.except_sloped_peak:
-            slope = abs(spectrum.intensity[left] - spectrum.intensity[right]) / amplitude
+            _slope = abs(spectrum.intensity[left] - spectrum.intensity[right]) / _amplitude
 
-            if slope > config.slope_max:
+            if _slope > config.slope_max:
                 continue
 
         # gather and add a peak
@@ -186,8 +192,8 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
             minima=(left, right),
             maxima=(maximum,),
 
-            amplitude=amplitude,
-            deviation=deviation,
+            amplitude=_amplitude,
+            deviation=_deviation,
 
             except_edges=config.except_edges,
         )
@@ -198,7 +204,13 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
     if show:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        spectrum.show(ax=ax)
+        x, y = spectrum.wavelength, spectrum.intensity
+        ax.step(
+            x, y,
+            where='mid',
+            color='black',
+        )
+
         for peak in peaks:
             x, y = spectrum.wavelength[peak.number], spectrum.intensity[peak.number]
             ax.step(
@@ -206,6 +218,10 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig,
                 where='mid',
                 color='red',
             )
+
+        plt.xlabel(r'$\lambda, nm$')
+        plt.ylabel('')
+        plt.grid(color='grey', linestyle=':')
 
         plt.show()
 

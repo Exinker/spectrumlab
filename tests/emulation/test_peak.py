@@ -3,9 +3,9 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.alias import Array, MicroMeter
-from spectrumlab.emulation.detector.linear_array_detector import Detector
-from spectrumlab.peak.shape import VoightPeakShape
+from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.emulation.detector import Detector
+from spectrumlab.peak.shape import VoigtPeakShape
 
 
 @dataclass
@@ -17,7 +17,7 @@ class Config:
     dx: MicroMeter = field(default=1e-2)
 
     @property
-    def x(self) -> Array[float]:
+    def x(self) -> Array[MicroMeter]:
         return np.linspace(-self.rx, +self.rx, self.n)
 
     @property
@@ -45,47 +45,43 @@ def config() -> Config:
 )
 def test_integral(detector: Detector, config: Config):
     tolerance = 1e-4  # 0.01 [%]
-    step = detector.config.width
+    pitch = detector.pitch
 
     x = config.x
-    f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
+    f = VoigtPeakShape(config.width/pitch, config.asymmetry, config.ratio, rx=config.rx/pitch, dx=config.dx/pitch)
 
-    integral = np.sum(f(x/step, 0, 1)) * (config.dx/step)
+    integral = np.sum(f(x/pitch, 0, 1)) * (config.dx/pitch)
     assert np.abs(integral - 1) < tolerance
 
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    
+    from spectrumlab.core.grid import Grid
+
     config = Config(
         width=28,
         asymmetry=0.1,
         ratio=0.1,
     )
     detector = Detector.BLPP2000
-    step = detector.config.width
+    pitch = detector.pitch
 
     x = config.x
-    # f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio, rx=config.rx/step, dx=config.dx/step)
-    f = VoightPeakShape(config.width/step, config.asymmetry, config.ratio)
+    number = x/pitch
+    f = VoigtPeakShape(config.width/pitch, config.asymmetry, config.ratio)
 
     # shape
-    from spectrumlab.peak.shape import Grid
-
-    # grid = Grid(x/step, f(x/step, 0, 1))
-    # grid.show()
-
-    VoightPeakShape.from_grid(
-        grid=Grid(x/step, f(x/step, 0, 1)),
+    shape = VoigtPeakShape.from_grid(
+        grid=Grid(x=number, y=f(number, 0, 1), units=Number),
         show=True,
     )
 
     # integral
-    integral = np.sum(f(x/step, 0, 1)) * (config.dx/step)
+    integral = np.sum(f(x/pitch, 0, 1)) * (config.dx/pitch)
     print(f'intergal: {integral:.4f}')
 
     #
-    y = f(x/step, 0, 1)
+    y = f(x/pitch, 0, 1)
     plt.plot(
         x, y,
         color='red', linestyle='none', marker='s', markersize=3,

@@ -1,48 +1,33 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import pytest
+import numpy as np
 
-from spectrumlab.spectrum.background.savitzky_golay import SavitzkyGolayConfig, approximate_savitzky_golay
-
-
-class TestSavitzkyGolayConfig:
-    @pytest.mark.parametrize(
-        ['width', 'degree', 'expected_exception'],
-        [
-            (2, 1, ValueError),
-        ],
-    )
-    def test_savitzky_golay_config_exception(self, width: int, degree: int, expected_exception: Exception):
-        with pytest.raises(expected_exception):
-            SavitzkyGolayConfig(
-                width=width,
-                degree=degree,
-            )
+from spectrumlab.background.savitzky_golay_background import SavitzkyGolayBackgroundConfig
+from spectrumlab.background.savitzky_golay_background import approximate_savitzky_golay
 
 
-def test_approximate_savitzky_golay(tol: float = 1e-2):
-    
+def test_approximate_savitzky_golay():
+    tolerance = 1e-2
+
     n = 100
     x = np.linspace(-2*np.pi, +2*np.pi, n)
     y = np.sin(x)
     y_hat = approximate_savitzky_golay(
         y,
-        mask=np.full(n, True),
-        config=SavitzkyGolayConfig(width=3, degree=1),
+        mask=np.full(n, False),
+        config=SavitzkyGolayBackgroundConfig(width=3, degree=1, n_counts_min=2),
     )
 
-    assert np.all(np.abs(y - y_hat) < tol)
+    assert np.all(np.abs(y - y_hat) < tolerance)
 
 
 if __name__ == '__main__':
-
     n = 100
     x = np.linspace(-2*np.pi, +2*np.pi, n)
     y = np.sin(x)
     y_hat = approximate_savitzky_golay(
         y,
-        mask=np.full(n, True),
-        config=SavitzkyGolayConfig(width=3, degree=1),
+        mask=np.full(n, False),
+        config=SavitzkyGolayBackgroundConfig(width=3, degree=1, n_counts_min=2),
     )
 
     # show
@@ -54,12 +39,12 @@ if __name__ == '__main__':
     plt.plot(
         x, y_hat,
         color='black', linestyle='-',
-        label='$\hat{y}$',
+        label=r'$\hat{y}$',
     )
     plt.plot(
         x, y - y_hat,
         color='black', linestyle=':',
-        label='$error$',
+        label=r'$error$',
     )
     plt.grid(color='grey', linestyle=':')
     plt.legend()

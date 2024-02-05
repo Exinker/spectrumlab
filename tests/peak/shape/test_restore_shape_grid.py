@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from spectrumlab.alias import Array, Number
-from spectrumlab.peak.shape import VoightPeakShape, Grid, restore_shape_from_grid
+from spectrumlab.core.grid import Grid
+from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
 
 from core import distance
 
@@ -18,7 +19,7 @@ class Config:
     dx: Number = field(default=1e-2)
 
     @property
-    def x(self) -> Array[float]:
+    def number(self) -> Array[Number]:
         return np.linspace(-self.rx, +self.rx, self.n)
 
     @property
@@ -40,11 +41,11 @@ def config() -> Config:
 def test_restore_shape_from_grid(config: Config):
     tolerance = 1e-4
 
-    x = config.x
-    shape = VoightPeakShape(config.width, config.asymmetry, config.ratio)
+    number = config.number
+    shape = VoigtPeakShape(config.width, config.asymmetry, config.ratio)
 
     #
-    grid = Grid(x, shape(x, 0, 1))
+    grid = Grid(x=number, y=shape(number, 0, 1), units=Number)
     shape_hat = restore_shape_from_grid(
         grid=grid,
         show=False,
@@ -65,18 +66,17 @@ def test_restore_shape_from_grid(config: Config):
 
 
 if __name__ == '__main__':
+
+    # shape
     config = Config(
         width=2.0,
         asymmetry=0.1,
         ratio=0.1,
     )
-
-    # shape
-    x = config.x
-    shape = VoightPeakShape(config.width, config.asymmetry, config.ratio)
+    shape = VoigtPeakShape(config.width, config.asymmetry, config.ratio)
 
     # shape_hat
     shape_hat = restore_shape_from_grid(
-        grid=Grid(x, shape(x, 0, 1)),
+        grid=Grid(x=config.number, y=shape(config.number, 0, 1), units=Number),
         show=True,
     )

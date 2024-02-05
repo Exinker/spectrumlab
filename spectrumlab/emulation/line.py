@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Tuple, overload
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import integrate
 
 from spectrumlab.alias import Array, PicoMeter
-from spectrumlab.emulation.curve import gauss, voigt, pvoigt, voigt2pvoigt, calculate_fwhm
+from spectrumlab.core.grid import Grid
+from spectrumlab.core.grid.utils import estimate_fwhm
+from spectrumlab.emulation.curve import gauss, pvoigt, voigt, voigt2pvoigt
 from spectrumlab.picture.config import COLOR
 
 
@@ -21,8 +23,7 @@ class GaussLineShape:
     @overload
     def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
-        F = gauss(x, x0=position, w=self.width)
-        f = intensity*F
+        f = intensity*gauss(x, x0=position, w=self.width)
 
         return f
 
@@ -53,19 +54,22 @@ class VoigtLineShape:
         return self(self.x, 0, 1)
 
     # --------        handlers        --------
-    def estimate_fwhm(self) -> PicoMeter:
-        """Estimate FWHM of the shape [by formula](https://en.wikipedia.org/wiki/Voigt_profile#The_width_of_the_Voigt_profile)."""
+    def calculate_fwhm(self) -> PicoMeter:
+        """Calculate FWHM of the shape [by formula](https://en.wikipedia.org/wiki/Voigt_profile#The_width_of_the_Voigt_profile)."""
         return self.l/2 + np.sqrt((self.l/2)**2 + self.g**2)
 
-    def calculate_fwhm(self) -> PicoMeter:
-        """Calculate FWHM of the shape."""
-        hwhm = calculate_fwhm(self.x, self.y)
+    def estimate_fwhm(self) -> PicoMeter:
+        """Estimate FWHM of the shape."""
+        hwhm = estimate_fwhm(
+            grid=Grid(self.x, self.y),
+            pitch=1,
+        )
 
         return hwhm
-    
+
     def to_pseudo(self, show: bool = False) -> 'PVoigtLineShape':
-        """Approx voight shape by pvoigt shape."""
-        
+        """Approx voigt shape by pvoigt shape."""
+
         params = voigt2pvoigt(self.x, x0=0, sigma=self.sigma, gamma=self.gamma)
         shape = PVoigtLineShape(*params)
 
@@ -107,8 +111,7 @@ class VoigtLineShape:
     @overload
     def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
-        F = voigt(x, x0=position, sigma=self.sigma, gamma=self.gamma)
-        f = intensity*F
+        f = intensity*voigt(x, x0=position, sigma=self.sigma, gamma=self.gamma)
 
         return f
 
@@ -129,8 +132,7 @@ class PVoigtLineShape:
     @overload
     def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
-        F = pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
-        f = intensity*F
+        f = intensity*pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
 
         return f
 
@@ -148,8 +150,8 @@ class SelfReversedPVoigtLineShape:
     @overload
     def __call__(self, x: Array[PicoMeter], position: PicoMeter, intensity: float) -> Array[float]: ...
     def __call__(self, x, position, intensity):
-        F = pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
-        f = intensity*F * 10**(-self.absorbance*F)
+        voigt = pvoigt(x, x0=position, w=self.width, a=self.asymmetry, r=self.ratio)
+        f = intensity*voigt*10**(-self.absorbance*voigt)
 
         return f
 
@@ -168,13 +170,8 @@ class SigmoidsLineShape:
         w = self.width
         p = self.power
 
-        F = lambda x: ( (4/np.pi) * (np.arctan(-w[0]*(x - position)) + np.pi/2) * (1/(1 + np.exp(-w[1]*(x - position)))) )**p
-        F = F(x) / integrate.quad(
-            lambda x: F(x),
-            a=position-1e+3,
-            b=position+1e+3,
-        )[0]  # normalization
-        f = intensity*F
+        sigmoid = lambda x: ((4/np.pi) * (np.arctan(-w[0]*(x - position)) + np.pi/2) * (1/(1 + np.exp(-w[1]*(x - position)))))**p
+        f = intensity*sigmoid(x)/integrate.quad(sigmoid, a=position-1e+3, b=position+1e+3)[0]
 
         return f
 
@@ -225,7 +222,6 @@ class Line:
 
 
 if __name__ == '__main__':
-
     line = Line(
         shape=PVoigtLineShape(width=25, asymmetry=0, ratio=.1),
     )

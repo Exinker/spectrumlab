@@ -1,49 +1,44 @@
-from typing import Callable
-
-from spectrumlab.alias import NanoMeter, Number
-
-
-def default_handler(wavelength: NanoMeter) -> Number:
-    """Default wavelength handler (do nothing)."""
-
-    return wavelength
+from spectrumlab.alias import NanoMeter
 
 
 class Line:
 
-    def __init__(self, id: int, symbol: str, wavelength: NanoMeter, *args, database_intensity: float = 0, database_ionization_degree: int = 1, handler: Callable[[NanoMeter], Number] | None = None, **kwargs):
+    def __init__(self, symbol: str, wavelength: NanoMeter, *args, id: int | None = None, database_intensity: float = 0, database_ionization_degree: int = 1, **kwargs):
+        self._symbol = symbol
+        self._wavelength = wavelength
 
-        self.id = id
-        self.symbol = symbol
-        self.wavelength = wavelength
-        self.nickname = f'{symbol} {wavelength}'
-        self.database_intensity = database_intensity
-        self.database_ionization_degree = database_ionization_degree
-
-        self._handler = handler or default_handler
+        self._id = id
+        self._database_intensity = database_intensity
+        self._database_ionization_degree = database_ionization_degree
 
     @property
-    def position(self) -> Number:
-        return self._handler(self.wavelength)
+    def symbol(self) -> str:
+        return self._symbol
 
     @property
-    def intensity(self) -> Number:
-        return self.database_intensity
+    def wavelength(self) -> NanoMeter:
+        return self._wavelength
 
-    # --------            others            --------
+    @property
+    def nickname(self) -> str:
+        return f'{self.symbol} {self.wavelength}'
+
+    @property
+    def intensity(self) -> float:
+        return self._database_intensity
+
+    # --------            private            --------
     def __repr__(self) -> str:
         cls = self.__class__
 
         content = '; '.join([
             f'{self.nickname}',
-            f'id: {self.id}',
         ])
         return f'{cls.__name__}({content})'
 
 
 if __name__ == '__main__':
     line = Line(
-        id=0,
         symbol='Cu',
         wavelength=324.75,
     )

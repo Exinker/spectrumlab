@@ -1,127 +1,18 @@
+from typing import TypeAlias
 
-import os
-from abc import abstractmethod
-from typing import overload, TypeAlias
-
-import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array
-from spectrumlab.emulation.spectrum import BaseSpectrum
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.alias import Array, NanoMeter, Number
+from spectrumlab.emulation.detector import Detector
+from spectrumlab.picture import fetch_cmap
+from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 
-def fetch_cmap(filename: str):
-
-    filepath = os.path.join('.', 'colormaps', filename)
-    with open(filepath, 'r') as file:
-        lines = [list(map(float, line.strip().split(','))) for line in file.readlines()]
-
-    cmap = mpl.colors.LinearSegmentedColormap.from_list('absorbance', lines)
-
-    return cmap
-
-
-class RecordedSpectrum(BaseSpectrum):
-    """Base type for any recorded spectrum."""
-    def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
-        deviation = np.zeros(intensity.shape)  # FIXME: refactor!
-
-        super().__init__(intensity=intensity, deviation=deviation, wavelength=wavelength, number=number, clipped=clipped, detector=detector)
-
-        self.crystal = crystal
-
-    @overload
-    def __getitem__(self, index: int | slice) -> 'Spectrum': ...
-    """get spectrum at selected time or times"""
-    @overload
-    def __getitem__(self, index: tuple) -> 'Spectrum': ...
-    """get spectrum at selected times and numbers"""
-    def __getitem__(self, index):
-        cls = self.__class__
-
-        if isinstance(index, int | slice):
-            time = index
-
-            return cls(
-                intensity=self.intensity[time],
-                wavelength=self.wavelength,
-                number=self.number,
-                clipped=self.clipped[time],
-                crystal=self.crystal,
-                detector=self.detector,
-            )
-
-        if isinstance(index, tuple):
-            time, number = index
-
-            return cls(
-                intensity=self.intensity[number] if self.intensity.ndim == 1 else self.intensity[time, number],
-                wavelength=self.wavelength[number],
-                number=self.number[number],
-                clipped=self.clipped[number] if self.clipped.ndim == 1 else self.clipped[time, number],
-                crystal=self.crystal[number],
-                detector=self.detector,
-            )
-
-    def __add__(self, other: float | Array) -> 'Spectrum':
-        cls = self.__class__
-
-        return cls(
-            intensity=self.intensity + other,
-            wavelength=self.wavelength,
-            number=self.number,
-            clipped=self.clipped,
-            crystal=self.crystal,
-            detector=self.detector,
-        )
-
-    def __sub__(self, other: float | Array) -> 'Spectrum':
-        cls = self.__class__
-
-        return cls(
-            intensity=self.intensity - other,
-            wavelength=self.wavelength,
-            number=self.number,
-            clipped=self.clipped,
-            crystal=self.crystal,
-            detector=self.detector,
-        )
-
-    # --------        handlers        --------
-    def select(self, *index) -> 'EmittedSpectrum':
-        cls = self.__class__
-
-        match index:
-            case 'crystal', crystal:
-                number = self.number[self.crystal == crystal]
-
-            case 'number', n0, dn:
-                number = self.number[n0-dn:n0+dn]
-
-            case _:
-                raise ValueError(f'index {index} is not supported!')
-
-        return cls(
-            intensity=self.intensity[number] if self.intensity.ndim == 1 else self.intensity[:, number],
-            wavelength=self.wavelength[number],
-            # number=self.number[number],    # TODO: don't remove! Reset a number values!
-            clipped=self.clipped[number] if self.clipped.ndim == 1 else self.clipped[:, number],
-            crystal=self.crystal[number],
-            detector=self.detector,
-        )
-
-    # --------        handlers        --------
-    @abstractmethod
-    def show(self, canvas, yscale):
-        pass
-
-
-class EmittedSpectrum(RecordedSpectrum):
+# --------        spectrum        --------
+class EmittedSpectrum(BaseSpectrum):
     """Type for any emitted (or ordinary) spectrum."""
-    def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
-        super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
+    def __init__(self, intensity: Array[float], wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+        super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, deviation=deviation, detector=detector)
 
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None, grid: bool = False) -> None:
@@ -151,10 +42,10 @@ class EmittedSpectrum(RecordedSpectrum):
             plt.show()
 
 
-class AbsorbedSpectrum(RecordedSpectrum):
+class AbsorbedSpectrum(BaseSpectrum):
     """Type for any absorbed spectrum."""
-    def __init__(self, intensity: Array, wavelength: Array | None = None, number: Array | None = None, clipped: Array | None = None, crystal: Array | None = None, detector: Detector | None = None):
-        super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, crystal=crystal, detector=detector)
+    def __init__(self, intensity: Array[float], wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+        super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None) -> None:
@@ -189,3 +80,14 @@ class AbsorbedSpectrum(RecordedSpectrum):
 
 
 Spectrum: TypeAlias = EmittedSpectrum | AbsorbedSpectrum
+
+
+# --------        assembly spectrum        --------
+class AssemblySpectrum:
+    """Type of spectrum from assemply device."""
+    def __init__(self, items: tuple[Spectrum]):
+        self.items = items
+
+    # --------        handlers        --------
+    def select(self, index: int) -> Spectrum:
+        return self.items[index]

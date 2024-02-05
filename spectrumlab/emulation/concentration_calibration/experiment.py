@@ -14,7 +14,7 @@ import pandas as pd
 from spectrumlab.alias import Array, Frame
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulation.detector.linear_array_detector import Detector
+from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind
 from spectrumlab.emulation.line import Line, PVoigtLineShape
@@ -63,7 +63,7 @@ class BaseEmittedExperimentConfig:
 
 
 class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
-    '''Emitted spectra (naive) experiment's config.'''
+    """Emitted spectra (naive) experiment's config."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -162,7 +162,7 @@ class EmittedExperimentConfigNaive(BaseEmittedExperimentConfig):
 
 
 class EmittedExperimentConfig(BaseEmittedExperimentConfig):
-    '''Emitted spectra experiment's config.'''
+    """Emitted spectra experiment's config."""
 
     def __init__(self, *args, line: PVoigtLineShape, **kwargs):
         super().__init__(*args, **kwargs)
@@ -171,7 +171,7 @@ class EmittedExperimentConfig(BaseEmittedExperimentConfig):
 
 
 class AbsorbedExperimentConfig(BaseEmittedExperimentConfig):
-    '''Absorbed spectra experiment's config.'''
+    """Absorbed spectra experiment's config."""
 
     def __init__(self, *args, base_level: float, base_n_frames: int, line: PVoigtLineShape, scattering_ratio: float, **kwargs):
         super().__init__(*args, **kwargs)
