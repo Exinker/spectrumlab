@@ -11,7 +11,7 @@ from spectrumlab.core.grid.handler import Handler, LinearInterpolationHandler
 
 # --------        estimators        --------
 def estimate_bias(grid: Grid, pitch: T, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
-    '''Estimate a bias of the `grid`.'''
+    """Estimate a bias of the `grid`."""
     handler = handler or LinearInterpolationHandler(grid=grid)
 
     # bias

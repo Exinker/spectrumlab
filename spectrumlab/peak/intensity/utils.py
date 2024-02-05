@@ -1,8 +1,7 @@
-
 from enum import Enum, auto
 from typing import Callable
 
-from scipy import interpolate, integrate
+from scipy import integrate, interpolate
 
 from spectrumlab.alias import Array
 

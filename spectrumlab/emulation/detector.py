@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -25,7 +24,8 @@ class DetectorConfig:
 
 
 class Detector(Enum):
-    """Enums with detectors's config."""
+    """Enums with detectors."""
+
     BLPP369M1 = DetectorConfig(
         name='БЛПП-369М1',
         capacity=2_000_000,
@@ -62,8 +62,9 @@ class Detector(Enum):
 
     @property
     def config(self) -> DetectorConfig:
+        """Config of the detector."""
         return self.value
-    
+
     @property
     def pitch(self) -> MicroMeter:
         """Pitch structure of the detector."""

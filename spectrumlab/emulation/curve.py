@@ -4,10 +4,8 @@ from typing import TypeVar
 import numpy as np
 from scipy import optimize, signal
 
-from spectrumlab.alias import Array, Number
+from spectrumlab.alias import Array, MicroMeter, NanoMeter, Number, PicoMeter
 from spectrumlab.utils import mse
-
-from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter, PicoMeter
 
 
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
@@ -18,26 +16,26 @@ def gauss(x: T | Array[T], x0: T, w: T) -> Array[float]:
 
     Params:
         x0 - position
-        w - width 
+        w - width
     """
 
-    F = np.exp( -(1/2)*((x - x0) / w)**2 ) / ( np.sqrt(2*np.pi) * w )
+    f = np.exp(-(1/2)*((x - x0) / w)**2) / (np.sqrt(2*np.pi) * w)
 
-    return F
+    return f
 
 
 def lanczos(x: T | Array[T], x0: T, a: int = 2) -> Array[float]:
     """Lanczos distribution with position `x0`.
-    
+
     Params:
         x0 - position
         a - window width
     """
 
-    F = np.sinc(x - x0) * np.sinc((x - x0) / a)
-    F[(x - x0 < -a) | (x - x0 > a)] = 0
+    f = np.sinc(x - x0) * np.sinc((x - x0) / a)
+    f[(x - x0 < -a) | (x - x0 > a)] = 0
 
-    return F
+    return f
 
 
 def rectangular(x: T | Array[T], x0: T, w: T) -> Array[float]:
@@ -49,14 +47,14 @@ def rectangular(x: T | Array[T], x0: T, w: T) -> Array[float]:
     """
 
     if isinstance(x, float):  # TODO: don't remove! It's for integrate.quad functions!
-        F = np.zeros(1,)
+        f = np.zeros((1, ))
     else:
-        F = np.zeros(x.shape)
+        f = np.zeros(x.shape)
 
-    F[(x > x0 - w/2) & (x < x0 + w/2)] = (2/w) / 2
-    F[(x == x0 - w/2) | ( x == x0 + w/2)] = (2/w) / 4
+    f[(x > x0 - w/2) & (x < x0 + w/2)] = (2/w) / 2
+    f[(x == x0 - w/2) | (x == x0 + w/2)] = (2/w) / 4
 
-    return F
+    return f
 
 
 def voigt(x: T | Array[T], x0: T, sigma: float, gamma: float) -> Array[float]:
@@ -69,11 +67,11 @@ def voigt(x: T | Array[T], x0: T, sigma: float, gamma: float) -> Array[float]:
     """
     rx = (x[-1] - x[0]) / 2
 
-    G = np.exp(-(x - x0)**2 / (2*sigma**2)) / (sigma * np.sqrt(2*np.pi))
-    L = gamma / (np.pi*(x**2 + gamma**2))
-    F = signal.convolve(G, L, mode='same') * 2*rx/len(x)
+    gauss = np.exp(-(x - x0)**2 / (2*sigma**2)) / (sigma * np.sqrt(2*np.pi))
+    lorentz = gamma / (np.pi*(x**2 + gamma**2))
+    f = signal.convolve(gauss, lorentz, mode='same') * 2*rx/len(x)
 
-    return F
+    return f
 
 
 def pvoigt(x: T | Array[T], x0: T, w: T, a: float, r: float) -> Array[float]:
@@ -86,16 +84,16 @@ def pvoigt(x: T | Array[T], x0: T, w: T, a: float, r: float) -> Array[float]:
         r - ratio (in range [0; 1])
 
     A simple asymmetric line shape shape for fitting infrared absorption spectra.
-    Aaron L. Stancik, Eric B. Brauns
+    Aaron l. Stancik, Eric B. Brauns
     https://www.sciencedirect.com/science/article/abs/pii/S0924203108000453
     """
-    sigma = 2*w / (1 + np.exp(a*(x - x0)) )
+    sigma = 2*w / (1 + np.exp(a*(x - x0)))
 
-    G = np.sqrt(4*np.log(2)/np.pi) / sigma * np.exp(-4*np.log(2)*((x - x0)/sigma)**2)
-    L = 2/np.pi/sigma/(1 + 4*((x - x0)/sigma)**2)
-    F = r*L + (1 - r)*G
+    gauss = np.sqrt(4*np.log(2)/np.pi) / sigma * np.exp(-4*np.log(2)*((x - x0)/sigma)**2)
+    lorentz = 2/np.pi/sigma/(1 + 4*((x - x0)/sigma)**2)
+    f = r*lorentz + (1 - r)*gauss
 
-    return F
+    return f
 
 
 # --------        utils        --------
@@ -116,7 +114,7 @@ def voigt2pvoigt(x: Array[T], x0: T, sigma: float, gamma: float) -> tuple[T, flo
             (0, 10),
             [-0.1, +0.1],
             [0, 1],
-        ]
+        ],
     )
     assert res['success'], 'Optimization is not succeeded!'
 

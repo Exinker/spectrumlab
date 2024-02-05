@@ -11,7 +11,7 @@ from enum import Enum
 
 @dataclass(frozen=True)
 class DeviceConfig:
-    '''Device config.'''
+    """Device config."""
     name: str
     dispersion: float  # reciprocal linear dispersion [pm/μm]
 
@@ -25,13 +25,13 @@ class DeviceConfig:
 
 @dataclass(frozen=False)
 class DynamicDeviceConfig:
-    '''Device config (not frozen).'''
+    """Device config (not frozen)."""
     name: str
     dispersion: float  # reciprocal linear dispersion [pm/μm]
 
 
 class Device(Enum):
-    '''Enums with devices config.'''
+    """Enums with devices config."""
 
     COLIBRI2 = DeviceConfig(
         name='Колибри-2',
@@ -45,7 +45,7 @@ class Device(Enum):
         name='Гранд-2 (полихроматор II)',
         dispersion=1.1286,
     )
-    contrAA = DeviceConfig(
+    CONTRAA = DeviceConfig(
         name='contrAA® 800 D',
         dispersion=0.1,
     )

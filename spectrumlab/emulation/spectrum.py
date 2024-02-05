@@ -6,19 +6,28 @@ Author: Vaschenko Pavel
   Date: 2022.08.24
 """
 from collections.abc import Mapping
-from typing import overload, Literal, TypeAlias
+from typing import Literal, TypeAlias
+from typing import overload
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from spectrumlab.alias import Array, Percent, Electron, Absorbance, MilliSecond, NanoMeter, Number
+from spectrumlab.alias import Absorbance, Array, Electron, MilliSecond, NanoMeter, Number, Percent
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
 
 
 class EmittedSpectrum(BaseSpectrum):
     """Type for any emitted (or ordinary) spectrum."""
-    def __init__(self, intensity: Array[float], wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+    def __init__(
+            self,
+            intensity: Array[float],
+            wavelength: Array[NanoMeter] | None = None,
+            number: Array[Number] | None = None,
+            deviation: Array[float] | None = None,
+            clipped: Array[bool] | None = None,
+            detector: Detector | None = None,
+    ):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
     # --------        handlers        --------
@@ -40,7 +49,7 @@ class EmittedSpectrum(BaseSpectrum):
         # set axes
         ax.set_xlabel(r'$\lambda$ [$nm$]')
         ax.set_ylabel(
-            r'$I$ [$\bar{e}$]' if yscale is Electron else r'$I$ [$\%$]'
+            r'$I$ [$\bar{e}$]' if yscale is Electron else r'$I$ [$\%$]',
         )
 
         ax.grid(
@@ -54,7 +63,13 @@ class EmittedSpectrum(BaseSpectrum):
 class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
     """Type for any microwave or ICP spectrum."""
 
-    def __init__(self, number: Array[Number], shorts: Mapping[MilliSecond, EmittedSpectrum], method: Literal['naive', 'weighted'], **kwargs):
+    def __init__(
+            self,
+            number: Array[Number],
+            shorts: Mapping[MilliSecond, EmittedSpectrum],
+            method: Literal['naive', 'weighted'],
+            **kwargs,
+    ):
         n_shorts = len(shorts)
         n_numbers = len(number)
 
@@ -128,7 +143,16 @@ class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
 class AbsorbedSpectrum(BaseSpectrum):
     """Type for any absorbtion spectrum."""
 
-    def __init__(self, intensity: Array[float], base: Array[float], wavelength: Array[NanoMeter] | None = None, number: Array[Number] | None = None, deviation: Array[float] | None = None, clipped: Array[bool] | None = None, detector: Detector | None = None):
+    def __init__(
+            self,
+            intensity: Array[float],
+            base: Array[float],
+            wavelength: Array[NanoMeter] | None = None,
+            number: Array[Number] | None = None,
+            deviation: Array[float] | None = None,
+            clipped: Array[bool] | None = None,
+            detector: Detector | None = None,
+    ):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
         self.base = base

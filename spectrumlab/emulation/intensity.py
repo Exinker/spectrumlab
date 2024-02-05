@@ -1,9 +1,11 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.alias import Array, Number
-from spectrumlab.emulation.spectrum import Spectrum, EmittedSpectrum, AbsorbedSpectrum
-from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, integrate_grid, interpolate_grid
+from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, Spectrum
+from spectrumlab.peak.intensity import AmplitudeIntensityConfig, ApproxIntensityConfig, IntegralIntensityConfig
+from spectrumlab.peak.intensity import IntensityConfig
+from spectrumlab.peak.intensity import InterpolationKind, integrate_grid, interpolate_grid
 
 
 # --------        estimate intensity        --------
@@ -126,7 +128,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
             x = np.linspace(position - 1/2, position + 1/2, 101)
             f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.NEAREST)
             plt.fill_between(
-                x, 
+                x,
                 background,
                 f(x),
                 step='mid',
@@ -148,7 +150,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
                 x = np.linspace(position - config.interval/2, position + config.interval/2, 101)
                 f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.NEAREST)
                 plt.fill_between(
-                    x, 
+                    x,
                     background,
                     f(x),
                     step='mid',
@@ -167,7 +169,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
                 x = np.linspace(position - config.interval/2, position + config.interval/2, 101)
                 f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.LINEAR)
                 plt.fill_between(
-                    x, 
+                    x,
                     background,
                     f(x),
                     step='mid',
@@ -184,9 +186,9 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
             )
 
             x = np.linspace(min(x_grid), max(x_grid), 101)
-            f = lambda x: config.approx_shape(x, position=position, intensity=value)
+            y = background + config.approx_shape(x, position=position, intensity=value)
             plt.plot(
-                x, background + f(x),
+                x, y,
                 alpha=0.2, color=config.color,
             )
 

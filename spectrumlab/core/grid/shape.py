@@ -34,7 +34,7 @@ class VoigtGridShape:
         )
 
     def __call__(self, x: T | Array[T], position: T, intensity: float, background: float = 0) -> Array[float]:
-        '''interpolate by grip'''
+        """interpolate by grip"""
         f = self._f
 
         return background + intensity*f(x - position)
