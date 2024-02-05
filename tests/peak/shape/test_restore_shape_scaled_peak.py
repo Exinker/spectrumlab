@@ -8,10 +8,10 @@ from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.peak import ScaledExperiment, ScaledExperimentConfig
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
-from spectrumlab.peak.shape._grid import _Grid
+from spectrumlab.peak.shape.utils import restore_grid_from_frames
 
+from config import DETECTOR, INTENSITY, IS_NOISED, N_FRAMES, N_ITERS, N_NUMBERS, POSITION, SHAPE
 from core import distance
-from config import *
 
 THRESHOLD = 100
 
@@ -66,7 +66,7 @@ def shape_hat(experiment: ScaledExperiment) -> VoigtPeakShape:
     spectrum = experiment.run(is_noised=IS_NOISED)
 
     # grid
-    grid = _Grid.from_frames(
+    grid = restore_grid_from_frames(
         spectrum=spectrum,
         offset=np.full((config.n_iters, ), config.n_numbers//2),
         scale=config.exposure,
@@ -124,19 +124,19 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
 
 
 if __name__ == '__main__':
-    detector = DETECTOR
-    shape = SHAPE
+
+    # experiment
     config = ScaledExperimentConfig(
         n_numbers=N_NUMBERS,
         n_frames=N_FRAMES,
 
-        detector=detector,
+        detector=DETECTOR,
         apparatus=Apparatus(
-            detector=detector,
-            shape=shape,
+            detector=DETECTOR,
+            shape=SHAPE,
         ),
         aperture=Aperture(
-            detector=detector,
+            detector=DETECTOR,
             shape=RectangularApertureShape(),
         ),
 
@@ -144,8 +144,6 @@ if __name__ == '__main__':
         position=POSITION,
         intensity=INTENSITY,
     )
-
-    # experiment
     experiment = ScaledExperiment(
         config=config,
     )
@@ -158,14 +156,14 @@ if __name__ == '__main__':
     spectrum = experiment.run(is_noised=IS_NOISED)
 
     # restore shape
-    grid = _Grid.from_frames(
+    grid = restore_grid_from_frames(
         spectrum=spectrum,
         offset=np.full((config.n_iters, ), config.position),
         scale=config.exposure,
         background=np.full((config.n_iters, ), 0),
         threshold=THRESHOLD,
     )
-    shape_hat = restore_shape_from_grid(
+    restore_shape_from_grid(
         grid=grid,
         show=True,
     )

@@ -66,18 +66,17 @@ def test_restore_shape_from_grid(config: Config):
 
 
 if __name__ == '__main__':
+
+    # shape
     config = Config(
         width=2.0,
         asymmetry=0.1,
         ratio=0.1,
     )
-
-    # shape
-    number = config.number
     shape = VoigtPeakShape(config.width, config.asymmetry, config.ratio)
 
     # shape_hat
     shape_hat = restore_shape_from_grid(
-        grid=Grid(x=number, y=shape(number, 0, 1), units=Number),
+        grid=Grid(x=config.number, y=shape(config.number, 0, 1), units=Number),
         show=True,
     )

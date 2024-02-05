@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Iterator, Sequence
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.peak.base_peak import BasePeak
@@ -100,6 +100,7 @@ class BlinkPeak(BasePeak):
         self.amplitude = amplitude
         self.deviation = deviation
 
+    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
 
@@ -218,7 +219,7 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig 
                 color='red',
             )
 
-        plt.xlabel('$\lambda, nm$')
+        plt.xlabel(r'$\lambda, nm$')
         plt.ylabel('')
         plt.grid(color='grey', linestyle=':')
 

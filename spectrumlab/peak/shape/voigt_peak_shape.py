@@ -1,22 +1,23 @@
 from collections.abc import Sequence
 from functools import partial
-from typing import overload, Literal
+from typing import Literal
+from typing import overload
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import interpolate, optimize, signal
 from tqdm import tqdm
 
-from spectrumlab.alias import Array, Number, MicroMeter
-from spectrumlab.core.grid import Grid
-from spectrumlab.core.approximate.base_variables import Variable, BaseVariables
+from spectrumlab.alias import Array, MicroMeter, Number
+from spectrumlab.core.approximate.base_variables import BaseVariables, Variable
 from spectrumlab.core.approximate.scope import ScopeVariables
+from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.base_shape import BasePeakShape
-from spectrumlab.peak.shape._grid import _Grid
+from spectrumlab.peak.shape.utils import restore_grid_from_blinks
 from spectrumlab.utils import mse
 
 
@@ -108,16 +109,17 @@ class VoigtPeakShape(BasePeakShape):
 
         # grid
         x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
-
-        f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
-        s = lambda x: rectangular(x, x0=0, w=1)
-        y = signal.convolve(f(x), s(x), mode='same') * self.dx
+        y = signal.convolve(
+            pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio),
+            rectangular(x, x0=0, w=1),
+            mode='same',
+        ) * self.dx
 
         self._xvalues = x
         self._yvalues = y
 
     def get_content(self, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
-        sign = {+1: '+' }.get(np.sign(self.asymmetry), '') if is_signed else ''
+        sign = {+1: '+'}.get(np.sign(self.asymmetry), '') if is_signed else ''
 
         return sep.join([
             f'w={self.width:.4f}',
@@ -197,7 +199,7 @@ class VoigtPeakShape(BasePeakShape):
 
             plt.show()
 
-        # 
+        #
         return shape
 
     # --------        private        --------
@@ -248,12 +250,14 @@ class SelfReversedVoigtPeakShape(BasePeakShape):
         ratio = self.ratio
 
         x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
+        f = signal.convolve(
+            pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio) * 10**(-effect * pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)),
+            rectangular(x, x0=0, w=1),
+            mode='same',
+        ) * self.dx
 
-        f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
-        g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
-        h = lambda x: rectangular(x, x0=0, w=1)
-
-        return signal.convolve(f(x) * 10**(-effect * g(x)), h(x), mode='same') * self.dx
+        #
+        return f
 
     @overload
     def __call__(self, x: float, position: Number, intensity: float, background: float = 0, effect: float = 0) -> float: ...
@@ -416,7 +420,7 @@ def restore_shape_from_grid(grid: Grid, show: bool = False) -> 'VoigtPeakShape':
 
         plt.show()
 
-    # 
+    #
     return shape
 
 
@@ -443,10 +447,10 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
     # calculate shape
     n_blinks = len(blinks)
 
-    offset = np.zeros(n_blinks, )
-    scale = np.zeros(n_blinks, )
-    background = np.zeros(n_blinks, )
-    error = np.zeros(n_blinks, )
+    offset = np.zeros(n_blinks)
+    scale = np.zeros(n_blinks)
+    background = np.zeros(n_blinks)
+    error = np.zeros(n_blinks)
     mask = np.full(n_blinks, False)
     for i, blink in tqdm(enumerate(blinks), total=n_blinks, desc='Initializing:', unit='blinks', disable=not verbose):
         lb, ub = blink.minima
@@ -465,7 +469,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
         pbar.update(1)
 
         # update shape
-        grid = _Grid.from_blinks(
+        grid = restore_grid_from_blinks(
             spectrum=spectrum,
             blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
             offset=[offset[i] for i, mask in enumerate(mask) if not mask],
@@ -525,7 +529,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             )
 
         plt.sca(ax_mid)
-        grid = _Grid.from_blinks(
+        grid = restore_grid_from_blinks(
             spectrum=spectrum,
             blinks=[blinks[i] for i, mask in enumerate(mask) if mask],
             offset=[offset[i] for i, mask in enumerate(mask) if mask],
@@ -539,7 +543,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             alpha=.5,
         )
 
-        grid = _Grid.from_blinks(
+        grid = restore_grid_from_blinks(
             spectrum=spectrum,
             blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
             offset=[offset[i] for i, mask in enumerate(mask) if not mask],
