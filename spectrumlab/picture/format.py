@@ -6,7 +6,7 @@ import numpy as np
 PREFIX = {
     -12: 'p',
     -9: 'n',
-    -6: '\mu',
+    -6: r'\mu',
     -3: 'm',
     0: '',
     3: 'k',
@@ -17,17 +17,15 @@ PREFIX = {
 
 def format_value(value: float, units: str | None = None, n_digits: int = 2, prefix: bool = False) -> str:
     """format value and units to label
-    
+
     1e-5 -> r'10.00 \cdot 10^{-6}'
     1e-5, 'A' -> r'10.00 \cdot 10^{-6}, A'
     1e-5, 'A' -> r'10.00, \muA'
-    
-    
+
     FIXME: 1e-06, 'A' -> $999.99, nA$
 
     """
-
-    assert n_digits >= 0, f'n_digits have to be greater 0'
+    assert n_digits >= 0, '`n_digits` have to be greater 0'
 
     #
     sign, digits, exponent = Decimal(value).as_tuple()
@@ -41,34 +39,30 @@ def format_value(value: float, units: str | None = None, n_digits: int = 2, pref
 
     if n > 0:
         result.append(
-            ''.join(map(str, digits[:n])) + '.' * (n_digits != 0) + ''.join(map(str, digits[n:n + n_digits]))
+            ''.join(map(str, digits[:n])) + '.' * (n_digits != 0) + ''.join(map(str, digits[n:n + n_digits])),
         )
     else:
         m = -n
         result.append(
-            '0' + '.' + '0'*(m) + ''.join(map(str, digits[m:n_digits - m + 1]))
+            '0' + '.' + '0'*(m) + ''.join(map(str, digits[m:n_digits - m + 1])),
         )
 
     # add units with prefix
     if units:
         if prefix:
             result.append(
-                r', {{{}}}{{{}}}'.format(
-                    PREFIX.get(e_rounded, '???'),
-                    units,
-                )
+                r', {{{}}}{{{}}}'.format(PREFIX.get(e_rounded, '???'), units),
             )
         else:
             result.append(
-                fr' \cdot 10^{{{e_rounded}}}' * (e_rounded != 0) + f', {units}'
+                fr' \cdot 10^{{{e_rounded}}}' * (e_rounded != 0) + f', {units}',
             )
-
 
     else:
         result.append(
-            fr' \cdot 10^{{{e_rounded}}}' * (e_rounded != 0)
+            fr' \cdot 10^{{{e_rounded}}}' * (e_rounded != 0),
         )
 
     return r'{}'.format(
-        ''.join(result)
+        ''.join(result),
     )
