@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
 
 from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.aperture import Aperture
 from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.emulation import emulate_emitted_spectrum, convolve
-from spectrumlab.emulation.noise import Noise, EmittedSpectrumNoise
+from spectrumlab.emulation.emulation import convolve, emulate_emitted_spectrum
+from spectrumlab.emulation.noise import EmittedSpectrumNoise, Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.line import Line
 from spectrumlab.picture.config import COLOR
@@ -49,28 +49,21 @@ class BaseExperiment(ABC):
     @property
     def intensity(self) -> Array[float]:
         if self._intensity is None:
-            raise Exception  # add 
+            raise Exception  # add custom exception!
 
         return self._intensity
 
     @property
     def number(self) -> Array[Number]:
         if self._number is None:
-            raise Exception  # add 
+            raise Exception  # add custom exception!
 
         return self._number
 
     @property
-    def intensity(self) -> Array[float]:
-        if self._intensity is None:
-            raise Exception  # add 
-
-        return self._intensity
-
-    @property
     def background(self) -> Array[float]:
         if self._background is None:
-            raise Exception  # add 
+            raise Exception  # add custom exception!
 
         return self._background
 
