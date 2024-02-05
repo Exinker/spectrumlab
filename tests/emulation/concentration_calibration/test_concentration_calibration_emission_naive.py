@@ -1,12 +1,13 @@
 import os
-import pytest
 
 import numpy as np
+import pytest
 
 from spectrumlab.emulation.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig, EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.emulation import fetch_emulation, Emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
-from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, AmplitudeIntensityConfig
+from spectrumlab.emulation.emulation import EmittedSpectrumEmulationConfig, Emulation, SpectrumConfig
+from spectrumlab.emulation.emulation import fetch_emulation
+from spectrumlab.emulation.intensity import AmplitudeIntensityConfig, IntegralIntensityConfig, IntensityConfig
 
 
 @pytest.fixture(scope='module')
@@ -36,7 +37,7 @@ def emulation(config: ExperimentConfig) -> Emulation:
             background_level=config.background_level,
 
             # info='',
-        )
+        ),
     )
 
 
@@ -93,5 +94,5 @@ class TestConcentrationCalibration:
             deviation = np.sqrt(config.interval) * read_noise
 
             return k * deviation
-        
+
         raise ValueError(f'config: {config} is not supported yet!')

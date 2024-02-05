@@ -3,13 +3,12 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.optimize import minimize
 
-from spectrumlab.peak.shape import PeakShape, VoigtPeakShape, SelfReversedVoigtPeakShape
+from spectrumlab.peak.shape import PeakShape, SelfReversedVoigtPeakShape, VoigtPeakShape
 from spectrumlab.utils import mse
-
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

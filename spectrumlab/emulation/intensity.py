@@ -2,24 +2,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.alias import Array, Number
+from spectrumlab.core.grid import Grid, integrate_grid, interpolate_grid
 from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, Spectrum
-from spectrumlab.peak.intensity import AmplitudeIntensityConfig, ApproxIntensityConfig, IntegralIntensityConfig
+from spectrumlab.peak.intensity import AmplitudeIntensityConfig
+from spectrumlab.peak.intensity import ApproxIntensityConfig
+from spectrumlab.peak.intensity import IntegralIntensityConfig, InterpolationKind
 from spectrumlab.peak.intensity import IntensityConfig
-from spectrumlab.peak.intensity import InterpolationKind, integrate_grid, interpolate_grid
 
 
 # --------        estimate intensity        --------
-def _estimate_intensity(x_grid: Array, y_grid: Array, mask: Array, position: Number, config: IntensityConfig) -> float:
+def _estimate_intensity(grid: Grid, mask: Array[bool], position: Number, config: IntensityConfig) -> float:
     """Interface to estimate analyte peak's intensity."""
 
     if isinstance(config, AmplitudeIntensityConfig):
-        f = interpolate_grid(x_grid, y_grid, kind=InterpolationKind.NEAREST)
+        f = interpolate_grid(grid, kind=InterpolationKind.NEAREST)
 
         return f(position)
 
     if isinstance(config, IntegralIntensityConfig):
         return integrate_grid(
-            x_grid, y_grid,
+            grid=grid,
             position=position,
             interval=config.interval,
             kind=config.kind,
@@ -28,7 +30,7 @@ def _estimate_intensity(x_grid: Array, y_grid: Array, mask: Array, position: Num
     if isinstance(config, ApproxIntensityConfig):
         shape = config.approx_shape
 
-        return np.dot(y_grid[~mask], y_grid[~mask]) / np.dot(y_grid[~mask], shape(x_grid[~mask], position=position, intensity=1))
+        return np.dot(grid.y[~mask], grid.y[~mask]) / np.dot(grid.y[~mask], shape(grid.x[~mask], position=position, intensity=1))
 
     raise ValueError(f'calculate_intensity: config {config} is not supported!')
 
@@ -83,13 +85,16 @@ def _estimate_intensity(x_grid: Array, y_grid: Array, mask: Array, position: Num
 # --------        calculate intensity        --------
 def calculate_intensity(spectrum: Spectrum, background: float, position: Number, config: IntensityConfig, ylim: tuple[float, float] | None = None, verbose: bool = False, show: bool = False) -> float:
     """Calculate a peak's intensity with selected config."""
-    x_grid = spectrum.number
-    y_grid = (spectrum.intensity - background).flatten()
+    grid = Grid(
+        x=spectrum.number,
+        y=(spectrum.intensity - background).flatten(),
+        units=Number,
+    )
     mask = spectrum.clipped.flatten()
 
     # estimate intensity
     value = _estimate_intensity(
-        x_grid, y_grid,
+        grid=grid,
         mask=mask,
         position=position,
         config=config,
@@ -108,7 +113,12 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
     # show
     if show:
         noise = _estimate_intensity(
-            spectrum.number, (spectrum.deviation ** 2).flatten(), mask=mask,
+            grid=Grid(
+                x=spectrum.number,
+                y=(spectrum.deviation ** 2).flatten(),
+                units=Number,
+            ),
+            mask=mask,
             position=position,
             config=config,
         ) ** (1/2)
@@ -118,15 +128,15 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
 
         if isinstance(config, AmplitudeIntensityConfig):
             plt.step(
-                x_grid, background + y_grid,
+                grid.x, background + grid.y,
                 where='mid',
                 linestyle='-', linewidth=1, color=config.color,
                 marker='.', markersize=5,
-                label='$s_{k}$',
+                label=r'$s_{k}$',
             )
 
             x = np.linspace(position - 1/2, position + 1/2, 101)
-            f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.NEAREST)
+            f = interpolate_grid(background + grid, kind=InterpolationKind.NEAREST)
             plt.fill_between(
                 x,
                 background,
@@ -140,7 +150,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
 
             if config.kind == InterpolationKind.NEAREST:
                 plt.step(
-                    x_grid, background + y_grid,
+                    grid.x, background + grid.y,
                     where='mid',
                     linestyle='-', linewidth=1, color=config.color,
                     marker='.', markersize=5,
@@ -148,7 +158,7 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
                 )
 
                 x = np.linspace(position - config.interval/2, position + config.interval/2, 101)
-                f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.NEAREST)
+                f = interpolate_grid(background + grid, kind=InterpolationKind.NEAREST)
                 plt.fill_between(
                     x,
                     background,
@@ -160,14 +170,14 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
 
             if config.kind == InterpolationKind.LINEAR:
                 plt.plot(
-                    x_grid, background + y_grid,
+                    grid.x, background + grid.y,
                     linestyle='-', linewidth=1, color=config.color,
                     marker='.', markersize=5,
                     label='$s_{k}$',
                 )
 
                 x = np.linspace(position - config.interval/2, position + config.interval/2, 101)
-                f = interpolate_grid(x_grid, background + y_grid, kind=InterpolationKind.LINEAR)
+                f = interpolate_grid(background + grid, kind=InterpolationKind.LINEAR)
                 plt.fill_between(
                     x,
                     background,
@@ -179,13 +189,13 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
 
         if isinstance(config, ApproxIntensityConfig):
             plt.plot(
-                x_grid, background + y_grid,
+                grid.x, background + grid.y,
                 linestyle='none', color=config.color,
                 marker='.', markersize=5,
                 label='$s_{k}$',
             )
 
-            x = np.linspace(min(x_grid), max(x_grid), 101)
+            x = np.linspace(min(grid.x), max(grid.x), 101)
             y = background + config.approx_shape(x, position=position, intensity=value)
             plt.plot(
                 x, y,
@@ -221,13 +231,16 @@ def calculate_intensity(spectrum: Spectrum, background: float, position: Number,
 
 def calculate_deviation(spectrum: Spectrum, background: float, position: Number, config: IntensityConfig) -> float:
     """Calculate a standart deviation of peak's intensity with selected config."""
-    x_grid = spectrum.number
-    y_grid = (spectrum.deviation ** 2).flatten()
+    grid = Grid(
+        x=spectrum.number,
+        y=(spectrum.deviation ** 2).flatten(),
+        units=Number,
+    )
     mask = spectrum.clipped.flatten()
 
     if isinstance(config, IntegralIntensityConfig):
         value = _estimate_intensity(
-            x_grid, y_grid,
+            grid=grid,
             mask=mask,
             position=position,
             config=config,
