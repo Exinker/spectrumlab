@@ -3,12 +3,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Literal
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.alias import Array, Meter, NanoMeter
-from spectrumlab.emulation.photodiode import DATASHEET_DIR
 from spectrumlab.emulation.photodiode.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic, DatasheetCharacteristic
+
+
+DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')
 
 
 @dataclass(frozen=True)
@@ -36,16 +38,16 @@ class Detector(Enum):
         name='unicorn',
         sensitivity=ConstantCharacteristic(value=1),
         transmittance=ConstantCharacteristic(value=1),
-        description='Idealized detector example.'
+        description='Idealized detector example.',
     )
     G12180 = DetectorConfig(
         name='G12180 series',
         sensitivity=DatasheetCharacteristic(
-            path=os.path.join(DATASHEET_DIR, 'G12180', 'photo-sensitivity.csv'),
+            path=os.path.join(DATASHEET_DIRECTORY, 'G12180', 'photo-sensitivity.csv'),
             xscale=1e+6,
         ),
         transmittance=DatasheetCharacteristic(
-            path=os.path.join(DATASHEET_DIR, 'G12180', 'window-spectral-transmittance.csv'),
+            path=os.path.join(DATASHEET_DIRECTORY, 'G12180', 'window-spectral-transmittance.csv'),
             xscale=1e+6,
             yscale=100,
         ),
@@ -54,11 +56,11 @@ class Detector(Enum):
     G12183 = DetectorConfig(
         name='G12183 series*',  # exclude G12183-219KA-03 Detector
         sensitivity=DatasheetCharacteristic(
-            path=os.path.join(DATASHEET_DIR, 'G12183', 'photo-sensitivity.csv'),
+            path=os.path.join(DATASHEET_DIRECTORY, 'G12183', 'photo-sensitivity.csv'),
             xscale=1e+6,
         ),
         transmittance=DatasheetCharacteristic(
-            path=os.path.join(DATASHEET_DIR, 'G12183', 'window-spectral-transmittance.csv'),
+            path=os.path.join(DATASHEET_DIRECTORY, 'G12183', 'window-spectral-transmittance.csv'),
             xscale=1e+6,
             yscale=100,
         ),
@@ -67,11 +69,11 @@ class Detector(Enum):
     G12183_219KA_03 = DetectorConfig(
         name='G12183-219KA-03',
         sensitivity=DatasheetCharacteristic(
-            path=os.path.join(DATASHEET_DIR, 'G12183-219KA-03', 'photo-sensitivity.csv'),
+            path=os.path.join(DATASHEET_DIRECTORY, 'G12183-219KA-03', 'photo-sensitivity.csv'),
             xscale=1e+6,
         ),
         transmittance=DatasheetCharacteristic(
-            path=os.path.join(DATASHEET_DIR, 'G12183-219KA-03', 'window-spectral-transmittance.csv'),
+            path=os.path.join(DATASHEET_DIRECTORY, 'G12183-219KA-03', 'window-spectral-transmittance.csv'),
             xscale=1e+6,
             yscale=100,
         ),
@@ -105,7 +107,7 @@ class Detector(Enum):
         match info:
             case 'title':
                 ax.set_title(text)
-            case 'text': 
+            case 'text':
                 ax.text(
                     0.05, 0.95,
                     text,
@@ -118,7 +120,7 @@ class Detector(Enum):
         ax.set_xlim(bounds)
         ax.set_ylim([0, 1.25])
 
-        ax.set_xlabel('$\lambda, нм$')
+        ax.set_xlabel(r'$\lambda, нм$')
         ax.set_ylabel(r'Спектральный отклик фотодиода, А/Вт')
 
         ax.grid(color='grey', linestyle=':')

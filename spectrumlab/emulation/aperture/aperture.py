@@ -4,15 +4,18 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Callable, Literal
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.alias import Array, MicroMeter, Number
 from spectrumlab.core.grid import Grid
-from spectrumlab.emulation.curve import rectangular, pvoigt
+from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR
+
+
+DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')
 
 
 # --------        aperture shapes        --------
@@ -101,7 +104,7 @@ class VoigtApertureShape(BaseApertureShape):
     # --------        fabric        --------
     @classmethod
     def from_ini(cls, detector: Detector, kind: Literal[405] = 405) -> 'VoigtApertureShape':
-        PARAMS = {
+        params = {
             Detector.BLPP369M1: {
                 405: (4.9173/detector.pitch, 0, 1.0000),  # (!) bad approximation
             },
@@ -113,7 +116,7 @@ class VoigtApertureShape(BaseApertureShape):
             },
         }
 
-        return cls(*PARAMS[detector][kind])
+        return cls(*params[detector][kind])
 
 
 class MeasuredApertureShape(BaseApertureShape):
@@ -138,7 +141,7 @@ class MeasuredApertureShape(BaseApertureShape):
     @classmethod
     def from_datasheet(cls, detector: Detector) -> 'MeasuredApertureShape':
 
-        filepath = os.path.join(os.path.dirname(__file__), 'datasheet', f'{detector.name}.csv')
+        filepath = os.path.join(DATASHEET_DIRECTORY, f'{detector.name}.csv')
         datasheet = np.genfromtxt(
             filepath,
             delimiter=',',
@@ -147,8 +150,8 @@ class MeasuredApertureShape(BaseApertureShape):
 
         return cls(
             grid=Grid(
-                x=datasheet[:,0],
-                y=datasheet[:,1],
+                x=datasheet[:, 0],
+                y=datasheet[:, 1],
             ).rescale(
                 detector.pitch, units=Number,
             ),
@@ -182,8 +185,7 @@ class Aperture:
             MicroMeter: 1,
         }.get(units)
 
-
-        # 
+        #
         x = np.linspace(-rx/2, +rx/2, int(rx/dx) + 1)
         grid = Grid(
             x=x/scale,
@@ -222,7 +224,7 @@ class Aperture:
             plt.plot(
                 grid.x, grid.y,
                 color=COLOR['blue'],
-                label='$S(x - x_{k})$' if n==0 else None,
+                label=r'$S(x - x_{k})$' if n == 0 else None,
             )
             integral += grid.y
 
@@ -245,6 +247,7 @@ class Aperture:
 
 
 if __name__ == '__main__':
+
     # detector
     detector = Detector.BLPP369M1
 
@@ -256,4 +259,4 @@ if __name__ == '__main__':
         # shape=VoigtApertureShape.from_ini(detector=detector),
         shape=MeasuredApertureShape.from_datasheet(detector=detector),
     )
-    aperture.show(units=Number)
+    aperture.show(units=MicroMeter)

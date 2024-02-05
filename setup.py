@@ -27,7 +27,7 @@ setup(
 
 	# setup data
     package_data = {
-        '': ['*.txt', '*.xml', '*.csv'],
+        '': ['*.txt', '*.xml', '*.csv', '*.md'],
     },
 
 	# requires
