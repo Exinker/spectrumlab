@@ -5,9 +5,10 @@ from spectrumlab.background.savitzky_golay_background import SavitzkyGolayBackgr
 from spectrumlab.background.savitzky_golay_background import approximate_savitzky_golay
 
 
-def test_approximate_savitzky_golay(tol: float = 1e-2):
-    n = 100
+def test_approximate_savitzky_golay():
+    tolerance = 1e-2
 
+    n = 100
     x = np.linspace(-2*np.pi, +2*np.pi, n)
     y = np.sin(x)
     y_hat = approximate_savitzky_golay(
@@ -16,12 +17,11 @@ def test_approximate_savitzky_golay(tol: float = 1e-2):
         config=SavitzkyGolayBackgroundConfig(width=3, degree=1, n_counts_min=2),
     )
 
-    assert np.all(np.abs(y - y_hat) < tol)
+    assert np.all(np.abs(y - y_hat) < tolerance)
 
 
 if __name__ == '__main__':
     n = 100
-
     x = np.linspace(-2*np.pi, +2*np.pi, n)
     y = np.sin(x)
     y_hat = approximate_savitzky_golay(
