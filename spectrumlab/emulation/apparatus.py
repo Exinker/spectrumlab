@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.alias import Array, MicroMeter
-from spectrumlab.emulation.curve import rectangular, pvoigt
+from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.detector import Detector
 
 
@@ -14,8 +14,8 @@ class RectangularApparatusShape:
     """Rectangular device's apparatus shape."""
     width: MicroMeter
 
-    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
-        f = rectangular(x/step, x0=x0/step, w=self.width/step)/step
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, pitch: MicroMeter) -> Array[float]:
+        f = rectangular(x/pitch, x0=x0/pitch, w=self.width/pitch)/pitch
 
         return f
 
@@ -29,7 +29,7 @@ class TriangularApparatusShape:
         raise NotImplementedError
 
 
-@dataclass 
+@dataclass
 class VoigtApparatusShape:
     """Voigt device's apparatus shape.
 
@@ -69,7 +69,7 @@ class Apparatus:
 
     # --------        handlers        --------
     def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
-        
+
         #
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     )
     apparatus.show()
 
-    # 
+    #
     rx = 100
     dx = 1e-2
     x = np.linspace(-rx, +rx, 2*int(rx/dx))
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     integral = np.sum(apparatus(x, x0=0))*dx
     print(f'integral: {integral:.4f}')
 
-    # 
+    #
     rx = 10
     dx = 1e-2/detector.pitch
     x = np.linspace(-rx, +rx, 2*int(rx/dx))
