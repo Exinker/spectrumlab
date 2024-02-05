@@ -2,9 +2,9 @@
 from dataclasses import dataclass, field
 from typing import overload
 
-from spectrumlab.alias import Array, Electron, Percent
+from spectrumlab.alias import Array, Percent
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.noise import BaseNoise, EmittedSpectrumNoise
+from spectrumlab.emulation.noise import BaseNoise
 
 
 @dataclass(frozen=True)

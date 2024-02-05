@@ -3,7 +3,7 @@ from typing import overload
 
 import numpy as np
 
-from spectrumlab.alias import Array, Electron, Percent, Absorbance
+from spectrumlab.alias import Absorbance, Array, Electron, Percent
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.noise import BaseNoise, EmittedSpectrumNoise
 
@@ -40,7 +40,7 @@ class AbsorbedSpectrumNoise(BaseNoise):
             noise=EmittedSpectrumNoise(
                 detector=detector,
                 n_frames=n_frames,
-            )
+            ),
         )
         return calculate_absorbance_deviation(part_base=part_base, part_recorded=part_recorded)
 

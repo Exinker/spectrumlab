@@ -39,12 +39,12 @@ if __name__ == '__main__':
     plt.plot(
         x, y_hat,
         color='black', linestyle='-',
-        label='$\hat{y}$',
+        label=r'$\hat{y}$',
     )
     plt.plot(
         x, y - y_hat,
         color='black', linestyle=':',
-        label='$error$',
+        label=r'$error$',
     )
     plt.grid(color='grey', linestyle=':')
     plt.legend()

@@ -21,9 +21,7 @@ class ConstantNoise(BaseNoise):
     @overload
     def __call__(self, value: Array[Electron]) -> Array[Electron]: ...
     def __call__(self, value):
-
         if isinstance(value, (int, float)):
             return self.noise_level
-        
         if isinstance(value, np.ndarray):
             return np.full(value.shape, self.noise_level)
