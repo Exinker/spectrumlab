@@ -171,7 +171,7 @@ class TestConcentrationCalibration:
                     position=InterpolationPositionConfig(),
                     intensity=ApproxIntensityConfig(
                         approx_shape=VoigtPeakShape(
-                            width=apparatus.shape.width/detector.config.width,
+                            width=apparatus.shape.width/detector.pitch,
                             asymmetry=apparatus.shape.asymmetry,
                             ratio=apparatus.shape.ratio,
                             rx=25,

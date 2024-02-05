@@ -49,7 +49,6 @@ def config() -> Config:
 )
 def test_shape(detector: Detector, config: Config):
     tolerance = 1e-4  # 0.01 [%]
-    step = detector.config.width
 
     apparatus = Apparatus(
         detector=detector,
@@ -62,17 +61,17 @@ def test_shape(detector: Detector, config: Config):
 
     x = config.x
     f = VoigtPeakShape(
-        width=apparatus.shape.width/step,
+        width=apparatus.shape.width/detector.pitch,
         asymmetry=apparatus.shape.asymmetry,
         ratio=apparatus.shape.ratio,
-        rx=int(config.rx/step),
-        dx=config.dx/step,
+        rx=int(config.rx/detector.pitch),
+        dx=config.dx/detector.pitch,
     )
-    f_hat = convolve(x/step, apparatus=apparatus, aperture=aperture, step=step)
+    f_hat = convolve(x/detector.pitch, apparatus=apparatus, aperture=aperture, pitch=detector.pitch)
 
     # 
     mask = (x > -(config.rx-apparatus.shape.width/2)) & (x < +(config.rx-apparatus.shape.width/2))  # remove edges
-    error = (f(x/step, 0, 1) - f_hat(x/step)) / f(0, 0, 1)
+    error = (f(x/detector.pitch, 0, 1) - f_hat(x/detector.pitch)) / f(0, 0, 1)
 
     assert np.all(np.abs(error[mask]) < tolerance)
 
@@ -86,7 +85,6 @@ def test_shape(detector: Detector, config: Config):
 )
 def test_integral(detector: Detector, config: Config):
     tolerance = 1e-4  # 0.01 [%]
-    step = detector.config.width
 
     apparatus = Apparatus(
         detector=detector,
@@ -98,9 +96,9 @@ def test_integral(detector: Detector, config: Config):
     )
 
     x = config.x
-    f = convolve(x, apparatus=apparatus, aperture=aperture, step=step)
+    f = convolve(x, apparatus=apparatus, aperture=aperture, pitch=detector.pitch)
 
-    integral = np.sum(f(x/step)) * (config.dx/step)
+    integral = np.sum(f(x/detector.pitch)) * (config.dx/detector.pitch)
     assert np.abs(integral - 1) < tolerance
 
 
@@ -123,28 +121,26 @@ if __name__ == '__main__':
         shape=RectangularApertureShape(),
     )
 
-    step = detector.config.width
-
     x = config.x
-    f = VoigtPeakShape(config.width/step, config.asymmetry, config.ratio)
-    f_hat = convolve(x/step, apparatus=apparatus, aperture=aperture, step=step)
+    f = VoigtPeakShape(config.width/detector.pitch, config.asymmetry, config.ratio)
+    f_hat = convolve(x/detector.pitch, apparatus=apparatus, aperture=aperture, pitch=detector.pitch)
 
     #
-    integral = np.sum(f_hat(x/step)) * (config.dx/step)
+    integral = np.sum(f_hat(x/detector.pitch)) * (config.dx/detector.pitch)
     print(f'intergal: {integral:.4f}')
 
-    diff = np.max(np.abs(f_hat(x/step) - f(x/step, 0, 1)) / f(0, 0, 1))
+    diff = np.max(np.abs(f_hat(x/detector.pitch) - f(x/detector.pitch, 0, 1)) / f(0, 0, 1))
     print(f'diff: {diff:.4f}')
 
     #
-    y = f(x/step, 0, 1)
+    y = f(x/detector.pitch, 0, 1)
     plt.plot(
         x, y,
         color='red', linestyle='none', marker='s', markersize=3,
         label='$y$',
     )
 
-    y_hat = f_hat(x/step)
+    y_hat = f_hat(x/detector.pitch)
     plt.plot(
         x, y_hat,
         color='black', linestyle='-', linewidth=1,

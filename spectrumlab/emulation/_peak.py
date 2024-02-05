@@ -96,11 +96,10 @@ def show_peak(peak: Peak | _Peak, position: MicroMeter, intensity: float, xscale
     rx, dx = 100, .01
     x = np.linspace(position-rx, position+rx, 2*int(rx/dx) + 1)
 
-    step = detector.config.width
-    spam = rx // step
-    wavelength = np.array([step*i for i in np.arange(-spam, spam+1, 1)])
+    spam = rx // detector.pitch
+    wavelength = np.array([detector.pitch*i for i in np.arange(-spam, spam+1, 1)])
 
-    xvalues = x if xscale == MicroMeter else x/step
+    xvalues = x if xscale == MicroMeter else x/detector.pitch
     yvalues = peak.line(x, position, intensity)
     plt.plot(
         xvalues, yvalues,
@@ -108,7 +107,7 @@ def show_peak(peak: Peak | _Peak, position: MicroMeter, intensity: float, xscale
         label=r'$I(x)$',
     )
 
-    xvalues = wavelength if xscale == MicroMeter else wavelength/step
+    xvalues = wavelength if xscale == MicroMeter else wavelength/detector.pitch
     yvalues = peak(wavelength, position, intensity)
     plt.fill_between(
         xvalues, yvalues,

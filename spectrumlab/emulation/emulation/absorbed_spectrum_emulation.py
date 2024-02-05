@@ -119,7 +119,6 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         device = config.device
         detector = config.detector
-        step = detector.config.width
         rx = config.rx
         dx = config.dx
 
@@ -152,14 +151,14 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         )
 
         # intensity (detector's output signal)
-        x0 = position*step
+        x0 = position*detector.pitch
 
         intensity = np.zeros(number.shape)
         for n in number:
             intensity[n] = integrate.quad(
                 lambda x: apparatus_line(x - x0) * aperture(x, n),
-                n*step - rx,
-                n*step + rx,
+                n*detector.pitch - rx,
+                n*detector.pitch + rx,
             )[0]
 
         intensity += S0  # add scattering radiation
@@ -167,7 +166,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
 
         # show
         if show:
-            x = np.linspace(min(number)*step, max(number)*step, 1000)  # in MicroMeter
+            x = np.linspace(min(number)*detector.pitch, max(number)*detector.pitch, 1000)  # in MicroMeter
 
             #
             plt.figure(figsize=(12, 4))
@@ -181,8 +180,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             # in emission units
             ax = plt.subplot(1, 2, 1)
 
-            plt.plot(x/step, S0 + physical_line(x - x0), label=r'$I(\lambda)$')  # f'physical line'
-            plt.plot(x/step, S0 + apparatus_line(x - x0), label=r'$I^{F}(\lambda)$')  # f'apparatus line'
+            plt.plot(x/detector.pitch, S0 + physical_line(x - x0), label=r'$I(\lambda)$')  # f'physical line'
+            plt.plot(x/detector.pitch, S0 + apparatus_line(x - x0), label=r'$I^{F}(\lambda)$')  # f'apparatus line'
             plt.fill_between(
                 number,
                 y1=S0 + np.full(number.shape, B0),
@@ -199,8 +198,8 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             # in absorption units
             ax = plt.subplot(1, 2, 2)
 
-            plt.plot(x/step, calculate_absorbance(S0 + physical_line(x - x0), I0), label=r'$A(\lambda)$')  # f'physical line'
-            plt.plot(x/step, calculate_absorbance(S0 + apparatus_line(x - x0), I0), label=r'$A^{F}(\lambda)$')  # f'apparatus line'
+            plt.plot(x/detector.pitch, calculate_absorbance(S0 + physical_line(x - x0), I0), label=r'$A(\lambda)$')  # f'physical line'
+            plt.plot(x/detector.pitch, calculate_absorbance(S0 + apparatus_line(x - x0), I0), label=r'$A^{F}(\lambda)$')  # f'apparatus line'
             plt.fill_between(
                 number,
                 y1=np.full(number.shape, config.background_level),

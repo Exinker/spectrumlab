@@ -86,11 +86,10 @@ def shape_hat(experiment: ScaledExperiment) -> VoigtPeakShape:
 # --------        tests        --------
 def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-3  # 0.1 [%]
-    step = detector.config.width
 
     assert distance(
         xi=shape.width,
-        xi_hat=shape_hat.width*step,
+        xi_hat=shape_hat.width*detector.pitch,
         is_relative=True,
     ) < tolerance
     assert distance(
@@ -105,14 +104,13 @@ def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat:
 
 def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-6
-    step = detector.config.width
 
-    f = partial(shape, x0=0, step=step)
+    f = partial(shape, x0=0, pitch=detector.pitch)
     f_hat = partial(VoigtApparatusShape(
-        width=shape_hat.width*step,
+        width=shape_hat.width*detector.pitch,
         asymmetry=shape.asymmetry,
         ratio=shape.ratio,
-    ), x0=0, step=step)
+    ), x0=0, pitch=detector.pitch)
 
     rx = 100
     dx = .01

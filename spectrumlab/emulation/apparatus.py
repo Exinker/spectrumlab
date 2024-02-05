@@ -41,8 +41,8 @@ class VoigtApparatusShape:
     asymmetry: float
     ratio: float
 
-    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, step: MicroMeter) -> Array[float]:
-        f = pvoigt(x/step, x0=x0/step, w=self.width/step, a=self.asymmetry, r=self.ratio)/step
+    def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter, pitch: MicroMeter) -> Array[float]:
+        f = pvoigt(x/pitch, x0=x0/pitch, w=self.width/pitch, a=self.asymmetry, r=self.ratio)/pitch
 
         return f
 
@@ -64,8 +64,8 @@ class Apparatus:
     shape: ApparatusShape
 
     @property
-    def step(self) -> MicroMeter:
-        return self.detector.config.width
+    def pitch(self) -> MicroMeter:
+        return self.detector.pitch
 
     # --------        handlers        --------
     def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
@@ -90,7 +90,7 @@ class Apparatus:
 
     # --------        private        --------
     def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter = 0) -> Array[float]:
-        return self.shape(x, x0=x0, step=self.step)
+        return self.shape(x, x0=x0, pitch=self.pitch)
 
 
 if __name__ == '__main__':
@@ -114,10 +114,8 @@ if __name__ == '__main__':
     print(f'integral: {integral:.4f}')
 
     # 
-    step = detector.config.width
-
     rx = 10
-    dx = 1e-2/step
+    dx = 1e-2/detector.pitch
     x = np.linspace(-rx, +rx, 2*int(rx/dx))
-    integral = np.sum(apparatus(step*x, x0=0))*(step*dx)
+    integral = np.sum(apparatus(detector.pitch*x, x0=0))*(detector.pitch*dx)
     print(f'integral: {integral:.4f}')

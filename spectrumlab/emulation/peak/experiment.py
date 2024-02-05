@@ -113,8 +113,6 @@ class ShiftedExperiment(BaseExperiment):
         config = self.config
         detector = self.config.detector
 
-        step = detector.config.width
-
         # setup seed
         if seed:
             np.random.seed(seed)
@@ -123,7 +121,7 @@ class ShiftedExperiment(BaseExperiment):
         rx = 100
         dx = 1e-2
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
+        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, pitch=detector.pitch)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0
@@ -137,9 +135,9 @@ class ShiftedExperiment(BaseExperiment):
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            y = f(x/step)
+            y = f(x/detector.pitch)
             plt.plot(
-                x/step, y,
+                x/detector.pitch, y,
                 color='black',
             )
 
@@ -176,8 +174,6 @@ class ScaledExperiment(BaseExperiment):
         config = self.config
         detector = self.config.detector
 
-        step = detector.config.width
-
         # setup seed
         if seed:
             np.random.seed(seed)
@@ -186,7 +182,7 @@ class ScaledExperiment(BaseExperiment):
         rx = 100
         dx = .01
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
+        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, pitch=detector.pitch)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0
@@ -200,9 +196,9 @@ class ScaledExperiment(BaseExperiment):
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-            x, y = x, f(x/step)
+            x, y = x, f(x/detector.pitch)
             plt.plot(
-                x/step, y,
+                x/detector.pitch, y,
                 color='black',
             )
 
@@ -248,8 +244,6 @@ class RandomPeakExperiment(BaseExperiment):
         config = self.config
         detector = self.config.detector
 
-        step = detector.config.width
-
         # setup seed
         if seed:
             np.random.seed(seed)
@@ -258,7 +252,7 @@ class RandomPeakExperiment(BaseExperiment):
         rx = 100
         dx = .01
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
-        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, step=step)
+        f = convolve(x, apparatus=config.apparatus, aperture=config.aperture, pitch=detector.pitch)
 
         self._number = np.arange(config.n_numbers)
         self._background = 0

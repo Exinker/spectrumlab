@@ -119,7 +119,6 @@ class EmittedSpectrumEmulation(EmulationInterface):
         if self._y_grid is None:
             config = self.config
             detector = self.detector
-            step = detector.config.width
             line = self.line
             apparatus = self.apparatus
             aperture = self.aperture
@@ -149,18 +148,17 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
             # peak shape
             self._y_grid = convolve(
-                x_grid/step,
+                x_grid/detector.pitch,
                 self._apparatus_line,
                 aperture,
-                step=step,
-            )(x_grid/step)
+                pitch=detector.pitch,
+            )(x_grid/detector.pitch)
 
         return self._y_grid
 
     def _get_intensity(self, number: Array, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> Array[Percent]:
         config = self.config
         detector = config.detector
-        step = detector.config.width
 
         # number
         number = self.number
@@ -168,7 +166,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
         # I
         I = concentration
         I *= config.concentration_ratio  # normalize to path length (concentration coefficient to agreement between theory and emulation)
-        I *= (detector.config.width * detector.config.height)  # normalize to detector's square
+        I *= (detector.pitch * detector.config.height)  # normalize to detector's square
         I *= (100/detector.config.capacity)  # normalize to detector's capacity
 
         # intensity (detector's output signal)
@@ -180,7 +178,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             fill_value=0,
         )
 
-        intensity = I*f((number - position)*step)
+        intensity = I*f((number - position)*detector.pitch)
 
         # background
         background = config.background_level
@@ -195,11 +193,11 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
             if self._physical_line is not None:
                 plt.plot(
-                    x/step + position, step*I*(background + self._physical_line(x)),
+                    x/detector.pitch + position, detector.pitch*I*(background + self._physical_line(x)),
                     label=r'$I(\lambda)$',
                 )
             plt.plot(
-                x/step + position, step*I*(background + self._apparatus_line(x)),
+                x/detector.pitch + position, detector.pitch*I*(background + self._apparatus_line(x)),
                 label=r'$I^{F}(\lambda)$',
             )
             plt.fill_between(
@@ -303,10 +301,10 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
 
 # --------        handlers        --------
-def convolve(x: Array[Number], apparatus: Callable[[Array[MicroMeter]], Array[float]], aperture: Callable[[Array[MicroMeter]], Array[float]], step: MicroMeter) -> Callable[[Array[Number]], Array[float]]:
+def convolve(x: Array[Number], apparatus: Callable[[Array[MicroMeter]], Array[float]], aperture: Callable[[Array[MicroMeter]], Array[float]], pitch: MicroMeter) -> Callable[[Array[Number]], Array[float]]:
     return interpolate.interp1d(
         x,
-        signal.convolve(step*apparatus(x*step), step*aperture(x*step), mode='same') * (x[-1] - x[0])/(len(x) + 1),
+        signal.convolve(pitch*apparatus(x*pitch), pitch*aperture(x*pitch), mode='same') * (x[-1] - x[0])/(len(x) + 1),
         kind='linear',
         bounds_error=False,
         fill_value=0,
