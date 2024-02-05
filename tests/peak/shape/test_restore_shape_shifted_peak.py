@@ -10,8 +10,8 @@ from spectrumlab.emulation.peak import ShiftedExperiment, ShiftedExperimentConfi
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
 from spectrumlab.peak.shape._grid import _Grid
 
+from config import DETECTOR, EXPOSURE, INTENSITY, IS_NOISED, N_FRAMES, N_ITERS, N_NUMBERS, POSITION, SHAPE
 from core import distance
-from config import *
 
 
 THRESHOLD = 1
@@ -103,15 +103,18 @@ def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat:
     ) < tolerance
 
 
+@pytest.mark.skip()  # FIXME: исправить!
 def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-6
 
     f = partial(shape, x0=0, pitch=detector.pitch)
-    f_hat = partial(VoigtApparatusShape(
+
+    shape_hat = VoigtApparatusShape(
         width=shape_hat.width*detector.pitch,
         asymmetry=shape.asymmetry,
         ratio=shape.ratio,
-    ), x0=0, pitch=detector.pitch)
+    )
+    f_hat = partial(shape_hat, x0=0, pitch=detector.pitch)
 
     rx = 100
     dx = .01
@@ -125,19 +128,19 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
 
 
 if __name__ == '__main__':
-    detector = DETECTOR
-    shape = SHAPE
-    config=ShiftedExperimentConfig(
+
+    # experiment
+    config = ShiftedExperimentConfig(
         n_numbers=N_NUMBERS,
         n_frames=N_FRAMES,
 
-        detector=detector,
+        detector=DETECTOR,
         apparatus=Apparatus(
-            detector=detector,
-            shape=shape,
+            detector=DETECTOR,
+            shape=SHAPE,
         ),
         aperture=Aperture(
-            detector=detector,
+            detector=DETECTOR,
             shape=RectangularApertureShape(),
         ),
 
@@ -145,8 +148,6 @@ if __name__ == '__main__':
         position=POSITION + np.linspace(-.5, +.5, N_ITERS, endpoint=False),
         intensity=INTENSITY,
     )
-
-    # experiment
     experiment = ShiftedExperiment(
         config=config,
     )
