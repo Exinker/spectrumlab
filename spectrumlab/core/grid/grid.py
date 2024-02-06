@@ -44,6 +44,8 @@ class Grid:
         self._y = y
         self._units = units
 
+        self._interpolate = None
+
     @property
     def x(self) -> Array[T]:
         return self._x
@@ -77,14 +79,16 @@ class Grid:
 
     @property
     def interpolate(self) -> Callable[[Array[T]], Array[float]]:
-        """Interpolate `grid` by linear interpolate."""
+        """Interpolate `grid` by linear interpolator."""
+        if self._interpolate is None:
+            self._interpolate = interpolate.interp1d(
+                self.x, self.y,
+                kind='linear',
+                bounds_error=False,
+                fill_value=0,
+            )
 
-        return interpolate.interp1d(
-            self.x, self.y,
-            kind='linear',
-            bounds_error=False,
-            fill_value=0,
-        )
+        return self._interpolate
 
     # --------        handlers        --------
     def space(self, n_points: int = 1000) -> Array[T]:
