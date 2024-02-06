@@ -1,6 +1,7 @@
+import warnings
 from collections.abc import Sequence
 from functools import partial
-from typing import Literal
+from typing import Callable, Literal
 from typing import overload
 
 import matplotlib.pyplot as plt
@@ -19,6 +20,9 @@ from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.base_shape import BasePeakShape
 from spectrumlab.peak.shape.utils import restore_grid_from_blinks
 from spectrumlab.utils import mse
+
+
+warnings.filterwarnings('ignore')
 
 
 # --------        voigt peak shape        --------
@@ -227,7 +231,7 @@ class VoigtPeakShape(BasePeakShape):
 class SelfReversedVoigtPeakShape(BasePeakShape):
     """Effected voigt peak's shape type."""
 
-    def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01, de: float = 0.25, re: float = 4) -> None:
+    def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = .01, re: float = 4, de: float = 1e-1) -> None:
         super().__init__()
 
         self.width = width
@@ -238,44 +242,48 @@ class SelfReversedVoigtPeakShape(BasePeakShape):
         self.re = re
         self.de = de
 
-        # grid
-        self.xvalues = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
-        self.evalues = np.linspace(0, self.re, int(self.re/self.de) + 1)
-        self.yvalues = np.array([self._apply_effect(effect=effect) for effect in self.evalues])
+        self._f = None
+
+    @property
+    def f(self) -> Callable[[Array[Number], float], Array[float]]:
+        if self._f is None:
+            effect = np.linspace(0, self.re, int(self.re/self.de) + 1)
+
+            x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
+            y = np.array([self._apply_effect(x, e) for e in effect])
+
+            self._f = interpolate.interp2d(
+                x,
+                effect,
+                y,
+                kind='linear',
+                bounds_error=False,
+                fill_value=0,
+            )
+
+        return self._f
 
     # --------        private        --------
-    def _apply_effect(self, effect: float) -> Array[float]:
+    def _apply_effect(self, x: Array[Number], effect: float) -> Array[float]:
         width = self.width
         asymmetry = self.asymmetry
         ratio = self.ratio
 
-        x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
         f = signal.convolve(
             pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio) * 10**(-effect * pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)),
             rectangular(x, x0=0, w=1),
             mode='same',
         ) * self.dx
 
-        #
         return f
 
     @overload
     def __call__(self, x: float, position: Number, intensity: float, background: float = 0, effect: float = 0) -> float: ...
     @overload
-    def __call__(self, x: Array[float], position: Number, intensity: float, background: float = 0, effect: float = 0) -> Array[float]: ...
+    def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0, effect: float = 0) -> Array[float]: ...
     def __call__(self, x, position, intensity, background=0, effect=0):
         """Interpolate by grip."""
-
-        f = interpolate.interp2d(
-            self.xvalues,
-            self.evalues,
-            self.yvalues,
-            kind='linear',
-            bounds_error=False,
-            fill_value=0,
-        )
-
-        return background + intensity*f(x - position, effect)
+        return background + intensity*self.f(x - position, effect)
 
     def __repr__(self) -> str:
         cls = self.__class__

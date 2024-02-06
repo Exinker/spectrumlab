@@ -12,8 +12,8 @@ from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_spectrum
 from config import DETECTOR, EXPOSURE, IS_NOISED, N_FRAMES, N_ITERS, SHAPE
 from core import distance
 
-N_NUMBERS = 2048
 
+N_NUMBERS = 2048
 MU = -1
 SIGMA = .5
 
