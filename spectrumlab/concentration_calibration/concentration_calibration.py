@@ -31,11 +31,11 @@ class BaseConcentrationCalibration(ABC):
 
     @abstractmethod
     def show(self, save: bool = False):
-        """Show calibration curve."""
+        """Show concentration calibration."""
         raise NotImplementedError
 
     def write(self):
-        """Write calibration curve's data to file."""
+        """Write concentration calibration's data to file."""
 
         filedir = os.path.join('.', 'txt')
         if not os.path.isdir(filedir):
@@ -113,35 +113,35 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
     @property
     def coeff(self) -> tuple[Intercept, Slope]:
         if self._coeff is None:
-            raise FitError('fit the calibration curve before!')
+            raise FitError('fit the concentration calibration before!')
 
         return self._coeff
 
     @property
     def lod(self) -> LOD:
         if self._lod is None:
-            raise FitError('fit the calibration curve before!')
+            raise FitError('fit the concentration calibration before!')
 
         return self._lod
 
     @property
     def loq(self) -> LOQ:
         if self._loq is None:
-            raise FitError('fit the calibration curve before!')
+            raise FitError('fit the concentration calibration before!')
 
         return self._loq
 
     @property
     def lol(self) -> LOL:
         if self._lol is None:
-            raise FitError('fit the calibration curve before!')
+            raise FitError('fit the concentration calibration before!')
 
         return self._lol
 
     @property
     def dynamic_range(self) -> DynamicRange:
         if self._dynamic_range is None:
-            raise FitError('fit the calibration curve before!')
+            raise FitError('fit the concentration calibration before!')
 
         return self._dynamic_range
 
@@ -192,7 +192,7 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
         return 10**((intensity.apply(lambda x: np.log10(x)) - interpect) / slope)
 
     def show(self, ref: Frame | None = None, save: bool = False):
-        """Show calibration curve."""
+        """Show concentration calibration."""
 
         if ref is None:
             data = self.data.copy()
@@ -389,7 +389,7 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool =
         is_clipped = any(spectrum.clipped)
         data.loc[(i,j), 'mask'] = is_traced or is_clipped
 
-    # calibration curve
+    # concentration calibration
     concentration_calibration = ConcentrationCalibration(
         data=data,
         blank=blank,

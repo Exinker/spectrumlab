@@ -2,14 +2,15 @@ from typing import Literal, TypeAlias
 
 import numpy as np
 
-from spectrumlab.concentration_calibration import Intercept, Slope, LOQ, LOL, DynamicRange
-from spectrumlab.emulation.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
+from spectrumlab.concentration_calibration import DynamicRange, Intercept, LOL, LOQ, Slope
+from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
 from spectrumlab.emulation.intensity import calculate_intensity
 from spectrumlab.peak.intensity import IntensityConfig
 
 
 # --------        deviation        --------
 EstimateDeviationKind: TypeAlias = Literal['theoretical', 'emulational']
+
 
 def estimate_blank_mean(emulation: Emulation, config: IntensityConfig, n_parallels: int = 20, kind: EstimateDeviationKind = 'theoretical') -> float:
     n_numbers = emulation.config.spectrum.n_numbers

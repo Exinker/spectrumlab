@@ -1,18 +1,19 @@
 import os
-import pytest
 
 import numpy as np
+import pytest
 
-from spectrumlab.emulation.concentration_calibration import AbsorbedExperimentConfig as ExperimentConfig
-from spectrumlab.emulation.emulation import emulate_absorbed_spectrum, AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
-from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
+from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
+from spectrumlab.emulation.emulation import emulate_absorbed_spectrum
+from spectrumlab.emulation.emulation.experiment import AbsorbedExperimentConfig as ExperimentConfig
+from spectrumlab.emulation.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 @pytest.fixture(scope='module')
 def config() -> AbsorbedSpectrumEmulationConfig:
     config = ExperimentConfig.from_ini(
-        filedir=os.path.join('.', 'tests', 'emulation', 'ini'),
-        filename='config_absorption_Ag338.289_I.ini',
+        filedir=os.path.join(os.path.dirname(__file__), 'ini'),
+        filename='config_absorption_GRAND2_I_Ag338.289.ini',
     )
 
     return AbsorbedSpectrumEmulationConfig(

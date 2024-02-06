@@ -25,7 +25,7 @@ from spectrumlab.peak.shape import VoigtPeakShape
 @pytest.fixture(scope='module')
 def config() -> ExperimentConfig:
     return ExperimentConfig.from_ini(
-        filedir=os.path.join('.', 'tests', 'emulation', 'ini'),
+        filedir=os.path.join(os.path.dirname(__file__), 'ini'),
         filename='config_emission_naive.ini',
     )
 

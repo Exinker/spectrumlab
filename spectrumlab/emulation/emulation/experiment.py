@@ -1,5 +1,5 @@
 """
-Data types for emulation experiment of .
+Data types for emulation emission and absorption experiments.
 
 Author: Vaschenko Pavel
  Email: vaschenko@vmk.ru
@@ -8,46 +8,49 @@ Author: Vaschenko Pavel
 import os
 import warnings
 from configparser import ConfigParser
+from dataclasses import dataclass, field
 
-import pandas as pd
-
-from spectrumlab.alias import Frame
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulation.emulation.experiment import BaseExperimentConfig, _parse_detector, _parse_device
-from spectrumlab.emulation.intensity import IntegralIntensityConfig, InterpolationKind
+from spectrumlab.emulation.detector import Detector
+from spectrumlab.emulation.device import Device
+from spectrumlab.emulation.intensity import IntegralIntensityConfig, IntensityConfig, InterpolationKind
 from spectrumlab.emulation.line import Line, PVoigtLineShape
 
 
 warnings.filterwarnings('ignore')
 
 
+@dataclass
+class BaseExperimentConfig:
+    device: Device
+    detector: Detector
+    apparatus: Apparatus
+    aperture: Aperture
+
+    position: float
+    intensity: IntensityConfig
+
+    n_numbers: int
+    n_frames: int
+
+    concentration_ratio: float = 0
+    background_level: float = field(default=0)
+
+    @property
+    def concentrations(self) -> tuple[float]:
+        return tuple(reversed([self.concentration_base * (1/(2**(i))) for i in range(self.n_probes)]))
+
+
 class EmittedExperimentConfigNaive(BaseExperimentConfig):
     """Emitted spectra (naive) experiment's config."""
 
-    def __init__(
-            self,
-            *args,
-            n_blanks: int,
-            n_probes: int,
-            n_parallels: int,
-            concentration_base: float = 10_000,
-            concentration_blank: float = 0,
-            ref: Frame | None = None,
-            **kwargs,
-    ):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.n_blanks = n_blanks
-        self.n_probes = n_probes
-        self.n_parallels = n_parallels
-        self.concentration_base = concentration_base
-        self.concentration_blank = concentration_blank
-        self.ref = ref
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: str, filename: str) -> 'EmittedExperimentConfigNaive':
 
         # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
@@ -58,9 +61,6 @@ class EmittedExperimentConfigNaive(BaseExperimentConfig):
         #
         device = _parse_device(parser)
         detector = _parse_detector(parser)
-
-        filepath = os.path.join(filedir, 'concentration_calibration.csv')
-        ref = _load_ref(filepath)
 
         return EmittedExperimentConfigNaive(
             device=device,
@@ -84,13 +84,6 @@ class EmittedExperimentConfigNaive(BaseExperimentConfig):
                 interval=3,
             ),
 
-            n_blanks=n_blanks or int(parser.get('concentration-calibration', 'n_blanks')),
-            n_probes=n_probes or int(parser.get('concentration-calibration', 'n_probes')),
-            n_parallels=n_parallels or int(parser.get('concentration-calibration', 'n_parallels')),
-            concentration_blank=float(parser.get('concentration-calibration', 'concentration_blank')),
-            concentration_base=float(parser.get('concentration-calibration', 'concentration_base')),
-            ref=ref,
-
             n_numbers=int(parser.get('spectrum', 'n_numbers')),
             n_frames=int(parser.get('spectrum', 'n_frames')),
 
@@ -102,63 +95,28 @@ class EmittedExperimentConfigNaive(BaseExperimentConfig):
 class EmittedExperimentConfig(BaseExperimentConfig):
     """Emitted spectra experiment's config."""
 
-    def __init__(
-            self,
-            *args,
-            line: PVoigtLineShape,
-            n_blanks: int,
-            n_probes: int,
-            n_parallels: int,
-            concentration_base: float = 10_000,
-            concentration_blank: float = 0,
-            ref: Frame | None = None,
-            **kwargs,
-    ):
+    def __init__(self, *args, line: PVoigtLineShape, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.line = line
-        self.n_blanks = n_blanks
-        self.n_probes = n_probes
-        self.n_parallels = n_parallels
-        self.concentration_base = concentration_base
-        self.concentration_blank = concentration_blank
-        self.ref = ref
 
 
 class AbsorbedExperimentConfig(BaseExperimentConfig):
     """Absorbed spectra experiment's config."""
 
-    def __init__(
-            self,
-            *args,
-            line: PVoigtLineShape,
-            n_blanks: int,
-            n_probes: int,
-            n_parallels: int,
-            concentration_base: float = 10_000,
-            concentration_blank: float = 0,
-            ref: Frame | None = None,
-            base_level: float,
-            base_n_frames: int,
-            scattering_ratio: float,
-            **kwargs,
-    ):
+    def __init__(self, *args, line: PVoigtLineShape, base_level: float, base_n_frames: int, scattering_ratio: float, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.line = line
-        self.n_blanks = n_blanks
-        self.n_probes = n_probes
-        self.n_parallels = n_parallels
-        self.concentration_base = concentration_base
-        self.concentration_blank = concentration_blank
-        self.ref = ref
         self.base_level = base_level
         self.base_n_frames = base_n_frames
+
+        self.line = line
+
         self.scattering_ratio = scattering_ratio
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: str, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: str, filename: str) -> 'EmittedExperimentConfigNaive':
 
         # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
@@ -172,9 +130,6 @@ class AbsorbedExperimentConfig(BaseExperimentConfig):
 
         base_level = float(parser.get('base spectrum', 'level'))
         base_n_frames = int(parser.get('base spectrum', 'n_frames'))
-
-        filepath = os.path.join(filedir, 'concentration_calibration.csv')
-        ref = _load_ref(filepath)
 
         #
         return AbsorbedExperimentConfig(
@@ -206,13 +161,6 @@ class AbsorbedExperimentConfig(BaseExperimentConfig):
                 interval=3,
             ),
 
-            n_blanks=n_blanks or int(parser.get('concentration-calibration', 'n_blanks')),
-            n_probes=n_probes or int(parser.get('concentration-calibration', 'n_probes')),
-            n_parallels=n_parallels or int(parser.get('concentration-calibration', 'n_parallels')),
-            concentration_blank=float(parser.get('concentration-calibration', 'concentration_blank')),
-            concentration_base=float(parser.get('concentration-calibration', 'concentration_base')),
-            ref=ref,
-
             n_numbers=int(parser.get('spectrum', 'n_numbers')),
             n_frames=int(parser.get('spectrum', 'n_frames')),
 
@@ -224,15 +172,33 @@ class AbsorbedExperimentConfig(BaseExperimentConfig):
         )
 
 
-def _load_ref(filepath: str) -> Frame | None:
-    """Get reference concentration calibration data."""
+# --------        private        --------
+def _parse_device(parser: ConfigParser) -> Device:
+    """Get device type."""
+    kind = parser.get('device', 'kind')
 
-    if os.path.isfile(filepath):
-        return pd.read_csv(
-            filepath,
-            decimal=',',
-            sep=';',
-            encoding='utf-8',
-        )
+    if kind == 'COLIBRI2':
+        return Device.COLIBRI2
+    if kind == 'GRAND2':
+        poly = parser.get('device', 'poly')
+        if poly == 'I':
+            return Device.GRAND2_I
+        if poly == 'II':
+            return Device.GRAND2_II
+        raise ValueError(f'Device poly {poly} is not supported!')
 
-    return None
+    raise ValueError(f'Device kind {kind} is not supported!')
+
+
+def _parse_detector(parser: ConfigParser) -> Detector:
+    """Get detector type."""
+    kind = parser.get('detector', 'kind')
+
+    if kind == 'BLPP369M1':
+        return Detector.BLPP369M1
+    if kind == 'BLPP2000':
+        return Detector.BLPP2000
+    if kind == 'BLPP4000':
+        return Detector.BLPP4000
+
+    raise ValueError(f'Detector kind {kind} is not supported!')

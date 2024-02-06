@@ -48,28 +48,28 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
     @property
     def position(self) -> Number:
         if self._position is None:
-            raise EmulationError('Setup the calibration curve before!')
+            raise EmulationError('Setup the concentration calibration before!')
 
         return self._position
 
     @property
     def concentrations(self) -> tuple[float]:
         if self._concentrations is None:
-            raise EmulationError('Setup the calibration curve before!')
+            raise EmulationError('Setup the concentration calibration before!')
 
         return self._concentrations
 
     @property
     def data(self) -> tuple[float, float]:
         if self._data is None:
-            raise EmulationError('setup and run the calibration curve before!')
+            raise EmulationError('setup and run the concentration calibration before!')
 
         return self._data
 
     @property
     def unicorn(self) -> tuple[float, float]:
         if self._unicorn is None:
-            raise EmulationError('setup and run the calibration curve before!')
+            raise EmulationError('setup and run the concentration calibration before!')
 
         return self._unicorn
 
@@ -77,41 +77,41 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
     def coeff(self) -> tuple[Intercept, Slope]:
         """Calibration curve's coeffs in log10 scale."""
         if self._coeff is None:
-            raise EmulationError('setup and run the calibration curve before!')
+            raise EmulationError('setup and run the concentration calibration before!')
 
         return self._coeff
 
     @property
     def lod(self) -> LOD:
         if self._lod is None:
-            raise EmulationError('setup and run the calibration curve before!')
+            raise EmulationError('setup and run the concentration calibration before!')
 
         return self._lod
 
     @property
     def loq(self) -> LOQ:
         if self._loq is None:
-            raise EmulationError('setup and run the calibration curve before!')
+            raise EmulationError('setup and run the concentration calibration before!')
 
         return self._loq
 
     @property
     def lol(self) -> LOL:
         if self._lol is None:
-            raise EmulationError('setup and run the calibration curve before!')
+            raise EmulationError('setup and run the concentration calibration before!')
 
         return self._lol
 
     @property
     def dynamic_range(self) -> DynamicRange:
         if self._dynamic_range is None:
-            raise EmulationError('setup and run the calibration curve before!')
+            raise EmulationError('setup and run the concentration calibration before!')
 
         return self._dynamic_range
 
     # --------        handlers        --------
     def setup(self, position: Number, concentrations: tuple[float]):
-        """Setup emulation of calibration curve"""
+        """Setup emulation of concentration calibration"""
         self._position = position
         self._concentrations = concentrations
 
@@ -285,7 +285,7 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
         return 10**((intensity.apply(lambda x: np.log10(x)) - interpect) / slope)
 
     def show(self, ref: Frame | None = None, concentration_ratio: float = 1, save: bool = False):
-        """Show calibration curve."""
+        """Show concentration calibration."""
 
         unicorn = self.unicorn.copy()
         unicorn['concentration'] = concentration_ratio * unicorn['concentration']

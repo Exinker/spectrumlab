@@ -127,7 +127,7 @@ class LOL(BaseLimit):
 def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.05) -> 'LOL':
     intercept, slope = coeff
 
-    # calibration curve
+    # concentration calibration
     x_grid = data['concentration'].apply(lambda x: np.log10(x))
     y_grid = data['intensity'].apply(lambda x: np.log10(x))
 
