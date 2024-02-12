@@ -30,6 +30,8 @@ def estimate_intensity_by_integral(peak: 'AnalytePeak', config: IntegralIntensit
 
     TODO: to check clipped values?
     """
+    
+    # intensity
     value = integrate_grid(
         grid=Grid(x=peak.number, y=peak.value, units=Number,),
         position=peak.position,

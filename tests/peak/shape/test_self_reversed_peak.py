@@ -5,12 +5,12 @@ import numpy as np
 import pytest
 
 from spectrumlab.alias import Array, Number
-from spectrumlab.peak.shape.voigt_peak_shape import SelfReversedVoigtPeakShape
+from spectrumlab.peak.shape.voigt_peak_shape import SelfReversedVoigtPeakShapeNaive
 
 
 @dataclass
 class Config:
-    shape: SelfReversedVoigtPeakShape
+    shape: SelfReversedVoigtPeakShapeNaive
     rx: Number = field(default=10)
     dx: Number = field(default=1e-2)
 
@@ -25,7 +25,7 @@ class Config:
 
 @pytest.mark.parametrize('config', [
     Config(
-        shape=SelfReversedVoigtPeakShape(
+        shape=SelfReversedVoigtPeakShapeNaive(
             width=25/14,
             asymmetry=0,
             ratio=0.1,
@@ -44,7 +44,7 @@ def test_shape_error(config: Config):
 
 if __name__ == '__main__':
     config = Config(
-        shape=SelfReversedVoigtPeakShape(
+        shape=SelfReversedVoigtPeakShapeNaive(
             width=25/14,
             asymmetry=0,
             ratio=0.1,
