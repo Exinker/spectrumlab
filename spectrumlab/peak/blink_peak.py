@@ -134,7 +134,7 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig 
     """
     config = config or DraftBlinkPeakConfig()
 
-    assert spectrum.n_times == 1, 'kinetics spectra are not supported yet!'
+    assert spectrum.n_times == 1, 'time resolved spectra are not supported yet!'
 
     # deviation
     deviation = noise(spectrum.intensity)

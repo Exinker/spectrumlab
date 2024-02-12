@@ -307,7 +307,7 @@ def gather_analyte_peak(line: Line, spectrum: Spectrum, noise: Noise, config: Ga
      Email: vaschenko@vmk.ru
       Date: 2016.04.09
     """
-    assert spectrum.n_times == 1, 'kinetics spectra are not supported yet!'
+    assert spectrum.n_times == 1, 'time resolved spectra are not supported yet!'
 
     cursor = abs(spectrum.wavelength - line.wavelength).argmin()
     minima = [0, spectrum.n_numbers-1]

@@ -21,7 +21,7 @@ def restore_grid_from_blinks(
     threshold: float = 0,
 ) -> Grid:
     """Get a grid from sequence of blinks from spectrum."""
-    assert spectrum.n_times == 1, 'kinetics spectra are not supported!'
+    assert spectrum.n_times == 1, 'time resolved spectra are not supported!'
 
     #
     def _get_item(spectrum: Spectrum, blink: 'BlinkPeak', threshold: float) -> tuple[Array, Array]:
@@ -55,7 +55,7 @@ def restore_grid_from_frames(
     threshold: float = 0,
 ) -> Grid:
     """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
-    # assert spectrum.n_times > 1, 'only kinetics spectra are supported!'
+    # assert spectrum.n_times > 1, 'only time resolved spectra are supported!'
 
     #
     def _get_item(spectrum: Spectrum, t: int, threshold: float) -> tuple[Array, Array]:
