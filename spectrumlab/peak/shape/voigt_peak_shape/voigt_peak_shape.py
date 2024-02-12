@@ -18,7 +18,6 @@ from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.approx_interface import ApproxInterface
-from spectrumlab.peak.shape.approx_interface import ApproxInterface
 from spectrumlab.peak.shape.base_shape import BasePeakShape 
 from spectrumlab.peak.shape.utils import approx_peak_by_tail, restore_grid_from_blinks
 from spectrumlab.utils import mse

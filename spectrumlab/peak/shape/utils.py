@@ -53,14 +53,9 @@ def approx_peak(peak: 'AnalytePeak', shape: 'PeakShape', delta: float = 1, by_ta
     #
     result = optimize.minimize(
         partial(calculate_loss, peak=peak, shape=shape, by_tail=by_tail),
-        shape.approx_initial(
-            peak=peak,
-        ),
+        shape.approx_initial(peak=peak),
         method='SLSQP',
-        bounds=shape.approx_bounds(
-            peak=peak,
-            delta=delta,
-        ),
+        bounds=shape.approx_bounds(peak=peak, delta=delta),
     )
     params = shape.approx_parse(result.x)
 
