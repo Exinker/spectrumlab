@@ -130,9 +130,11 @@ class BaseSpectrum(ABC):
     def __getitem__(self, index):
         cls = self.__class__
 
-        if isinstance(index, int | slice):
-            time = index
+        if isinstance(index, int):
+            """Select a frame of the spectrum by `index`."""
+            assert self.n_times > 1, 'only time resolved spectra are supported!'
 
+            time = index
             return cls(
                 intensity=self.intensity[time],
                 wavelength=self.wavelength,
@@ -141,6 +143,30 @@ class BaseSpectrum(ABC):
                 clipped=self.clipped[time],
                 detector=self.detector,
             )
+
+        if isinstance(index, slice | np.ndarray):
+            """Select a frame or part of the spectrum by `index`."""
+            if self.n_times > 1:
+                time = index
+                return cls(
+                    intensity=self.intensity[time],
+                    wavelength=self.wavelength,
+                    number=self.number,
+                    deviation=self.deviation[time],
+                    clipped=self.clipped[time],
+                    detector=self.detector,
+                )
+            
+            else:
+                number = index
+                return cls(
+                    intensity=self.intensity[number],
+                    wavelength=self.wavelength[number],
+                    number=self.number[number],
+                    deviation=self.deviation[number],
+                    clipped=self.clipped[number],
+                    detector=self.detector,
+                )
 
         if isinstance(index, tuple):
             time, number = index
