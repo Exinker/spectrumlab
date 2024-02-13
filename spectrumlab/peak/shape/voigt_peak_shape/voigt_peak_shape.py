@@ -1,7 +1,7 @@
 import warnings
 from collections.abc import Sequence
 from functools import partial
-from typing import Literal, TYPE_CHECKING
+from typing import Callable, Literal, TYPE_CHECKING
 from typing import overload
 
 import matplotlib.pyplot as plt
@@ -123,8 +123,12 @@ class VoigtPeakShape(BasePeakShape, ApproxInterface):
             mode='same',
         ) * self.dx
 
-        self._xvalues = x
-        self._yvalues = y
+        self._f = interpolate.interp1d(
+            x, y,
+            kind='linear',
+            bounds_error=False,
+            fill_value=0,
+        )
 
     def get_content(self, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
         sign = {+1: '+'}.get(np.sign(self.asymmetry), '') if is_signed else ''
@@ -134,6 +138,10 @@ class VoigtPeakShape(BasePeakShape, ApproxInterface):
             f'a={sign}{self.asymmetry:.4f}',
             f'r={self.ratio:.4f}',
         ])
+
+    @property
+    def f(self) -> Callable[[Number], float]:
+        return self._f
 
     # --------        approx interface        --------
     def approx_keys(self) -> tuple[str]:
@@ -147,14 +155,11 @@ class VoigtPeakShape(BasePeakShape, ApproxInterface):
         return np.array([
             0,
             peak.position,
-            approx_peak_by_tail(
-                peak=peak,
-                shape=self,
-            ),
+            approx_peak_by_tail(peak=peak, shape=self),
         ])
 
     def approx_bounds(self, peak: 'AnalytePeak', delta: Number = 0) -> tuple[tuple[float, float]]:
-        delta += 1e-32  # fix bounds if delta == 0
+        delta += 1e-32  # fix bounds (if `delta` is equal zero)
 
         return tuple([
             (-1e-10, +1e-10),  # FIXME: нужно разобраться с пределами у фона!
@@ -243,15 +248,7 @@ class VoigtPeakShape(BasePeakShape, ApproxInterface):
     @overload
     def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0) -> Array[float]: ...
     def __call__(self, x, position, intensity, background=0):
-        f = interpolate.interp1d(
-            self._xvalues,
-            self._yvalues,
-            kind='linear',
-            bounds_error=False,
-            fill_value=0,
-        )
-
-        return background + intensity*f(x - position)
+        return background + intensity*self.f(x - position)
 
     def __repr__(self) -> str:
         cls = self.__class__
