@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from spectrumlab.alias import Frame
 from spectrumlab.concentration_calibration import calibrate
+from spectrumlab.core.grid import InterpolationKind
 from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, SpectrumConfig
 from spectrumlab.emulation.emulation import fetch_emulation
@@ -17,10 +18,9 @@ from spectrumlab.line import Line
 from spectrumlab.peak.analyte_peak import GatherAnalytePeakConfig, gather_analyte_peak
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig
 from spectrumlab.peak.intensity import ApproxIntensityConfig
-from spectrumlab.peak.intensity import IntegralIntensityConfig, InterpolationKind
+from spectrumlab.peak.intensity import IntegralIntensityConfig
 from spectrumlab.peak.position import InterpolationPositionConfig
 from spectrumlab.peak.shape import VoigtPeakShape
-
 
 @pytest.fixture(scope='module')
 def config() -> ExperimentConfig:

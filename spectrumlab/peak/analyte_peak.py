@@ -7,11 +7,12 @@ from scipy import interpolate
 
 from spectrumlab.alias import Array, Number, NanoMeter
 from spectrumlab.concentration_calibration import ConcentrationCalibration
+from spectrumlab.core.grid import InterpolationKind
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.line.line import Line
 from spectrumlab.peak.base_peak import BasePeak
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
-from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, InterpolationKind, ApproxIntensityConfig, calculate_intensity
+from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, ApproxIntensityConfig, calculate_intensity
 from spectrumlab.peak.position import PositionConfig, InterpolationPositionConfig, calculate_position
 from spectrumlab.picture.config import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum

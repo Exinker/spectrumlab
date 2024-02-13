@@ -10,11 +10,12 @@ import warnings
 from configparser import ConfigParser
 from dataclasses import dataclass, field
 
+from spectrumlab.core.grid import InterpolationKind
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.device import Device
-from spectrumlab.emulation.intensity import IntegralIntensityConfig, IntensityConfig, InterpolationKind
+from spectrumlab.emulation.intensity import IntegralIntensityConfig, IntensityConfig
 from spectrumlab.emulation.line import Line, PVoigtLineShape
 
 

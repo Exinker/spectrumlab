@@ -8,9 +8,10 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from spectrumlab.alias import Frame, Series, Number
+from spectrumlab.core.grid import InterpolationKind
 from spectrumlab.concentration_calibration import BaseConcentrationCalibration, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
 from spectrumlab.emulation.emulation import Emulation
-from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, InterpolationKind, calculate_intensity, calculate_deviation
+from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, calculate_intensity, calculate_deviation
 from spectrumlab.picture.config import COLOR, ALPHA
 
 from .metrology import DynamicRange, estimate_blank_mean, estimate_blank_deviation, estimate_dynamic_range
