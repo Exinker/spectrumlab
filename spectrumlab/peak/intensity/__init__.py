@@ -1,16 +1,15 @@
-from typing import TYPE_CHECKING
-from typing import TypeAlias
+from typing import TypeAlias, TYPE_CHECKING
 
 from ._estimate_by_amplitude import AmplitudeIntensityConfig, estimate_intensity_by_amplitude
 from ._estimate_by_approx import ApproxIntensityConfig, estimate_intensity_by_approx
-from ._estimate_by_integral import IntegralIntensityConfig, InterpolationKind, estimate_intensity_by_integral
+from ._estimate_by_integral import IntegralIntensityConfig, estimate_intensity_by_integral
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 
 
 # --------        intensity        --------
-IntensityConfig: TypeAlias = AmplitudeIntensityConfig | IntegralIntensityConfig | ApproxIntensityConfig
+IntensityConfig: TypeAlias = AmplitudeIntensityConfig | ApproxIntensityConfig | IntegralIntensityConfig
 
 
 def calculate_intensity(peak: 'AnalytePeak', config: IntensityConfig) -> float:

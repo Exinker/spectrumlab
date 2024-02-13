@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 
