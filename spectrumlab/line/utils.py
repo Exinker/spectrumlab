@@ -1,13 +1,14 @@
 import numpy as np
 
 from spectrumlab.alias import Kelvin, PicoMeter, Second
+from spectrumlab.element import Element, PeriodicTable
 from spectrumlab.line import Line
-from spectrumlab.element import Element, PERIODIC_TABLE
 
 
 LIGHT_SPEED = 299_792_458  # light speed [m/s]
 SIGMA = 2*1e-18  # collisional cross-section [m^2]
 TAU = 1e-8  # level lifetime [s]
+PERIODIC_TABLE = PeriodicTable()
 
 
 def calculate_width_natural(line: Line, tau: Second = TAU) -> PicoMeter:
