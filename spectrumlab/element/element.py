@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from spectrumlab.alias import Frame, Kelvin
+from spectrumlab.alias import Frame, Kelvin, Symbol
 
 
 DATABASE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'database')
@@ -12,7 +12,7 @@ DATABASE_VERSION = '0.01'
 
 @dataclass
 class Element:
-    symbol: str
+    symbol: Symbol
     atomic_number: int
     name: str
     atomic_weight: float  # in da (dalton)

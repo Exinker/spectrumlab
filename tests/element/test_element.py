@@ -1,5 +1,6 @@
 import pytest
 
+from spectrumlab.alias import Symbol
 from spectrumlab.element import PeriodicTable
 
 
@@ -10,7 +11,7 @@ from spectrumlab.element import PeriodicTable
         ('C', 6),
     ],
 )
-def test_periodic_table_index(symbol: str, atomic_number: int):
+def test_periodic_table_index(symbol: Symbol, atomic_number: int):
     table = PeriodicTable()
 
     assert symbol == table[symbol].symbol

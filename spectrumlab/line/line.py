@@ -1,9 +1,9 @@
-from spectrumlab.alias import NanoMeter
+from spectrumlab.alias import NanoMeter, Symbol
 
 
 class Line:
 
-    def __init__(self, symbol: str, wavelength: NanoMeter, *args, id: int | None = None, database_intensity: float = 0, database_ionization_degree: int = 1, **kwargs):
+    def __init__(self, symbol: Symbol, wavelength: NanoMeter, *args, id: int | None = None, database_intensity: float = 0, database_ionization_degree: int = 1, **kwargs):
         self._symbol = symbol
         self._wavelength = wavelength
 
