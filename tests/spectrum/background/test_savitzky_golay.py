@@ -14,7 +14,7 @@ def test_approximate_savitzky_golay():
     y_hat = approximate_savitzky_golay(
         y,
         mask=np.full(n, False),
-        config=SavitzkyGolayBackgroundConfig(width=3, degree=1, n_counts_min=2),
+        config=SavitzkyGolayBackgroundConfig(width=3, degree=1, width_min=2),
     )
 
     assert np.all(np.abs(y - y_hat) < tolerance)
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     y_hat = approximate_savitzky_golay(
         y,
         mask=np.full(n, False),
-        config=SavitzkyGolayBackgroundConfig(width=3, degree=1, n_counts_min=2),
+        config=SavitzkyGolayBackgroundConfig(width=3, degree=1, width_min=2),
     )
 
     # show
