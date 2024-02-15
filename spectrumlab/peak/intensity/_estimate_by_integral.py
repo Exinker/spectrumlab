@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from spectrumlab.peak.intensity.utils import integrate_grid, InterpolationKind
-
+from spectrumlab.alias import Number
+from spectrumlab.core.grid import Grid, InterpolationKind
+from spectrumlab.core.grid import integrate_grid
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -20,17 +21,19 @@ class IntegralIntensityConfig:
             return '#1f77b4'
         if self.kind == InterpolationKind.LINEAR:
             return '#ff7f0e'
-        
+
         raise ValueError(f'color: {self.kind} is not supported!')
 
 
 def estimate_intensity_by_integral(peak: 'AnalytePeak', config: IntegralIntensityConfig, verbose: bool = False) -> float:
     """Estimate analyte peak's intensity by integration.
-    
+
     TODO: to check clipped values?
     """
+
+    # intensity
     value = integrate_grid(
-        peak.number, peak.value,
+        grid=Grid(x=peak.number, y=peak.value, units=Number),
         position=peak.position,
         interval=config.interval,
         kind=config.kind,

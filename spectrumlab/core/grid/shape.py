@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Literal, Type, TypeAlias
+from typing import TypeAlias
 
 import numpy as np
 from scipy import interpolate, signal
@@ -21,10 +21,11 @@ class VoigtGridShape:
 
     def __post_init__(self):
         x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)*self.pitch
-
-        f = lambda x: pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio)
-        s = lambda x: rectangular(x, x0=0, w=self.pitch)
-        y = signal.convolve(f(x), s(x), mode='same') * self.dx
+        y = signal.convolve(
+            pvoigt(x, x0=0, w=self.width, a=self.asymmetry, r=self.ratio),
+            rectangular(x, x0=0, w=self.pitch),
+            mode='same',
+        ) * self.dx
 
         self._f = interpolate.interp1d(
             x, y,

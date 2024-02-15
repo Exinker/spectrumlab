@@ -45,10 +45,11 @@ PicoMeter = NewType('Pico', float)  # picometer
 Number = NewType('Number', float)
 
 
-# --------        intensity units        --------
+# --------        value units        --------
+Absorbance = NewType('Absorbance', float)
 Electron = NewType('Electron', float)
 Percent = NewType('Percent', float)
 
 
-# --------        absorbance units        --------
-Absorbance = NewType('Absorbance', float)
+# --------        other units        --------
+Symbol = NewType('Symbol', str)

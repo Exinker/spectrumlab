@@ -1,22 +1,27 @@
 from dataclasses import dataclass, field
 from typing import Callable
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from spectrumlab.alias import Array
-from spectrumlab.emulation.noise import Noise
-from spectrumlab.spectrum import Spectrum
+from spectrumlab.alias import Array, Number
 from spectrumlab.background.base_background import BaseBackground, BaseBackgroundConfig
-from spectrumlab.peak.blink_peak import draft_blinks, DraftBlinkPeakConfig
+from spectrumlab.emulation.noise import Noise
+from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
+from spectrumlab.spectrum import Spectrum
 
 
 @dataclass
 class SavitzkyGolayBackgroundConfig(BaseBackgroundConfig):
-    width: int
+    width: Number
     degree: int
 
-    n_counts_min: int = field(default=10)
+    width_min: Number = field(default=10)
+    width_max: Number = field(default=50)
+
+    @property
+    def n_counts_min(self) -> Number:
+        return self.width_min
 
 
 class SavitzkyGolayBackground(BaseBackground):
@@ -24,12 +29,75 @@ class SavitzkyGolayBackground(BaseBackground):
     def __init__(self, config: SavitzkyGolayBackgroundConfig):
         super().__init__(config)
 
-    # --------        handlers        --------
-    def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Array:
+        self._mask = None
+        self._width = None
+        self._background = None
 
-        # mask blinks
+    @property
+    def mask(self) -> Array[bool]:
+        if self._mask is None:
+            raise ValueError  # TODO: add custom exception!
+
+        return self._mask
+
+    @property
+    def width(self) -> Array[Number]:
+        if self._width is None:
+            raise ValueError  # TODO: add custom exception!
+
+        return self._width
+
+    @property
+    def background(self) -> Array[Number]:
+        if self._background is None:
+            raise ValueError  # TODO: add custom exception!
+
+        return self._background
+
+    # --------        handlers        --------
+    def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Spectrum:
+
+        self._fit_mask(
+            spectrum=spectrum,
+            noise=noise,
+            show=show,
+        )
+        self._fit_width(
+            spectrum=spectrum,
+        )
+
+        # background
+        background = np.zeros(spectrum.shape)
+        for t in range(spectrum.n_times):
+
+            # setup filter
+            filter = filter_savitzky_golay(
+                spectrum.intensity[t, :],
+                self.mask[t, :],
+                n_counts_min=self.config.n_counts_min,
+                width_max=self.config.width_max,
+            )
+
+            # calculate background
+            for n in range(spectrum.n_numbers):
+                background[t, n] = filter(n, width=self.width[t, n], degree=self.config.degree)
+
+        #
+        cls = spectrum.__class__
+
+        return cls(
+            intensity=background,
+            wavelength=spectrum.wavelength,
+            number=spectrum.number,
+            clipped=spectrum.clipped,
+            detector=spectrum.detector,
+        )
+
+    # --------        private        --------
+    def _fit_mask(self, spectrum: Spectrum, noise: Noise, show: bool) -> None:
+
+        # mask
         mask = np.full(spectrum.shape, False)
-        width = np.full(spectrum.shape, 0)
         for t in range(spectrum.n_times):
             blinks = draft_blinks(
                 spectrum=spectrum[t],
@@ -43,78 +111,102 @@ class SavitzkyGolayBackground(BaseBackground):
 
             for blink in blinks:
                 mask[t, blink.number] = True
-                width[t, blink.number] = 2*blink.n_numbers
 
+        # mask filtration (by time)
         for n in range(spectrum.n_numbers):
             for t in range(1, spectrum.n_times-1):
-                if mask[t-1,n] and mask[t+1,n]:
-                    mask[t,n] = True
+                if mask[t-1, n] and mask[t+1, n]:
+                    mask[t, n] = True
 
+            # remove alone blinks
+            for t in range(1, spectrum.n_times-1):
+                if ~mask[t-1, n] and ~mask[t+1, n]:
+                    mask[t, n] = False
+
+        # show
         if show:
-            fig, ax = plt.subplots(figsize=(18,4), tight_layout=True)
+            fig, ax = plt.subplots(figsize=(18, 4), tight_layout=True)
 
             plt.imshow(
                 mask,
                 origin='lower',
                 cmap='gray', vmin=0, vmax=1,
             )
-        
-        #
 
-        background = np.zeros(spectrum.shape)
+        #
+        self._mask = mask
+
+    def _fit_width(self, spectrum: Spectrum) -> None:
+        width_min = self.config.width_min
+        width_max = self.config.width_max
+
+        width = np.full(self.mask.shape, width_min)
         for t in range(spectrum.n_times):
-            filter = filter_savitzky_golay(spectrum.intensity[t,:], mask[t,:])
-
             for n in range(spectrum.n_numbers):
-                background[t,n] = filter(
-                    n,
-                    width=width[t,n] + self.config.width,
-                    degree=self.config.degree,
-                )
+                if self.mask[t, n]:
+
+                    # left bound
+                    lb = n
+                    while (lb >= n - width_max//2) and (lb >= 0):
+                        if not self.mask[t, lb]:
+                            break
+                        lb -= 1
+
+                    # right bound
+                    rb = n
+                    while (rb < n + width_max//2) and (rb < spectrum.n_numbers):
+                        if not self.mask[t, rb]:
+                            break
+                        rb += 1
+
+                    #
+                    width[t, n] += (rb - lb) - 1
 
         #
-        return background
+        self._width = width
 
 
 # --------        handlers        --------
-def filter_savitzky_golay(intensity: Array[float], mask: Array[bool], n_counts_min: int) -> Callable:
-    """Savitzky-Gloay filter with mask."""
+def filter_savitzky_golay(intensity: Array[float], mask: Array[bool], n_counts_min: int, width_max: Number) -> Callable[[Number, float, int], float]:
+    """Filter `intensity` by Savitzky-Gloay algorithm."""
     n_numbers = len(intensity)
 
-    def inner(n: int, width: int, degree: int) -> float:
-        hw = width // 2
+    def inner(n: Number, width: int, degree: int) -> float:
+        if width > width_max:
+            return np.nan
 
         # index
-        while True:
-            index = np.arange(n-hw, n+hw+1, dtype=int)
+        span = width
+        while span <= width_max:
+            index = np.arange(n - span//2, n + span//2, dtype=int)
             index = index[(index >= 0) & (index < n_numbers)]
             index = index[~mask[index]]
 
-            #
-            n_counts = index.size
-            if n_counts >= n_counts_min:
-                break
-            if  hw >= n_numbers:
+            if index.size >= n_counts_min:
                 break
 
-            hw *= 2
+            span *= 2
 
         #
-        return np.polyval(
-            np.polyfit(index, intensity[index], degree),
-            n,
-        )
+        if index.size >= n_counts_min:
+            p = np.polyfit(index, intensity[index], degree)
+            return np.polyval(p, n)
+
+        return np.nan
 
     return inner
 
 
 def approximate_savitzky_golay(intensity: Array[float], mask: Array[bool], config: SavitzkyGolayBackgroundConfig) -> Array[float]:
-    """Approximate y values with Savitzky-Gloay filtration."""
-    width = config.width
-    degree = config.degree
-    filter = filter_savitzky_golay(intensity, mask, n_counts_min=config.n_counts_min)
+    """Approximate 'intensity' by Savitzky-Gloay filtration."""
+    filter = filter_savitzky_golay(
+        intensity,
+        mask,
+        n_counts_min=config.n_counts_min,
+        width_max=config.width_max,
+    )
 
     return np.array([
-        filter(n, width=width, degree=degree)
+        filter(n, width=config.width, degree=config.degree)
         for n, _ in enumerate(intensity)
     ])

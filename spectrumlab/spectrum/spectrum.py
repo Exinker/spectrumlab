@@ -50,30 +50,29 @@ class AbsorbedSpectrum(BaseSpectrum):
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None) -> None:
         is_filling = ax is not None
+        cmap = cmap or fetch_cmap(filename='absorption 7.002.txt')
+        clim = clim or (-.01, .5)
 
+        #
         if not is_filling:
             fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
 
-        if cmap is None:
-            cmap = fetch_cmap(filename='absorption 7.002.txt')
-
-        if clim is None:
-            clim = (-.01, .5)
-
-        ax.imshow(
+        img = ax.imshow(
             self.intensity,
             origin='lower',
             cmap=cmap, clim=clim,
             aspect='auto',
         )
-        ax.set_xticks(self.number[self.n_numbers//8::self.n_numbers//4])
+
+        ax.set_xticks(self.index[self.n_numbers//8::self.n_numbers//4])
         ax.set_xticklabels([f'{w:.3f}' for w in self.wavelength[self.n_numbers//8::self.n_numbers//4]])
         ax.set_yticks(self.time[::self.n_times//8])
         ax.set_yticklabels([f'{t}' for t in self.time[::self.n_times//8]])
 
-        ax.set_xlabel('$\lambda, nm$')
-        # ax.set_ylabel('$t, ms$')
-        ax.set_ylabel('$time$')
+        ax.set_xlabel(r'$\lambda$ [$nm$]')
+        ax.set_ylabel(r'time')
+
+        plt.colorbar(img, cmap=cmap)
 
         if not is_filling:
             plt.show()

@@ -1,6 +1,5 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from spectrumlab.alias import Array
 from spectrumlab.concentration_calibration.metrology import LOD, LOQ
@@ -17,7 +16,7 @@ class TestLimits:
     def intensity(self) -> Array[float]:
         np.random.seed(42)
 
-        return self.MEAN + self.DEVIATION*np.random.randn(self.N,)
+        return self.MEAN + self.DEVIATION*np.random.randn(self.N)
 
     def test_default_lod(self, intensity: Array[float]):
         tolerance = 1e-3

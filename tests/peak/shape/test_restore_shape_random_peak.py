@@ -9,11 +9,11 @@ from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.peak import RandomPeakExperiment, RandomPeakExperimentConfig
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_spectrum
 
+from config import DETECTOR, EXPOSURE, IS_NOISED, N_FRAMES, N_ITERS, SHAPE
 from core import distance
-from config import *
+
 
 N_NUMBERS = 2048
-
 MU = -1
 SIGMA = .5
 
@@ -118,19 +118,19 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
 
 
 if __name__ == '__main__':
-    detector = DETECTOR
-    shape = SHAPE
-    config=RandomPeakExperimentConfig(
+
+    # config
+    config = RandomPeakExperimentConfig(
         n_numbers=N_NUMBERS,
         n_frames=N_FRAMES,
 
-        detector=detector,
+        detector=DETECTOR,
         apparatus=Apparatus(
-            detector=detector,
-            shape=shape,
+            detector=DETECTOR,
+            shape=SHAPE,
         ),
         aperture=Aperture(
-            detector=detector,
+            detector=DETECTOR,
             shape=RectangularApertureShape(),
         ),
 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     spectrum = experiment.run(is_noised=IS_NOISED)
 
     # restore shape
-    shape_hat = restore_shape_from_spectrum(
+    restore_shape_from_spectrum(
         spectrum=spectrum,
         noise=experiment.noise,
         verbose=True,

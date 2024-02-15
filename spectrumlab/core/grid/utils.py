@@ -1,12 +1,44 @@
+from enum import Enum, auto
 from functools import partial
 from typing import Callable
 
-import numpy as np
-from scipy import optimize
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy import integrate, interpolate, optimize
 
+from spectrumlab.alias import Array
 from spectrumlab.core.grid import Grid, T
 from spectrumlab.core.grid.handler import Handler, LinearInterpolationHandler
+
+
+# --------        handlers        --------
+class InterpolationKind(Enum):
+    NEAREST = auto()
+    LINEAR = auto()
+
+
+def interpolate_grid(grid: Grid, kind: InterpolationKind) -> Callable[[Array[T]], Array[float]]:
+    """Interpolate the grid."""
+
+    return interpolate.interp1d(
+        grid.x, grid.y,
+        kind={
+            InterpolationKind.NEAREST: 'nearest',
+            InterpolationKind.LINEAR: 'linear',
+        }.get(kind),
+        bounds_error=False,
+        fill_value=0,
+    )
+
+
+def integrate_grid(grid: Grid, position: float, interval: float, kind: InterpolationKind = InterpolationKind.LINEAR) -> float:
+    """Integrate the grid in given `position` and `interval`."""
+
+    return integrate.quad(
+        interpolate_grid(grid, kind=kind),
+        a=position - interval/2,
+        b=position + interval/2,
+    )[0]
 
 
 # --------        estimators        --------
@@ -187,12 +219,12 @@ def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: Handler | None
 
         plt.show()
 
-    # 
+    #
     return fwhm
 
 
 if __name__ == '__main__':
-    from spectrumlab.alias import Array, Number, MicroMeter
+    from spectrumlab.alias import Array, MicroMeter, Number
     from spectrumlab.emulation.aperture import MeasuredApertureShape
     from spectrumlab.emulation.detector import Detector
 

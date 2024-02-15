@@ -3,10 +3,9 @@ from typing import Callable
 
 import numpy as np
 
-from spectrumlab.alias import Array, Number, NanoMeter
+from spectrumlab.alias import Array, NanoMeter, Number
 from spectrumlab.spectrum import Spectrum
-
-from .exceptions import FitError
+from spectrumlab.wavelength_calibration.exceptions import FitError
 
 
 class BaseWavelengthCalibration(ABC):
@@ -37,7 +36,7 @@ class BaseWavelengthCalibration(ABC):
 
 
 class WavelengthCalibration(BaseWavelengthCalibration):
-    
+
     def __init__(self, deg: int) -> None:
         super().__init__(deg=deg)
 

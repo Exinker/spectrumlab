@@ -1,2 +1,3 @@
 from .grid import Grid, T
-from .utils import estimate_bias, estimate_fwhm
+from .utils import InterpolationKind
+from .utils import interpolate_grid, integrate_grid, estimate_bias, estimate_fwhm
