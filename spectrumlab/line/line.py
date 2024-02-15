@@ -36,6 +36,9 @@ class Line:
         ])
         return f'{cls.__name__}({content})'
 
+    def __str__(self) -> str:
+        return f'{self.nickname}'
+
 
 if __name__ == '__main__':
     line = Line(
