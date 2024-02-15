@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from spectrumlab.alias import Kelvin
+from spectrumlab.alias import Frame, Kelvin
 
 
 DATABASE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'database')
@@ -25,12 +25,21 @@ class Element:
 class PeriodicTable:
 
     def __init__(self):
-        self._filepath = os.path.join(DATABASE_DIRECTORY, f'database v{DATABASE_VERSION}.csv')
+        self._version = DATABASE_VERSION
+        self._filepath = os.path.join(DATABASE_DIRECTORY, f'database v{self.version}.csv')
         self._database = pd.read_csv(
             self._filepath,
             sep=', ',
             header=0,
         ).set_index('atomic_number', drop=False)
+
+    @property
+    def version(self) -> str:
+        return self._version
+
+    @property
+    def database(self) -> Frame:
+        return self._database
 
     # --------            private            --------
     def __getitem__(self, index: int | str) -> Element:
