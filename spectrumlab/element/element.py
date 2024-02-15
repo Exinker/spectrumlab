@@ -29,7 +29,7 @@ class PeriodicTable:
         self._filepath = os.path.join(DATABASE_DIRECTORY, f'database v{self.version}.csv')
         self._database = pd.read_csv(
             self._filepath,
-            sep=',',
+            sep=', ',
             header=0,
         ).set_index('atomic_number', drop=False)
 
