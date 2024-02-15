@@ -15,8 +15,8 @@ class Element:
     symbol: Symbol
     atomic_number: int
     name: str
-    atomic_weight: float  # in da (dalton)
-    density: float  # in kg/m3
+    atomic_weight: float  # [da]
+    density: float  # [kg/m3]
     melting_temperature: Kelvin
     boiling_temperature: Kelvin
     link: str
