@@ -8,7 +8,7 @@ from scipy import integrate
 from spectrumlab.alias import Array, PicoMeter
 from spectrumlab.core.grid import Grid
 from spectrumlab.core.grid.utils import estimate_fwhm
-from spectrumlab.emulation.curve import gauss, pvoigt, voigt, voigt2pvoigt
+from spectrumlab.emulation.curve import gauss, pvoigt, voigt
 from spectrumlab.picture.config import COLOR
 
 
@@ -18,6 +18,7 @@ class GaussLineShape:
     """Gauss (or normal) line profile's shape."""
     width: PicoMeter
 
+    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -34,9 +35,6 @@ class VoigtLineShape:
     g: PicoMeter  # fwhm of gauss profile shape (doppler broadening)
     l: PicoMeter  # fwhm of lorents profile shape (collisional broadening)
 
-    dx: PicoMeter = field(default=0.01)  # шаг построения интерполяции
-    rx: PicoMeter = field(default=10)  # границы построения интерполяции
-
     @property
     def sigma(self) -> PicoMeter:
         return self.g / np.sqrt(8 * np.log(2))
@@ -46,64 +44,9 @@ class VoigtLineShape:
         return self.l / 2
 
     @property
-    def x(self) -> Array[PicoMeter]:
-        return np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
-
-    @property
-    def y(self) -> Array[float]:
-        return self(self.x, 0, 1)
-
-    # --------        handlers        --------
-    def calculate_fwhm(self) -> PicoMeter:
+    def fwhm(self) -> PicoMeter:
         """Calculate FWHM of the shape [by formula](https://en.wikipedia.org/wiki/Voigt_profile#The_width_of_the_Voigt_profile)."""
         return self.l/2 + np.sqrt((self.l/2)**2 + self.g**2)
-
-    def estimate_fwhm(self) -> PicoMeter:
-        """Estimate FWHM of the shape."""
-        hwhm = estimate_fwhm(
-            grid=Grid(self.x, self.y),
-            pitch=1,
-        )
-
-        return hwhm
-
-    def to_pseudo(self, show: bool = False) -> 'PVoigtLineShape':
-        """Approx voigt shape by pvoigt shape."""
-
-        params = voigt2pvoigt(self.x, x0=0, sigma=self.sigma, gamma=self.gamma)
-        shape = PVoigtLineShape(*params)
-
-        # show
-        if show:
-            x = self.x
-            y = self.y
-            y_hat = shape(x, position=0, intensity=1)
-
-            plt.plot(
-                x, y,
-                color='red', linestyle='none', marker='s', markersize=3,
-                label=r'voigt shape',
-            )
-            plt.plot(
-                x, y_hat,
-                label=r'pvoigt shape',
-                color='black', linestyle='-', linewidth=1,
-            )
-            plt.plot(
-                x, y_hat - y,
-                color='black', linestyle='none', marker='s', markersize=0.5,
-                label=r'error',
-            )
-
-            plt.xlabel('$x$ $[pm]$')
-            plt.ylabel('$f(x)$')
-
-            plt.grid(linestyle=':')
-            plt.legend()
-            plt.show()
-
-        #
-        return shape
 
     # --------        private        --------
     @overload
@@ -127,6 +70,20 @@ class PVoigtLineShape:
     asymmetry: float = field(default=0)  # non asymmetric default
     ratio: float = field(default=0)  # gauss shape default
 
+    @property
+    def fwhm(self, dx: PicoMeter = 1e-2, rx: PicoMeter = 100) -> PicoMeter:
+        """Estimate FWHM of the shape"""
+        x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
+        y = self(x, 0, 1)
+
+        hwhm = estimate_fwhm(
+            grid=Grid(x, y),
+            pitch=1,
+        )
+
+        return hwhm
+
+    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -145,6 +102,7 @@ class SelfReversedPVoigtLineShape:
     ratio: float
     absorbance: float
 
+    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -162,6 +120,7 @@ class SigmoidsLineShape:
     width: Tuple[float, float]
     power: float
 
+    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
