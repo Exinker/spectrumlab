@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from tqdm import tqdm
 
-from spectrumlab.alias import Frame
+from spectrumlab.typing import Frame
 from spectrumlab.concentration_calibration import calibrate
 from spectrumlab.core.grid import InterpolationKind
 from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig

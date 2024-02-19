@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, interpolate, optimize
 
-from spectrumlab.alias import Array
 from spectrumlab.core.grid import Grid, T
 from spectrumlab.core.grid.handler import Handler, LinearInterpolationHandler
+from spectrumlab.typing import Array
 
 
 # --------        handlers        --------
@@ -224,7 +224,7 @@ def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: Handler | None
 
 
 if __name__ == '__main__':
-    from spectrumlab.alias import Array, MicroMeter, Number
+    from spectrumlab.typing import Array, MicroMeter, Number
     from spectrumlab.emulation.aperture import MeasuredApertureShape
     from spectrumlab.emulation.detector import Detector
 

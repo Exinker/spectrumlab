@@ -6,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, Percent, MicroMeter, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.aperture import Aperture
@@ -16,6 +15,7 @@ from spectrumlab.emulation.emulation import EmulationInterface
 from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
+from spectrumlab.typing import Array, Percent, MicroMeter, Number
 
 
 @dataclass

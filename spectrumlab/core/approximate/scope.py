@@ -1,8 +1,8 @@
 import numpy as np
 
-from spectrumlab.alias import Number
 from spectrumlab.core.approximate.base_variables import Variable, BaseVariables
 from spectrumlab.core.grid import Grid
+from spectrumlab.typing import Number
 
 
 class ScopeVariables(BaseVariables):

@@ -3,9 +3,9 @@ from typing import overload
 
 import numpy as np
 
-from spectrumlab.alias import Absorbance, Array, Electron, Percent
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.noise import BaseNoise, EmittedSpectrumNoise
+from spectrumlab.typing import Absorbance, Array, Electron, Percent
 
 
 @dataclass(frozen=True)

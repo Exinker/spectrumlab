@@ -3,9 +3,9 @@ from typing import Callable
 
 import numpy as np
 
-from spectrumlab.alias import Array, NanoMeter, Number
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.wavelength_calibration.exceptions import FitError
+from spectrumlab.typing import Array, NanoMeter, Number
 
 
 class BaseWavelengthCalibration(ABC):

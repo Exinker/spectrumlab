@@ -4,11 +4,11 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.alias import Array, Number
 from spectrumlab.background.base_background import BaseBackground, BaseBackgroundConfig
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.spectrum import Spectrum
+from spectrumlab.typing import Array, Number
 
 
 @dataclass

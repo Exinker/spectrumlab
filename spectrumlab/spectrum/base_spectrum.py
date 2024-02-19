@@ -10,8 +10,8 @@ from typing import overload
 
 import numpy as np
 
-from spectrumlab.alias import Array, NanoMeter, Number
 from spectrumlab.emulation.detector import Detector
+from spectrumlab.typing import Array, NanoMeter, Number
 
 
 @overload

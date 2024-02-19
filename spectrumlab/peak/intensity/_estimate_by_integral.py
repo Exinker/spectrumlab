@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from spectrumlab.alias import Number
 from spectrumlab.core.grid import Grid, InterpolationKind
 from spectrumlab.core.grid import integrate_grid
+from spectrumlab.typing import Number
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

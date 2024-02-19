@@ -12,9 +12,9 @@ from typing import overload
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.alias import Absorbance, Array, Electron, MilliSecond, NanoMeter, Number, Percent
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
+from spectrumlab.typing import Absorbance, Array, Electron, MilliSecond, NanoMeter, Number, Percent
 
 
 class EmittedSpectrum(BaseSpectrum):

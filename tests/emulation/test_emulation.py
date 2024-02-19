@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.alias import Array, MicroMeter
+from spectrumlab.typing import Array, MicroMeter
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector

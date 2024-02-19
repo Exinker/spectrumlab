@@ -31,16 +31,17 @@ Second = NewType('Second', float)
 MilliSecond = NewType('MilliSecond', float)
 MicroSecond = NewType('MicroSecond', int)
 
+Hz = NewType('Hz', float)
 
 # --------        spacial units        --------
 Inch = NewType('Inch', float)
 
 Meter = NewType('Meter', float)
-CentiMeter = NewType('CentiMeter', float)  # centimetre
-MilliMeter = NewType('MilliMeter', float)  # millimeter
-MicroMeter = NewType('MicroMeter', float)  # micrometer
-NanoMeter = NewType('NanoMeter', float)  # nanometer
-PicoMeter = NewType('Pico', float)  # picometer
+CentiMeter = NewType('CentiMeter', float)
+MilliMeter = NewType('MilliMeter', float)
+MicroMeter = NewType('MicroMeter', float)
+NanoMeter = NewType('NanoMeter', float)
+PicoMeter = NewType('Pico', float)
 
 Number = NewType('Number', float)
 

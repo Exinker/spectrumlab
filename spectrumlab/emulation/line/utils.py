@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.alias import PicoMeter
 from spectrumlab.emulation.curve import voigt2pvoigt
 from spectrumlab.emulation.line import PVoigtLineShape, VoigtLineShape
+from spectrumlab.typing import PicoMeter
 
 
 def transform(shape: VoigtLineShape, dx: PicoMeter = 1e-2, rx: PicoMeter = 100, show: bool = False) -> PVoigtLineShape:

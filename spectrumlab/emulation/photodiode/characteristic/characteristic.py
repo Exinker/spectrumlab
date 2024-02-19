@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, Meter, NanoMeter
 from spectrumlab.emulation.curve import gauss, rectangular
+from spectrumlab.typing import Array, Meter, NanoMeter
 
 
 # --------        CharacteristicBase        --------

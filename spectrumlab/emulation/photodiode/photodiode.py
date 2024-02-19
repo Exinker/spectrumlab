@@ -6,8 +6,8 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.alias import Array, Meter, NanoMeter
 from spectrumlab.emulation.photodiode.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic, DatasheetCharacteristic
+from spectrumlab.typing import Array, Meter, NanoMeter
 
 
 DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')

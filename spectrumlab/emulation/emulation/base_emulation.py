@@ -8,9 +8,9 @@ Emitted and absorbed spectrum emulation.
 """
 from abc import ABC, abstractmethod
 
-from spectrumlab.alias import Array, Percent, Number
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import Spectrum
+from spectrumlab.typing import Array, Percent, Number
 
 
 class EmulationInterface(ABC):

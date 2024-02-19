@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from spectrumlab.alias import Kelvin, Symbol
+from spectrumlab.typing import Kelvin, Symbol
 
 
 @dataclass

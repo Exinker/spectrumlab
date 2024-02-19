@@ -2,8 +2,8 @@ import os
 
 import pandas as pd
 
-from spectrumlab.alias import Frame
 from spectrumlab.element import Element
+from spectrumlab.typing import Frame
 
 
 DATABASE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'database')

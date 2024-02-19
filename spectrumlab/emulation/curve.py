@@ -4,8 +4,8 @@ from typing import TypeVar
 import numpy as np
 from scipy import optimize, signal
 
-from spectrumlab.alias import Array, MicroMeter, NanoMeter, Number, PicoMeter
 from spectrumlab.utils import mse
+from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number, PicoMeter
 
 
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)

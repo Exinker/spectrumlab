@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.alias import Array, Number, MicroMeter
+from spectrumlab.typing import Array, Number, MicroMeter
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.peak.shape import VoigtPeakShape
 

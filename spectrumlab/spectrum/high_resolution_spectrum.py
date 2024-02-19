@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-from spectrumlab.alias import Array, Number, MicroMeter, NanoMeter
 from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum import EmittedSpectrum
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
+from spectrumlab.typing import Array, Number, MicroMeter, NanoMeter
 
 
 def calculate_factor(ratio: float) -> int:

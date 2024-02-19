@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate, interpolate, signal
 
-from spectrumlab.alias import Array, Absorbance, Percent, MicroMeter, Number
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.aperture import Aperture
@@ -15,6 +14,7 @@ from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.noise.absorbed_spectrum_noise import AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
 from spectrumlab.emulation.spectrum import EmittedSpectrum, AbsorbedSpectrum
+from spectrumlab.typing import Array, Absorbance, Percent, MicroMeter, Number
 
 
 @dataclass

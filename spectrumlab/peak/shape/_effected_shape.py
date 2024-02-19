@@ -6,9 +6,9 @@ from tqdm import tqdm
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.peak.shape import VoigtPeakShape
+from spectrumlab.typing import Array, Number
 
 
 @dataclass

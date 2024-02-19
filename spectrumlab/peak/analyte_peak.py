@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-from spectrumlab.alias import Array, Number, NanoMeter
 from spectrumlab.concentration_calibration import ConcentrationCalibration
 from spectrumlab.core.grid import InterpolationKind
 from spectrumlab.emulation.noise import Noise
@@ -16,6 +15,7 @@ from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig
 from spectrumlab.peak.position import PositionConfig, InterpolationPositionConfig, calculate_position
 from spectrumlab.picture.config import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum
+from spectrumlab.typing import Array, Number, NanoMeter
 
 
 # --------        analyte peak        --------

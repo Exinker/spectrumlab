@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
 
-from spectrumlab.alias import Array, Number
 from spectrumlab.core.grid import Grid
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.utils import mse
+from spectrumlab.typing import Array, Number
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

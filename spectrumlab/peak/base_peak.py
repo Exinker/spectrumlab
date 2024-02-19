@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from spectrumlab.alias import Array, Number
+from spectrumlab.typing import Array, Number
 
 
 # --------        base peak        --------

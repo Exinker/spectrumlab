@@ -9,7 +9,6 @@ import numpy as np
 from scipy import interpolate, optimize, signal
 from tqdm import tqdm
 
-from spectrumlab.alias import Array, MicroMeter, Number
 from spectrumlab.core.approximate.base_variables import BaseVariables, Variable
 from spectrumlab.core.approximate.scope import ScopeVariables
 from spectrumlab.core.grid import Grid
@@ -21,6 +20,7 @@ from spectrumlab.peak.shape.approx_interface import ApproxInterface
 from spectrumlab.peak.shape.base_shape import BasePeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail, restore_grid_from_blinks
 from spectrumlab.utils import mse
+from spectrumlab.typing import Array, MicroMeter, Number
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

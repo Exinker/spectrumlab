@@ -1,6 +1,6 @@
 import pytest
 
-from spectrumlab.alias import Symbol
+from spectrumlab.typing import Symbol
 from spectrumlab.element import PeriodicTable
 
 

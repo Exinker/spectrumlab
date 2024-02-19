@@ -4,12 +4,12 @@ from typing import Literal
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, MilliSecond
 from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, emulate_emitted_spectrum
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import EmittedSpectrum, AbsorbedSpectrum, HighDynamicRangeEmittedSpectrum
+from spectrumlab.typing import Array, MilliSecond
 
 
 # --------        HDR emission emulation        --------

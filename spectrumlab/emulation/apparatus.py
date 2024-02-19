@@ -3,9 +3,9 @@ from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.detector import Detector
+from spectrumlab.typing import Array, MicroMeter
 
 
 # --------        shape        --------

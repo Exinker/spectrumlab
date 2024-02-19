@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
-from spectrumlab.alias import Array
 from spectrumlab.emulation.curve import lanczos
+from spectrumlab.typing import Array
 
 
 class InterpolationKind(Enum):

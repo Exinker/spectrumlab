@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.alias import Array, Number
 from spectrumlab.core.grid import Grid, InterpolationKind, integrate_grid, interpolate_grid
 from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, Spectrum
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig
 from spectrumlab.peak.intensity import ApproxIntensityConfig
 from spectrumlab.peak.intensity import IntegralIntensityConfig
 from spectrumlab.peak.intensity import IntensityConfig
+from spectrumlab.typing import Array, Number
 
 
 # --------        estimate intensity        --------

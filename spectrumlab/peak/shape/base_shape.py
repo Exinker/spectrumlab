@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from spectrumlab.alias import Array, Number
+from spectrumlab.typing import Array, Number
 
 
 class BasePeakShape(ABC):

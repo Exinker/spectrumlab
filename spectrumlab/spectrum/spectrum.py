@@ -2,10 +2,10 @@ from typing import TypeAlias
 
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, NanoMeter, Number
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture import fetch_cmap
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum
+from spectrumlab.typing import Array, NanoMeter, Number
 
 
 # --------        spectrum        --------

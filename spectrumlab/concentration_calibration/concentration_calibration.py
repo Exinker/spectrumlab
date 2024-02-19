@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Frame, Series
 from spectrumlab.emulation.spectrum import Spectrum
 from spectrumlab.picture.config import COLOR, ALPHA
+from spectrumlab.typing import Frame, Series
 
 from .exceptions import FitError
 from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol

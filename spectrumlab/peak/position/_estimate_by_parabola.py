@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.alias import Number
+from spectrumlab.typing import Number
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

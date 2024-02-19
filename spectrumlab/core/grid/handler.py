@@ -6,9 +6,9 @@ import numpy as np
 from scipy import interpolate, optimize
 import matplotlib.pyplot as plt
 
-from spectrumlab.alias import Array, MicroMeter
 from spectrumlab.core.grid import Grid, T
 from spectrumlab.core.grid.shape import VoigtGridShape
+from spectrumlab.typing import Array, MicroMeter
 
 
 # --------        handlers        --------

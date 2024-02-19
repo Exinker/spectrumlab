@@ -3,8 +3,8 @@ from typing import Mapping, NewType
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.alias import Frame
 from spectrumlab.emulation.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
+from spectrumlab.typing import Frame
 
 
 Intercept = NewType('Intercept', float)

@@ -11,7 +11,7 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.alias import Array
+from spectrumlab.typing import Array
 
 
 @dataclass

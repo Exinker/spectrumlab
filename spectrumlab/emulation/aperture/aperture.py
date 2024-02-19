@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, MicroMeter, Number
 from spectrumlab.core.grid import Grid
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR
+from spectrumlab.typing import Array, MicroMeter, Number
 
 
 DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')

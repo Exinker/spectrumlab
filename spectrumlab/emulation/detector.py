@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from spectrumlab.alias import Electron, MicroMeter
+from spectrumlab.typing import Electron, MicroMeter
 
 
 @dataclass(frozen=True)

@@ -11,13 +11,13 @@ from configparser import ConfigParser
 
 import pandas as pd
 
-from spectrumlab.alias import Frame
 from spectrumlab.core.grid import InterpolationKind
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.emulation.experiment import BaseExperimentConfig, _parse_detector, _parse_device
 from spectrumlab.emulation.intensity import IntegralIntensityConfig
 from spectrumlab.emulation.line import Line, PVoigtLineShape
+from spectrumlab.typing import Frame
 
 
 warnings.filterwarnings('ignore')

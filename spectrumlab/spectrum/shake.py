@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-from spectrumlab.alias import Array
 from spectrumlab.spectrum.interpolate import interpolate, interpolate_lanczos, InterpolationKind
 from spectrumlab.spectrum.spectrum import EmittedSpectrum
+from spectrumlab.typing import Array
 
 
 def find_offset(x: Array[float], y: Array[float], y_base: Array[float]) -> float:

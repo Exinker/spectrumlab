@@ -5,12 +5,12 @@ from typing import overload
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.alias import Array, Number
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.peak.shape.base_shape import BasePeakShape 
 from spectrumlab.peak.shape.approx_interface import ApproxInterface
 from spectrumlab.peak.shape.voigt_peak_shape import VoigtPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail
+from spectrumlab.typing import Array, Number
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

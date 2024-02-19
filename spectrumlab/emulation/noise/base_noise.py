@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from spectrumlab.alias import Array, Electron, Percent
+from spectrumlab.typing import Array, Electron, Percent
 
 
 class BaseNoise(ABC):

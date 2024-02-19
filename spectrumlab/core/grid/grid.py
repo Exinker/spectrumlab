@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, interpolate
 
-from spectrumlab.alias import Array, MicroMeter, NanoMeter, Number, PicoMeter
+from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number, PicoMeter
 
 
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)

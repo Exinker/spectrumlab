@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Mapping, TYPE_CHECKING
 
-from spectrumlab.alias import Array
+from spectrumlab.typing import Array
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

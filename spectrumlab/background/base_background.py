@@ -7,9 +7,9 @@ Author: Vaschenko Pavel
 """
 from abc import ABC, abstractmethod
 
-from spectrumlab.alias import Array
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.spectrum import Spectrum
+from spectrumlab.typing import Array
 
 
 class BaseBackgroundConfig(ABC):
