@@ -8,6 +8,8 @@ Author: Vaschenko Pavel
 from dataclasses import dataclass
 from enum import Enum
 
+from spectrumlab.typing import MicroMeter, PicoMeter
+
 
 @dataclass(frozen=True)
 class DeviceConfig:
@@ -58,6 +60,13 @@ class Device(Enum):
     def config(self) -> DeviceConfig | DynamicDeviceConfig:
         return self.value
 
+    # --------        handlers        --------
+    def estimate_resolution(self, slit_width: MicroMeter) -> PicoMeter:
+        """Estimate device's resolution (theoretical limit)."""
+
+        return self.config.dispersion * slit_width
+
+    # --------        private        --------
     def __repr__(self) -> str:
         name = self.value.name
         dispersion = self.value.dispersion
