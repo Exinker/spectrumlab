@@ -1,6 +1,6 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-from spectrumlab import DESCRIPTION, VERSION, NAME, AUTHOR_NAME, AUTHOR_EMAIL
+from spectrumlab import AUTHOR_EMAIL, AUTHOR_NAME, DESCRIPTION, NAME, VERSION
 
 
 install_requires = [
@@ -9,29 +9,28 @@ install_requires = [
 ]
 
 setup(
-	# info
+    # info
     name=NAME,
-	description=DESCRIPTION,
-	license='MIT',
-    keywords=['spectroscopy', 'spectra emulation', 'spectra process'],
+    description=DESCRIPTION,
+    license='MIT',
+    keywords=['spectroscopy', 'atomic emission spectroscopy', 'atomic absorption spectroscopy', 'emulation'],
 
-	# version
+    # version
     version=VERSION,
 
-	# author details
+    # author details
     author=AUTHOR_NAME,
     author_email=AUTHOR_EMAIL,
 
-	# setup directories
+    # setup directories
     packages=find_packages(),
 
-	# setup data
-    package_data = {
+    # setup data
+    package_data={
         '': ['*.txt', '*.xml', '*.csv', '*.md'],
     },
 
-	# requires
+    # requires
     install_requires=install_requires,
     python_requires='>=3.10',
-
 )
