@@ -3,11 +3,6 @@ from setuptools import find_packages, setup
 from spectrumlab import AUTHOR_EMAIL, AUTHOR_NAME, DESCRIPTION, NAME, VERSION
 
 
-install_requires = [
-    item.strip() for item in open('requirements.txt', 'r').readlines()
-    if item.strip()
-]
-
 setup(
     # info
     name=NAME,
@@ -31,6 +26,9 @@ setup(
     },
 
     # requires
-    install_requires=install_requires,
+    install_requires=[
+        item.strip() for item in open('requirements.txt', 'r').readlines()
+        if item.strip()
+    ],
     python_requires='>=3.10',
 )
