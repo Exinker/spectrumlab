@@ -24,7 +24,7 @@ class BaseConcentrationCalibration(ABC):
     @abstractmethod
     def fit(self, intensity: Series, concentration: Series):
         raise NotImplementedError
-    
+
     @abstractmethod
     def predict(self, intensity: Series) -> Series:
         raise NotImplementedError

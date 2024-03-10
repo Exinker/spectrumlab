@@ -36,12 +36,13 @@ def approx_peak_by_tail(peak: 'AnalytePeak', shape: 'PeakShape') -> float:
     return intensity
 
 
-def approx_peak(peak: 'AnalytePeak', shape: 'PeakShape', delta: float = 1, by_tail: bool = False, show: bool = False) -> dict:
+def approx_peak(peak: 'AnalytePeak', shape: 'PeakShape', delta: float = 1, by_tail: bool = False, verbose: bool = False, show: bool = False) -> dict:
     """Approximate the analyte peak with selected shape."""
 
-    def calculate_loss(params: Sequence[float], peak: 'AnalytePeak', shape: 'PeakShape', by_tail: bool = False) -> float:
+    def calculate_loss(params: Sequence[float], peak: 'AnalytePeak', shape: 'PeakShape', by_tail: bool) -> float:
         """Interface to calculate a loss of approximation of a analyte peak by any shape"""
         index = peak.tail if by_tail else peak.index
+        index = index[peak.mask[index]]
         x = peak.number[index]
         y = peak.value[index]
 
@@ -59,25 +60,45 @@ def approx_peak(peak: 'AnalytePeak', shape: 'PeakShape', delta: float = 1, by_ta
     )
     params = shape.approx_parse(result.x)
 
+    # verbose
+    if verbose:
+        print('Initial:', shape.approx_parse(shape.approx_initial(peak=peak)))
+        print('Bounds:', shape.approx_parse(shape.approx_bounds(peak=peak, delta=delta)))
+        print('Result:', shape.approx_parse(result.x))
+
     # draw
     if show:
-        x, y = peak.number, peak.value
-        plt.plot(x, y, color='black', marker='s', markersize=.5, alpha=.2)
 
         x, y = peak.number, peak.value
-        y[~peak.mask] = np.nan
-        plt.plot(x, y, marker='s', markersize=.5)
+        plt.step(
+            x, y,
+            where='mid',
+            color='black',
+        )
 
         left, right = peak.minima
         x = np.linspace(left, right, 1000)
         y_hat = shape(x, **params)
-        plt.plot(x, y_hat, color='red')
+        plt.plot(
+            x, y_hat,
+            color='#9467bd',
+        )
 
-        x, y = peak.number, peak.value
-        y_hat = shape(x, **params)
-        plt.plot(x, y - y_hat, color='black', linestyle=':')
+        index = peak.mask
+        plt.plot(
+            peak.number[index], peak.value[index],
+            color='red', linestyle='none', marker='s', markersize=3,
+        )
 
-        plt.grid()
+        # x, y = peak.number, peak.value
+        # y_hat = shape(x, **params)
+        # plt.step(
+        #     x, y - y_hat,
+        #     where='mid',
+        #     color='black', linestyle=':',
+        # )
+
+        plt.grid(color='grey', linestyle=':')
         plt.show()
 
     return params
