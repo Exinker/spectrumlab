@@ -24,7 +24,7 @@ def reshape(values):
         return None
 
     if (values.ndim == 2) and (values.shape[0] == 1):
-        return values.reshape((-1, ))
+        return values.flatten()
 
     return values
 

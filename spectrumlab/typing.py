@@ -6,7 +6,7 @@ import pandas as pd
 from numpy.typing import NDArray
 
 
-# --------        types        --------
+# --------        structures        --------
 Array: TypeAlias = NDArray
 
 Index: TypeAlias = pd.Index | pd.MultiIndex
@@ -14,7 +14,7 @@ Series: TypeAlias = pd.Series
 Frame: TypeAlias = pd.DataFrame
 
 
-# --------        dataset        --------
+# --------        datasets        --------
 class Dataset(Enum):
     train = 'train'
     valid = 'valid'

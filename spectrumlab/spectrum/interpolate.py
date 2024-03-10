@@ -65,7 +65,7 @@ def interpolate(x: Array[float], y: Array[float], offset: float, kind: Interpola
 
 
 if __name__ == '__main__':
-        
+
     for a in [1, 2, 3]:
         x = np.linspace(-4, 4, 1000)
         y = lanczos(x, a=a)
