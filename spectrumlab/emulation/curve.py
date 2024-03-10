@@ -4,8 +4,8 @@ from typing import TypeVar
 import numpy as np
 from scipy import optimize, signal
 
-from spectrumlab.utils import mse
 from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number, PicoMeter
+from spectrumlab.utils import mse
 
 
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
@@ -111,8 +111,8 @@ def voigt2pvoigt(x: Array[T], x0: T, sigma: float, gamma: float) -> tuple[T, flo
         partial(loss, x, x0, y),
         x0=[2, 0, 0],
         bounds=[
-            (0, 10),
-            [-0.1, +0.1],
+            (0, 100),
+            [-0.25, +0.25],
             [0, 1],
         ],
     )

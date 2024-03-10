@@ -76,12 +76,12 @@ class PVoigtLineShape:
         x = np.linspace(-rx, +rx, 2*int(rx/dx) + 1)
         y = self(x, 0, 1)
 
-        hwhm = estimate_fwhm(
+        fwhm = estimate_fwhm(
             grid=Grid(x, y),
             pitch=1,
         )
 
-        return hwhm
+        return fwhm
 
     # --------        private        --------
     @overload
