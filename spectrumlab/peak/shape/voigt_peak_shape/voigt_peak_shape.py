@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from spectrumlab.core.approximate.base_variables import BaseVariables, Variable
 from spectrumlab.core.approximate.scope import ScopeVariables
-from spectrumlab.core.grid import Grid
+from spectrumlab.grid import Grid
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum

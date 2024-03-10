@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 
 from spectrumlab.typing import Array, Number
-from spectrumlab.core.grid import Grid
-from spectrumlab.core.grid.utils import estimate_fwhm
+from spectrumlab.grid import Grid
+from spectrumlab.grid.utils import estimate_fwhm
 from spectrumlab.emulation.curve import gauss
 
 

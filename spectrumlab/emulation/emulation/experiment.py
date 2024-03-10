@@ -10,7 +10,7 @@ import warnings
 from configparser import ConfigParser
 from dataclasses import dataclass, field
 
-from spectrumlab.core.grid import InterpolationKind
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector

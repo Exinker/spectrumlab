@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from spectrumlab.core.grid import InterpolationKind
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.concentration_calibration import BaseConcentrationCalibration, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
 from spectrumlab.emulation.emulation import Emulation
 from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, calculate_intensity, calculate_deviation

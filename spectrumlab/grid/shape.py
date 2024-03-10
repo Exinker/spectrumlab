@@ -4,7 +4,7 @@ from typing import TypeAlias
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.core.grid import T
+from spectrumlab.grid import T
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.typing import Array
 

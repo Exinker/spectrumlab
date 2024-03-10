@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate
 
-from spectrumlab.core.grid import Grid
-from spectrumlab.core.grid.utils import estimate_fwhm
+from spectrumlab.grid import Grid
+from spectrumlab.grid.utils import estimate_fwhm
 from spectrumlab.emulation.curve import gauss, pvoigt, voigt
 from spectrumlab.picture.config import COLOR
 from spectrumlab.typing import Array, PicoMeter

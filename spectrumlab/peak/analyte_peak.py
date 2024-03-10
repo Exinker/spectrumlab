@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 
 from spectrumlab.concentration_calibration import ConcentrationCalibration
-from spectrumlab.core.grid import InterpolationKind
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.line.line import Line
 from spectrumlab.peak.base_peak import BasePeak

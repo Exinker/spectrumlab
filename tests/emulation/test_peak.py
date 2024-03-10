@@ -56,7 +56,7 @@ def test_integral(detector: Detector, config: Config):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    from spectrumlab.core.grid import Grid
+    from spectrumlab.grid import Grid
 
     config = Config(
         width=28,

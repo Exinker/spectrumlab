@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.core.grid import Grid, InterpolationKind, integrate_grid, interpolate_grid
+from spectrumlab.grid import Grid, InterpolationKind, integrate_grid, interpolate_grid
 from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, Spectrum
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig
 from spectrumlab.peak.intensity import ApproxIntensityConfig

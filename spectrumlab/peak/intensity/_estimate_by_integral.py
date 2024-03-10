@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from spectrumlab.core.grid import Grid, InterpolationKind
-from spectrumlab.core.grid import integrate_grid
+from spectrumlab.grid import Grid, InterpolationKind
+from spectrumlab.grid import integrate_grid
 from spectrumlab.typing import Number
 
 if TYPE_CHECKING:

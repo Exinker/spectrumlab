@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from spectrumlab.typing import Frame
 from spectrumlab.concentration_calibration import calibrate
-from spectrumlab.core.grid import InterpolationKind
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, SpectrumConfig
 from spectrumlab.emulation.emulation import fetch_emulation

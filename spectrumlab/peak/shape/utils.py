@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
 
-from spectrumlab.core.grid import Grid
+from spectrumlab.grid import Grid
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.utils import mse
 from spectrumlab.typing import Array, Number

@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, interpolate, optimize
 
-from spectrumlab.core.grid import Grid, T
-from spectrumlab.core.grid.handler import Handler, LinearInterpolationHandler
+from spectrumlab.grid import Grid, T
+from spectrumlab.grid.handler import Handler, LinearInterpolationHandler
 from spectrumlab.typing import Array
 
 

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.core.grid import Grid
+from spectrumlab.grid import Grid
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.config import COLOR

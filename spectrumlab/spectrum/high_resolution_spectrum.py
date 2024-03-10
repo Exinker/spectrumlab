@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-from spectrumlab.core.grid import Grid
+from spectrumlab.grid import Grid
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum import EmittedSpectrum
 from spectrumlab.spectrum.base_spectrum import BaseSpectrum

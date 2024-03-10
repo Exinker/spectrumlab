@@ -11,7 +11,7 @@ from configparser import ConfigParser
 
 import pandas as pd
 
-from spectrumlab.core.grid import InterpolationKind
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.emulation.experiment import BaseExperimentConfig, _parse_detector, _parse_device
