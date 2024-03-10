@@ -9,17 +9,29 @@ COLOR = {
     'yellow': '#FAB733',
     'green': '#69B34C',
 
-    'train': [0.17254902, 0.62745098, 0.17254902, 0.5],  # '#009300'
-    'valid': [1., 0.49803922, 0.05490196, 0.5],
-    'test': [0.12156863, 0.46666667, 0.70588235, 0.5],  # '#000096'
-
-    'analytical': '#FFE1CC',
-    'macrocomponent': '#FFFACC',
-    'interfering': '#EBFFCC',
-
     'blue': [0, 0.4470, 0.7410],
     'pink': [1, 0.4470, 0.7410],
 }
+
+COLOR_DATABASE = {
+    'train': [0.17254902, 0.62745098, 0.17254902, 0.5],  # '#009300'
+    'valid': [1., 0.49803922, 0.05490196, 0.5],
+    'test': [0.12156863, 0.46666667, 0.70588235, 0.5],  # '#000096'
+}
+
+COLOR_INFLUENCE = {
+    'analytical': '#FFE1CC',
+    'macrocomponent': '#FFFACC',
+    'interfering': '#EBFFCC',
+}
+
+COLOR_INTENSITY = {
+    'amplitude': '#2ca02c',
+    'nearest': '#1f77b4',
+    'linear': '#ff7f0e',
+    'shape': '#9467bd',
+}
+
 
 # ---------        ALPHA        ---------
 ALPHA = {

@@ -5,6 +5,8 @@ from typing import TypeAlias, NewType
 import pandas as pd
 from numpy.typing import NDArray
 
+from spectrumlab.picture import COLOR_DATABASE
+
 
 # --------        structures        --------
 Array: TypeAlias = NDArray
@@ -19,6 +21,10 @@ class Dataset(Enum):
     train = 'train'
     valid = 'valid'
     test = 'test'
+
+    @property
+    def color(self) -> str:
+        return COLOR_DATABASE[self.name]
 
 
 # --------        temperature units        --------

@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from spectrumlab.picture import COLOR_INTENSITY
+
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 
@@ -12,7 +14,7 @@ class AmplitudeIntensityConfig:
 
     @property
     def color(self) -> str:
-        return '#2ca02c'
+        return COLOR_INTENSITY['amplitude']
 
 
 def estimate_intensity_by_amplitude(peak: 'AnalytePeak', config: AmplitudeIntensityConfig, verbose: bool = False) -> float:

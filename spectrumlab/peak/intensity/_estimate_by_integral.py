@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from spectrumlab.grid import Grid, InterpolationKind
-from spectrumlab.grid import integrate_grid
+from spectrumlab.grid import Grid, InterpolationKind, integrate_grid
+from spectrumlab.picture import COLOR_INTENSITY
 from spectrumlab.typing import Number
 
 if TYPE_CHECKING:
@@ -18,9 +18,9 @@ class IntegralIntensityConfig:
     def color(self) -> str:
 
         if self.kind == InterpolationKind.NEAREST:
-            return '#1f77b4'
+            return COLOR_INTENSITY['nearest']
         if self.kind == InterpolationKind.LINEAR:
-            return '#ff7f0e'
+            return COLOR_INTENSITY['linear']
 
         raise ValueError(f'color: {self.kind} is not supported!')
 

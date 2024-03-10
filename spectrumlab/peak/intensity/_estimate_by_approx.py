@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from spectrumlab.peak.shape.utils import approx_peak
+from spectrumlab.picture import COLOR_INTENSITY
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -17,7 +18,7 @@ class ApproxIntensityConfig:
 
     @property
     def color(self) -> str:
-        return '#9467bd'
+        return COLOR_INTENSITY['shape']
 
 
 def estimate_intensity_by_approx(peak: 'AnalytePeak', config: ApproxIntensityConfig, verbose: bool = False, show: bool = False) -> float:
