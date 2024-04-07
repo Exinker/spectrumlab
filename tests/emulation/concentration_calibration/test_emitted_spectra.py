@@ -18,7 +18,7 @@ from spectrumlab.peak.analyte_peak import AnalytePeak, FactoryAnalytePeak
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig
 from spectrumlab.peak.intensity import ApproxIntensityConfig
 from spectrumlab.peak.intensity import IntegralIntensityConfig
-from spectrumlab.peak.position import InterpolationPositionConfig
+from spectrumlab.peak.position import InterpolationPositionCalculator
 from spectrumlab.peak.shape import VoigtPeakShape
 from spectrumlab.typing import Frame
 
@@ -113,7 +113,7 @@ class TestConcentrationCalibration:
                 ),
                 factory=AnalytePeak.factory(
                     noise_level=5,
-                    position=InterpolationPositionConfig(),
+                    position_calculator=InterpolationPositionCalculator(),
                     intensity=AmplitudeIntensityConfig(),
                 ),
             ),
@@ -140,7 +140,7 @@ class TestConcentrationCalibration:
                 ),
                 factory=AnalytePeak.factory(
                     noise_level=5,
-                    position=InterpolationPositionConfig(),
+                    position_calculator=InterpolationPositionCalculator(),
                     intensity=IntegralIntensityConfig(
                         interval=3,
                         kind=InterpolationKind.LINEAR,
@@ -172,7 +172,7 @@ class TestConcentrationCalibration:
                 ),
                 factory=AnalytePeak.factory(
                     noise_level=5,
-                    position=InterpolationPositionConfig(),
+                    position_calculator=InterpolationPositionCalculator(),
                     intensity=ApproxIntensityConfig(
                         approx_shape=VoigtPeakShape(
                             width=apparatus.shape.width/detector.pitch,

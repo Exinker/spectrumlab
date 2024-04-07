@@ -11,7 +11,7 @@ from spectrumlab.line.line import Line
 from spectrumlab.peak.peak import AbstractPeak
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.intensity import ApproxIntensityConfig, IntegralIntensityConfig, IntensityConfig, calculate_intensity
-from spectrumlab.peak.position import InterpolationPositionConfig, PositionConfig, calculate_position
+from spectrumlab.peak.position import AbstractPositionCalculator, InterpolationPositionCalculator
 from spectrumlab.picture.config import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum
 from spectrumlab.typing import Array, NanoMeter, Number
@@ -20,7 +20,7 @@ from spectrumlab.typing import Array, NanoMeter, Number
 @dataclass
 class FactoryAnalytePeak:
     noise_level: int = field(default=5)
-    position: PositionConfig = field(default_factory=InterpolationPositionConfig)
+    position_calculator: AbstractPositionCalculator = field(default_factory=InterpolationPositionCalculator)
     intensity: IntensityConfig = field(default_factory=IntegralIntensityConfig)
 
     except_edges: bool | None = field(default=False)
@@ -84,7 +84,7 @@ class FactoryAnalytePeak:
             mask=mask,
             config=AnalytePeakConfig(
                 line=line,
-                position=self.position,
+                position_calculator=self.position_calculator,
                 intensity=self.intensity,
             ),
 
@@ -108,7 +108,7 @@ class FactoryAnalytePeak:
 class AnalytePeakConfig:
     line: Line
 
-    position: PositionConfig
+    position_calculator: AbstractPositionCalculator
     intensity: IntensityConfig
 
     concentration_calibration: ConcentrationCalibration | None = field(default=None)
@@ -169,11 +169,11 @@ class AnalytePeak(AbstractPeak):
 
         return self._position
 
-    def calculate_position(self, config: PositionConfig | None = None) -> Number:
+    def calculate_position(self, calculator: AbstractPositionCalculator | None = None) -> Number:
         """Calculate peak's position."""
-        config = config or self.config.position
+        calculator = calculator or self.config.position_calculator
 
-        return calculate_position(self, config=config)
+        return calculator.calculate(self)
 
     # --------            intensity            --------
     @property
