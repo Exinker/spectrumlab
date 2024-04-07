@@ -8,7 +8,7 @@ from spectrumlab.concentration_calibration import ConcentrationCalibration
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
-from spectrumlab.peak.base_peak import AbstractPeak
+from spectrumlab.peak.peak import AbstractPeak
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.intensity import ApproxIntensityConfig, IntegralIntensityConfig, IntensityConfig, calculate_intensity
 from spectrumlab.peak.position import InterpolationPositionConfig, PositionConfig, calculate_position
@@ -17,7 +17,93 @@ from spectrumlab.spectrum.spectrum import Spectrum
 from spectrumlab.typing import Array, NanoMeter, Number
 
 
-# --------        analyte peak        --------
+@dataclass
+class FactoryAnalytePeak:
+    noise_level: int = field(default=5)
+    position: PositionConfig = field(default_factory=InterpolationPositionConfig)
+    intensity: IntensityConfig = field(default_factory=IntegralIntensityConfig)
+
+    except_edges: bool | None = field(default=False)
+    autocalculate: bool | None = field(default=False)
+    # window: int | None = field(default=None)  # FIXME: добавить размер вырезаемого участка спектра
+
+    def create(self, line: Line, spectrum: Spectrum, noise: Noise, verbose: bool = False, show: bool = False) -> 'AnalytePeak':
+        assert spectrum.n_times == 1, 'time resolved spectra are not supported yet!'
+
+        cursor = abs(spectrum.wavelength - line.wavelength).argmin()
+        minima = [0, spectrum.n_numbers-1]
+        maxima = []
+
+        # mask
+        blinks = draft_blinks(
+            spectrum=spectrum,
+            noise=noise,
+            config=DraftBlinkPeakConfig(
+                except_clipped_peak=False,
+                except_sloped_peak=False,
+                except_edges=False,
+
+                noise_level=self.noise_level,
+            ),
+        )
+
+        is_found = False
+        mask = np.full(spectrum.shape, True)
+        for blink in blinks:
+            left, right = blink.minima
+
+            is_far = (np.abs(left - cursor) > 2) and (np.abs(right - cursor) > 2)  # расстояние от cursor до blink больше 2х отсчетов
+            if is_far:
+                if blink.include(cursor):  # cursor находится внутри этого blink (линия без самопоглощения)
+                    is_found = True
+                    maxima.append(blink.maxima[0])
+
+                else:
+                    mask[blink.number] = False
+
+            else:
+                if blink.amplitude > 100 * blink.deviation:  # этот blink достаточную амплитуду, чтобы считаться частью линии (линия с самопоглощением)
+                    is_found = True
+                    maxima.append(blink.maxima[0])
+
+                else:
+                    mask[blink.number] = False
+
+        if not is_found:
+            mask = np.full(spectrum.shape, True)
+
+        # mask clipped counts
+        mask[spectrum.clipped] = False
+
+        # gather peak
+        peak = AnalytePeak(
+            minima=tuple(minima),
+            maxima=tuple(maxima),
+
+            spectrum=spectrum,
+            mask=mask,
+            config=AnalytePeakConfig(
+                line=line,
+                position=self.position,
+                intensity=self.intensity,
+            ),
+
+            except_edges=self.except_edges,
+            autocalculate=self.autocalculate,
+        )
+
+        # verbose
+        if verbose:
+            print(peak)
+
+        # show
+        if show:
+            peak.show(verbose=True)
+
+        #
+        return peak
+
+
 @dataclass
 class AnalytePeakConfig:
     line: Line
@@ -29,17 +115,18 @@ class AnalytePeakConfig:
 
 
 class AnalytePeak(AbstractPeak):
+    factory = FactoryAnalytePeak
 
     def __init__(
-        self,
-        minima: tuple[int, int],
-        maxima: tuple | tuple[int, int] | tuple[int, ...],
-        spectrum: Spectrum,
-        mask: Array,
-        config: AnalytePeakConfig,
-        except_edges: bool = False,
-        autocalculate: bool = True,
-        ):
+            self,
+            minima: tuple[int, int],
+            maxima: tuple | tuple[int, int] | tuple[int, ...],
+            spectrum: Spectrum,
+            mask: Array,
+            config: AnalytePeakConfig,
+            except_edges: bool = False,
+            autocalculate: bool = True,
+            ):
         super().__init__(minima=minima, maxima=maxima, except_edges=except_edges)
 
         self.spectrum = spectrum
@@ -136,7 +223,7 @@ class AnalytePeak(AbstractPeak):
         return abs(self.wavelength - line.wavelength).argmin()
 
     # --------            handlers            --------
-    def transform(self, number: float | Array) -> float | Array:
+    def transform(self, number: Number | Array[Number]) -> NanoMeter | Array[NanoMeter]:
         """Transform from a number to wavelength."""
 
         return interpolate.interp1d(
@@ -294,99 +381,3 @@ class AnalytePeak(AbstractPeak):
             f'intensity: {self.intensity:.4f}',
         ])
         return f'{cls.__name__}({content})'
-
-
-# --------        gather analyte peak        --------
-@dataclass
-class GatherAnalytePeakConfig:
-
-    noise_level: int = field(default=5)
-    position: PositionConfig = field(default_factory=InterpolationPositionConfig)
-    intensity: IntensityConfig = field(default_factory=IntegralIntensityConfig)
-
-    except_edges: bool | None = field(default=False)
-    autocalculate: bool | None = field(default=False)
-    # window: int | None = field(default=None)  # FIXME: добавить размер вырезаемого участка спектра
-
-
-def gather_analyte_peak(line: Line, spectrum: Spectrum, noise: Noise, config: GatherAnalytePeakConfig, verbose: bool = False, show: bool = False) -> AnalytePeak:
-    """Factory to gather a peak with selected config.
-
-    Author: Vaschenko Pavel
-     Email: vaschenko@vmk.ru
-      Date: 2016.04.09
-    """
-    assert spectrum.n_times == 1, 'time resolved spectra are not supported yet!'
-
-    cursor = abs(spectrum.wavelength - line.wavelength).argmin()
-    minima = [0, spectrum.n_numbers-1]
-    maxima = []
-
-    # mask
-    blinks = draft_blinks(
-        spectrum=spectrum,
-        noise=noise,
-        config=DraftBlinkPeakConfig(
-            except_clipped_peak=False,
-            except_sloped_peak=False,
-            except_edges=False,
-
-            noise_level=config.noise_level,
-        ),
-    )
-
-    is_found = False
-    mask = np.full(spectrum.shape, True)
-    for blink in blinks:
-        left, right = blink.minima
-
-        is_far = (np.abs(left - cursor) > 2) and (np.abs(right - cursor) > 2)  # расстояние от cursor до blink больше 2х отсчетов
-        if is_far:
-            if blink.include(cursor):  # cursor находится внутри этого blink (линия без самопоглощения)
-                is_found = True
-                maxima.append(blink.maxima[0])
-
-            else:
-                mask[blink.number] = False
-
-        else:
-            if blink.amplitude > 100 * blink.deviation:  # этот blink достаточную амплитуду, чтобы считаться частью линии (линия с самопоглощением)
-                is_found = True
-                maxima.append(blink.maxima[0])
-
-            else:
-                mask[blink.number] = False
-
-    if not is_found:
-        mask = np.full(spectrum.shape, True)
-
-    # mask clipped counts
-    mask[spectrum.clipped] = False
-
-    # gather peak
-    peak = AnalytePeak(
-        minima=tuple(minima),
-        maxima=tuple(maxima),
-
-        spectrum=spectrum,
-        mask=mask,
-        config=AnalytePeakConfig(
-            line=line,
-            position=config.position,
-            intensity=config.intensity,
-        ),
-
-        except_edges=config.except_edges,
-        autocalculate=config.autocalculate,
-    )
-
-    # verbose
-    if verbose:
-        print(peak)
-
-    # show
-    if show:
-        peak.show(verbose=True)
-
-    #
-    return peak

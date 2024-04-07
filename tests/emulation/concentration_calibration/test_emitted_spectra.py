@@ -14,7 +14,7 @@ from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import Spectrum
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line import Line
-from spectrumlab.peak.analyte_peak import GatherAnalytePeakConfig, gather_analyte_peak
+from spectrumlab.peak.analyte_peak import AnalytePeak, FactoryAnalytePeak
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig
 from spectrumlab.peak.intensity import ApproxIntensityConfig
 from spectrumlab.peak.intensity import IntegralIntensityConfig
@@ -82,11 +82,11 @@ def spectra(config: ExperimentConfig, emulation: EmittedSpectrumEmulation) -> Fr
     return spectra
 
 
-def calculate_intensity(*args, **kwargs):
-    factory = partial(gather_analyte_peak, *args, **kwargs)
+def calculate_intensity(factory: FactoryAnalytePeak, *args, **kwargs):
+    create = partial(factory.create, *args, **kwargs)
 
     def inner(spectrum: Spectrum) -> float:
-        peak = factory(spectrum=spectrum)
+        peak = create(spectrum=spectrum)
 
         return peak.intensity
 
@@ -111,7 +111,7 @@ class TestConcentrationCalibration:
                     detector=config.detector,
                     n_frames=config.n_frames,
                 ),
-                config=GatherAnalytePeakConfig(
+                factory=AnalytePeak.factory(
                     noise_level=5,
                     position=InterpolationPositionConfig(),
                     intensity=AmplitudeIntensityConfig(),
@@ -138,7 +138,7 @@ class TestConcentrationCalibration:
                     detector=config.detector,
                     n_frames=config.n_frames,
                 ),
-                config=GatherAnalytePeakConfig(
+                factory=AnalytePeak.factory(
                     noise_level=5,
                     position=InterpolationPositionConfig(),
                     intensity=IntegralIntensityConfig(
@@ -170,7 +170,7 @@ class TestConcentrationCalibration:
                     detector=config.detector,
                     n_frames=config.n_frames,
                 ),
-                config=GatherAnalytePeakConfig(
+                factory=AnalytePeak.factory(
                     noise_level=5,
                     position=InterpolationPositionConfig(),
                     intensity=ApproxIntensityConfig(

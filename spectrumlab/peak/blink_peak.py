@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulation.noise import Noise
-from spectrumlab.peak.base_peak import AbstractPeak
+from spectrumlab.peak.peak import AbstractPeak
 from spectrumlab.spectrum import Spectrum
 
 

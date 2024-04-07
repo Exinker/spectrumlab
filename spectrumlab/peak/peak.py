@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -6,7 +5,6 @@ import numpy as np
 from spectrumlab.typing import Array, Number
 
 
-# --------        base peak        --------
 @dataclass(frozen=False, slots=False)
 class AbstractPeak:
     """Abstract peak type."""
