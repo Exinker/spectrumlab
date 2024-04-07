@@ -14,7 +14,7 @@ import pandas as pd
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.emulation.experiment import AbstractExperimentConfig, _parse_detector, _parse_device
-from spectrumlab.emulation.intensity import IntegralIntensityConfig
+from spectrumlab.emulation.intensity import IntegralIntensityCalculator
 from spectrumlab.emulation.line import Line, PVoigtLineShape
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.typing import Frame
@@ -80,7 +80,7 @@ class EmittedExperimentConfigNaive(AbstractExperimentConfig):
             ),
 
             position=int(parser.get('spectrum', 'n_numbers'))/2,
-            intensity=IntegralIntensityConfig(
+            intensity_calculator=IntegralIntensityCalculator(
                 kind=InterpolationKind.LINEAR,
                 interval=3,
             ),
@@ -202,7 +202,7 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
             ),
 
             position=int(parser.get('spectrum', 'n_numbers'))/2,
-            intensity=IntegralIntensityConfig(
+            intensity_calculator=IntegralIntensityCalculator(
                 kind=InterpolationKind.LINEAR,
                 interval=3,
             ),

@@ -7,7 +7,7 @@ from spectrumlab.emulation.concentration_calibration import ConcentrationCalibra
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulationConfig, Emulation, SpectrumConfig
 from spectrumlab.emulation.emulation import fetch_emulation
-from spectrumlab.emulation.intensity import AmplitudeIntensityConfig, IntegralIntensityConfig, IntensityConfig
+from spectrumlab.emulation.intensity import AbstractIntensityCalculator, AmplitudeIntensityCalculator, IntegralIntensityCalculator
 
 
 @pytest.fixture(scope='module')
@@ -46,7 +46,7 @@ def concentration_calibration(config: ExperimentConfig, emulation: Emulation) ->
     concentration_calibration = ConcentrationCalibration(
         emulation=emulation,
         config=ConcentrationCalibrationConfig(
-            intensity_config=config.intensity,
+            intensity_calculator=config.intensity_calculator,
             n_probes=config.n_probes,
             n_parallels=config.n_parallels,
         ),
@@ -75,24 +75,24 @@ class TestConcentrationCalibration:
 
     # --------        LOD        --------
     def test_concentration_calibration_lod(self, config: ExperimentConfig, concentration_calibration: ConcentrationCalibration):
-        lod = self.calcualte_lod(detector=config.detector, config=config.intensity)
+        lod = self.calcualte_lod(detector=config.detector, calculator=config.intensity_calculator)
 
         assert np.abs(concentration_calibration.lod.intensity - lod) < self.tolerance
 
     @staticmethod
-    def calcualte_lod(detector: Detector, config: IntensityConfig, k: float = 3) -> float:
+    def calcualte_lod(detector: Detector, calculator: AbstractIntensityCalculator, k: float = 3) -> float:
         """Calculate theoretical LOD value."""
 
-        if isinstance(config, AmplitudeIntensityConfig):
+        if isinstance(calculator, AmplitudeIntensityCalculator):
             read_noise = 100 * detector.config.read_noise / detector.config.capacity
             deviation = read_noise
 
             return k * deviation
 
-        if isinstance(config, IntegralIntensityConfig):
+        if isinstance(calculator, IntegralIntensityCalculator):
             read_noise = 100 * detector.config.read_noise / detector.config.capacity
-            deviation = np.sqrt(config.interval) * read_noise
+            deviation = np.sqrt(calculator.interval) * read_noise
 
             return k * deviation
 
-        raise ValueError(f'config: {config} is not supported yet!')
+        raise ValueError(f'Calculator: {calculator} is not supported yet!')

@@ -267,9 +267,9 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
 def test_noise_vs_value(config: EmulationConfig, *args, **kwargs):
 
     if isinstance(config, EmittedSpectrumEmulationConfig):
-        return test_emitted_noise_vs_value(config=config, *args, **kwargs)
+        return test_emitted_noise_vs_value(*args, config=config, **kwargs)
     if isinstance(config, AbsorbedSpectrumEmulationConfig):
-        return test_absorbed_noise_vs_value(config=config, *args, **kwargs)
+        return test_absorbed_noise_vs_value(*args, config=config, **kwargs)
 
     raise TypeError()
 
@@ -279,6 +279,6 @@ def test_noise_vs_base_value(config: EmulationConfig, *args, **kwargs):
     if isinstance(config, EmittedSpectrumEmulationConfig):
         raise TypeError()
     if isinstance(config, AbsorbedSpectrumEmulationConfig):
-        return test_absorbed_noise_vs_base_value(config=config, *args, **kwargs)
+        return test_absorbed_noise_vs_base_value(*args, config=config, **kwargs)
 
     raise TypeError()

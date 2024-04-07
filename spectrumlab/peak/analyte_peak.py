@@ -8,20 +8,20 @@ from spectrumlab.concentration_calibration import ConcentrationCalibration
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
-from spectrumlab.peak.peak import AbstractPeak
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
-from spectrumlab.peak.intensity import ApproxIntensityConfig, IntegralIntensityConfig, IntensityConfig, calculate_intensity
+from spectrumlab.peak.intensity import AbstractIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator
+from spectrumlab.peak.peak import AbstractPeak
 from spectrumlab.peak.position import AbstractPositionCalculator, InterpolationPositionCalculator
 from spectrumlab.picture.config import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum
-from spectrumlab.typing import Array, NanoMeter, Number
+from spectrumlab.typing import Array, NanoMeter, Number, Percent
 
 
 @dataclass
 class FactoryAnalytePeak:
     noise_level: int = field(default=5)
     position_calculator: AbstractPositionCalculator = field(default_factory=InterpolationPositionCalculator)
-    intensity: IntensityConfig = field(default_factory=IntegralIntensityConfig)
+    intensity_calculator: AbstractIntensityCalculator = field(default_factory=IntegralIntensityCalculator)
 
     except_edges: bool | None = field(default=False)
     autocalculate: bool | None = field(default=False)
@@ -85,7 +85,7 @@ class FactoryAnalytePeak:
             config=AnalytePeakConfig(
                 line=line,
                 position_calculator=self.position_calculator,
-                intensity=self.intensity,
+                intensity_calculator=self.intensity_calculator,
             ),
 
             except_edges=self.except_edges,
@@ -109,9 +109,8 @@ class AnalytePeakConfig:
     line: Line
 
     position_calculator: AbstractPositionCalculator
-    intensity: IntensityConfig
-
-    concentration_calibration: ConcentrationCalibration | None = field(default=None)
+    intensity_calculator: AbstractIntensityCalculator
+    concentration_calculator: ConcentrationCalibration | None = field(default=None)
 
 
 class AnalytePeak(AbstractPeak):
@@ -177,17 +176,17 @@ class AnalytePeak(AbstractPeak):
 
     # --------            intensity            --------
     @property
-    def intensity(self) -> float:
+    def intensity(self) -> Percent:
         if self._intensity is None:
             self._intensity = self.calculate_intensity()
 
         return self._intensity
 
-    def calculate_intensity(self, config: IntensityConfig | None = None) -> float:
+    def calculate_intensity(self, calculator: AbstractIntensityCalculator | None = None) -> Percent:
         """Calculate peak's intensity."""
-        config = config or self.config.intensity
+        calculator = calculator or self.config.intensity_calculator
 
-        return calculate_intensity(self, config=config)
+        return calculator.calculate(self)
 
     # --------            concentration            --------
     @property
@@ -197,14 +196,14 @@ class AnalytePeak(AbstractPeak):
 
         return self._concentration
 
-    def calculate_concentration(self, concentration_calibration: ConcentrationCalibration | None = None) -> float:
+    def calculate_concentration(self, calculator: ConcentrationCalibration | None = None) -> float:
         """Calculate peak's concentration."""
-        concentration_calibration = concentration_calibration or self.config.concentration_calibration
+        calculator = calculator or self.config.concentration_calculator
 
-        if concentration_calibration is None:
+        if calculator is None:
             return np.nan
 
-        return concentration_calibration.predict(self.intensity)
+        return calculator.predict(self.intensity)
 
     # --------            cursor            --------
     @property
@@ -248,7 +247,7 @@ class AnalytePeak(AbstractPeak):
         if not is_filling:
             fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
 
-        config = self.config.intensity
+        calculator = self.config.intensity_calculator
 
         # draw cursor
         ax.axvline(
@@ -258,12 +257,12 @@ class AnalytePeak(AbstractPeak):
         )
 
         # draw peak
-        if isinstance(config, IntegralIntensityConfig):
+        if isinstance(calculator, IntegralIntensityCalculator):
 
             # draw peak
             x = self.wavelength
             y = self.value
-            if config.kind == InterpolationKind.NEAREST:
+            if calculator.kind == InterpolationKind.NEAREST:
                 ax.step(
                     x, y,
                     where='mid',
@@ -271,7 +270,7 @@ class AnalytePeak(AbstractPeak):
                     marker='.', markersize=5,
                     label='$s_{k}$',
                 )
-            if config.kind == InterpolationKind.LINEAR:
+            if calculator.kind == InterpolationKind.LINEAR:
                 ax.plot(
                     x, y,
                     linestyle='-', linewidth=1, color=COLOR.get('blue', '#000000'), alpha=.75,
@@ -281,14 +280,14 @@ class AnalytePeak(AbstractPeak):
 
             # draw intensity
             x = self.transform(
-                np.linspace(self.position - config.interval/2, self.position + config.interval/2, round(2*config.interval*101))
+                np.linspace(self.position - calculator.interval/2, self.position + calculator.interval/2, round(2*calculator.interval*101))
             )
             f = interpolate.interp1d(
                 self.wavelength, self.value,
                 kind={
                     InterpolationKind.NEAREST: 'nearest',
                     InterpolationKind.LINEAR: 'linear',
-                }.get(config.kind),
+                }.get(calculator.kind),
                 bounds_error=False,
                 fill_value=0,
             )
@@ -299,7 +298,7 @@ class AnalytePeak(AbstractPeak):
                 label='область\nинтегр.',
             )
 
-        if isinstance(config, ApproxIntensityConfig):
+        if isinstance(calculator, ApproxIntensityCalculator):
 
             # draw peak
             x = self.wavelength
@@ -321,7 +320,7 @@ class AnalytePeak(AbstractPeak):
             # draw intensity
             x = self.space(units=Number)
             x_hat = self.space(units=NanoMeter)
-            y_hat = config.approx_shape(x=x, **config.approx_params)
+            y_hat = calculator.shape(x=x, **calculator.params)
             ax.plot(
                 x_hat, y_hat,
                 color='black', linestyle='-', linewidth=1,
@@ -333,7 +332,7 @@ class AnalytePeak(AbstractPeak):
             # x = self.index[self.mask]
             # y = self.value[self.mask]
             # x_hat = self.wavelength[self.mask]
-            # y_hat = config.approx_shape(x=x, **config.approx_params)
+            # y_hat = config.shape(x=x, **config.params)
             # ax.scatter(
             #     x_hat, y - y_hat,
             #     marker='s', s=5, facecolors='#000000', edgecolors='#000000',
@@ -343,7 +342,7 @@ class AnalytePeak(AbstractPeak):
             x = self.index[self.mask]
             y = self.value[self.mask]
             x_hat = self.wavelength[self.mask]
-            y_hat = config.approx_shape(x=x, **config.approx_params)
+            y_hat = calculator.shape(x=x, **calculator.params)
             ax.plot(
                 x_hat, y - y_hat,
                 color='black', linestyle=':',

@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from spectrumlab.concentration_calibration import AbstractConcentrationCalibration, Intercept, LOD, LOL, LOQ, Slope, estimate_lol
 from spectrumlab.emulation.emulation import Emulation
-from spectrumlab.emulation.intensity import IntegralIntensityConfig, IntensityConfig, calculate_deviation, calculate_intensity
+from spectrumlab.emulation.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator, calculate_deviation, calculate_intensity
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.picture.config import ALPHA, COLOR
 from spectrumlab.typing import Frame, Number, Series
@@ -20,7 +20,7 @@ from .metrology import DynamicRange, estimate_blank_deviation, estimate_blank_me
 
 @dataclass
 class ConcentrationCalibrationConfig:
-    intensity_config: IntensityConfig = field(default=IntegralIntensityConfig(interval=3, kind=InterpolationKind.LINEAR))
+    intensity_calculator: AbstractIntensityCalculator = field(default=IntegralIntensityCalculator(interval=3, kind=InterpolationKind.LINEAR))
 
     concentration_blank: float = field(default=0)
     threshold: float = field(default=0.05)
@@ -135,11 +135,11 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         loq = LOQ.calculate(
             mean=estimate_blank_mean(
                 emulation=emulation,
-                config=config.intensity_config,
+                calculator=config.intensity_calculator,
             ),
             deviation=estimate_blank_deviation(
                 emulation=emulation,
-                config=config.intensity_config,
+                calculator=config.intensity_calculator,
             ),
             k=10,
         )
@@ -168,7 +168,7 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
                     spectrum=spectrum,
                     background=emulation.config.background_level,
                     position=position,
-                    config=config.intensity_config,
+                    calculator=config.intensity_calculator,
                 )
 
                 is_traced = data.loc[(i, j), 'intensity'] < loq
@@ -183,13 +183,13 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
                 spectrum=spectrum,
                 background=emulation.config.background_level,
                 position=position,
-                config=config.intensity_config,
+                calculator=config.intensity_calculator,
             )
             unicorn.loc[i, 'deviation'] = calculate_deviation(
                 spectrum=spectrum,
                 background=emulation.config.background_level,
                 position=position,
-                config=config.intensity_config,
+                calculator=config.intensity_calculator,
             )
             unicorn.loc[i, 'mask'] = any(spectrum.clipped)
 
@@ -245,11 +245,11 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         # calculate limits
         mean = estimate_blank_mean(
             emulation=emulation,
-            config=config.intensity_config,
+            calculator=config.intensity_calculator,
         )
         deviation = estimate_blank_deviation(
             emulation=emulation,
-            config=config.intensity_config,
+            calculator=config.intensity_calculator,
         )
 
         self._lod = LOD.from_json(

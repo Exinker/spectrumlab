@@ -5,14 +5,14 @@ import numpy as np
 from spectrumlab.concentration_calibration import DynamicRange, Intercept, LOL, LOQ, Slope
 from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
 from spectrumlab.emulation.intensity import calculate_intensity
-from spectrumlab.peak.intensity import IntensityConfig
+from spectrumlab.peak.intensity import AbstractIntensityCalculator
 
 
 # --------        deviation        --------
 EstimateDeviationKind: TypeAlias = Literal['theoretical', 'emulational']
 
 
-def estimate_blank_mean(emulation: Emulation, config: IntensityConfig, n_parallels: int = 20, kind: EstimateDeviationKind = 'theoretical') -> float:
+def estimate_blank_mean(emulation: Emulation, calculator: AbstractIntensityCalculator, n_parallels: int = 20, kind: EstimateDeviationKind = 'theoretical') -> float:
     n_numbers = emulation.config.spectrum.n_numbers
     background_level = emulation.config.background_level
     emulation = emulation.setup(position=n_numbers//2, concentration=0)
@@ -28,7 +28,7 @@ def estimate_blank_mean(emulation: Emulation, config: IntensityConfig, n_paralle
                     spectrum=emulation.run(),
                     background=background_level,
                     position=n_numbers//2,
-                    config=config,
+                    calculator=calculator,
                 )
                 intensity.append(value)
             return np.mean(intensity).item()
@@ -36,7 +36,7 @@ def estimate_blank_mean(emulation: Emulation, config: IntensityConfig, n_paralle
     raise TypeError(f'LimitsKind: {kind} is not supported yet!')
 
 
-def estimate_blank_deviation(emulation: Emulation, config: IntensityConfig, n_parallels: int = 20, kind: EstimateDeviationKind = 'theoretical') -> float:
+def estimate_blank_deviation(emulation: Emulation, calculator: AbstractIntensityCalculator, n_parallels: int = 20, kind: EstimateDeviationKind = 'theoretical') -> float:
     """Calculate intensity deviation."""
     n_numbers = emulation.config.spectrum.n_numbers
     background_level = emulation.config.background_level
@@ -44,7 +44,7 @@ def estimate_blank_deviation(emulation: Emulation, config: IntensityConfig, n_pa
 
     match kind:
         case 'theoretical':
-            return np.sqrt(config.interval) * emulation.noise(background_level)
+            return np.sqrt(calculator.interval) * emulation.noise(background_level)
 
         case 'emulational':
             intensity = []
@@ -53,7 +53,7 @@ def estimate_blank_deviation(emulation: Emulation, config: IntensityConfig, n_pa
                     spectrum=emulation.run(),
                     background=background_level,
                     position=n_numbers//2,
-                    config=config,
+                    calculator=calculator,
                 )
                 intensity.append(value)
             return np.std(intensity, ddof=1).item()
