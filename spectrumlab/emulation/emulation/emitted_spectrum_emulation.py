@@ -1,21 +1,20 @@
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Callable
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.picture.config import COLOR
-from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.aperture import Aperture
+from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.device import Device
-from spectrumlab.emulation.emulation import EmulationInterface
+from spectrumlab.emulation.emulation import AbstractEmulation
 from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
-from spectrumlab.typing import Array, Percent, MicroMeter, Number
+from spectrumlab.picture.config import COLOR
+from spectrumlab.typing import Array, MicroMeter, Number, Percent
 
 
 @dataclass
@@ -43,7 +42,7 @@ class EmittedSpectrumEmulationConfig:
     dx: MicroMeter = field(default=.01)  # шаг сетки интерполяции
 
 
-class EmittedSpectrumEmulation(EmulationInterface):
+class EmittedSpectrumEmulation(AbstractEmulation):
     """Emitted spectrum emulation."""
 
     def __init__(self, config: EmittedSpectrumEmulationConfig):
@@ -124,7 +123,6 @@ class EmittedSpectrumEmulation(EmulationInterface):
             aperture = self.aperture
 
             x_grid = self.x_grid
-            rx = config.rx
             dx = config.dx
 
             # physical line function
@@ -206,7 +204,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 y2=intensity,
                 step='mid', facecolor=COLOR['pink'], edgecolor='k',
                 label='$s_{k}$',
-                alpha=0.2, 
+                alpha=0.2,
             )
 
             if ylim is None:
@@ -233,7 +231,14 @@ class EmittedSpectrumEmulation(EmulationInterface):
         return self._intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number | Array[Number], concentration: float, environment: Array[Percent] | None = None, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
+    def setup(
+            self,
+            position: Number | Array[Number],
+            concentration: float,
+            environment: Array[Percent] | None = None,
+            show: bool = False,
+            ylim: tuple[float, float] | None = None,
+            ) -> 'AbstractEmulation':
         """Setup emulation of emitted spectrum."""
         self.position = position
         self.concentration = concentration
@@ -254,7 +259,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
             self._intensity += environment
 
         #
-        return self    
+        return self
 
     def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> EmittedSpectrum:
         """Run emulation."""
@@ -288,7 +293,7 @@ class EmittedSpectrumEmulation(EmulationInterface):
                 spectrum.number,
                 y1=config.background_level,
                 y2=y2,
-                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
+                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label='paek',
             )
 
             plt.xlabel(r'number')
@@ -301,7 +306,12 @@ class EmittedSpectrumEmulation(EmulationInterface):
 
 
 # --------        handlers        --------
-def convolve(x: Array[Number], apparatus: Callable[[Array[MicroMeter]], Array[float]], aperture: Callable[[Array[MicroMeter]], Array[float]], pitch: MicroMeter) -> Callable[[Array[Number]], Array[float]]:
+def convolve(
+        x: Array[Number],
+        apparatus: Callable[[Array[MicroMeter]], Array[float]],
+        aperture: Callable[[Array[MicroMeter]], Array[float]],
+        pitch: MicroMeter,
+        ) -> Callable[[Array[Number]], Array[float]]:
     return interpolate.interp1d(
         x,
         signal.convolve(pitch*apparatus(x*pitch), pitch*aperture(x*pitch), mode='same') * (x[-1] - x[0])/(len(x) + 1),
@@ -311,7 +321,14 @@ def convolve(x: Array[Number], apparatus: Callable[[Array[MicroMeter]], Array[fl
     )
 
 
-def emulate_emitted_spectrum(number: Array[Number], intensity: Array[Percent], noise: EmittedSpectrumNoise, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> EmittedSpectrum:
+def emulate_emitted_spectrum(
+        number: Array[Number],
+        intensity: Array[Percent],
+        noise: EmittedSpectrumNoise,
+        detector: Detector,
+        is_noised: bool = True,
+        is_clipped: bool = True,
+        ) -> EmittedSpectrum:
     """Fabric to emulate emitted spectrum."""
 
     # add noise

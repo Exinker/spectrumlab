@@ -1,7 +1,7 @@
 from enum import Enum, auto
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.interpolate import interp1d
 
 from spectrumlab.emulation.curve import lanczos

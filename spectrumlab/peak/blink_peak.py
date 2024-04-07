@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulation.noise import Noise
-from spectrumlab.peak.base_peak import BasePeak
+from spectrumlab.peak.base_peak import AbstractPeak
 from spectrumlab.spectrum import Spectrum
 
 
@@ -91,7 +91,7 @@ def find_pairs(maxima: tuple[int], minima: tuple[int]) -> list[tuple[int, int]]:
 
 
 # --------        blink peak        --------
-class BlinkPeak(BasePeak):
+class BlinkPeak(AbstractPeak):
     """Peak for any secondary application: masking of peaks for background algorithms, masking of overlapping peaks for intensity calculation and etc..."""
 
     def __init__(self, minima: tuple[int, int], maxima: tuple | tuple[int, int] | tuple[int, ...], amplitude: float, deviation: float, except_edges: bool = False):
@@ -220,7 +220,7 @@ def draft_blinks(spectrum: Spectrum, noise: Noise, config: DraftBlinkPeakConfig 
             )
 
         plt.xlabel(r'$\lambda, nm$')
-        plt.ylabel('')
+        plt.ylabel(r'')
         plt.grid(color='grey', linestyle=':')
 
         plt.show()

@@ -11,8 +11,8 @@ class Variable:
     value: float | None
 
 
-class BaseVariables(Mapping):
-    """Base variables type."""
+class AbstractVariables(Mapping):
+    """Abstract variables type."""
 
     def __init__(self, __items: Sequence[Variable]) -> None:
         self._items = {
@@ -54,10 +54,10 @@ class BaseVariables(Mapping):
 
 
 if __name__ == '__main__':
-    vars = BaseVariables(
+    vars = AbstractVariables(
         [
             Variable(f'test{i}', i, (i-1, i+1), None)
             for i in range(10)
-        ]
+        ],
     )
     print(vars)

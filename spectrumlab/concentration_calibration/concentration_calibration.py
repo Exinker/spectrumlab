@@ -2,19 +2,19 @@ import os
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Callable, Literal
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from spectrumlab.emulation.spectrum import Spectrum
-from spectrumlab.picture.config import COLOR, ALPHA
+from spectrumlab.picture.config import ALPHA, COLOR
 from spectrumlab.typing import Frame, Series
 
 from .exceptions import FitError
-from .metrology import Intercept, Slope, LOD, LOQ, LOL, DynamicRange, estimate_lol
+from .metrology import DynamicRange, Intercept, LOD, LOL, LOQ, Slope, estimate_lol
 
 
-class BaseConcentrationCalibration(ABC):
+class AbstractConcentrationCalibration(ABC):
 
     @abstractproperty
     def coeff(self) -> tuple[Intercept, Slope]:
@@ -56,7 +56,7 @@ class BaseConcentrationCalibration(ABC):
 
     # --------        private        --------
     @abstractmethod
-    def _get_filename(extension: Literal['png', 'txt']) -> str:
+    def _get_filename(self, extension: Literal['png', 'txt']) -> str:
         raise NotImplementedError
 
     def _get_color(self, mask: Series, color: str) -> list[str]:
@@ -76,7 +76,7 @@ class BaseConcentrationCalibration(ABC):
         return list(map(lambda x: mapping[x], mask))
 
 
-class ConcentrationCalibration(BaseConcentrationCalibration):
+class ConcentrationCalibration(AbstractConcentrationCalibration):
 
     def __init__(self, data: Frame, blank: Frame | None = None):
         self._data = data
@@ -210,7 +210,7 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
         )
 
         # show
-        fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
+        fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True)
 
         title = ''
         plt.suptitle(title)  # TODO: add title's config
@@ -263,8 +263,8 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
 
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel('$C$')
-        plt.ylabel('$R$')
+        plt.xlabel(r'$C$')
+        plt.ylabel(r'$R$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
@@ -291,8 +291,8 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
         # if lim < 20: lim = 20  # restrict lim
         # plt.ylim(-lim, +lim)
         plt.xscale('log')
-        plt.xlabel('$C$')
-        plt.ylabel('$bias, \%$')
+        plt.xlabel(r'$C$')
+        plt.ylabel(r'$bias, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
@@ -316,8 +316,8 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
 
         # plt.ylim([-.1, 2])
         plt.xscale('log')
-        plt.xlabel('$C$')
-        plt.ylabel('$deviation, \%$')
+        plt.xlabel(r'$C$')
+        plt.ylabel(r'$deviation, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
@@ -327,16 +327,15 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
             if not os.path.isdir(filedir):
                 os.mkdir(filedir)
             filename = self._get_filename(extension='png')
+            filepath = os.path.join(filedir, filename)
 
-            plt.savefig(
-                os.path.join(filedir, filename)
-            )
+            plt.savefig(filepath)
 
         #
         plt.show()
 
     # --------        private        --------
-    def _get_filename(content: str, extension: Literal['png', 'txt']):
+    def _get_filename(self, content: str, extension: Literal['png', 'txt']):
 
         return f'concentration_calibration ({content}).{extension}'
 
@@ -353,14 +352,14 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool =
     )
 
     for i, j in index:
-        spectrum = spectra.loc[(i,j), 'spectrum']
-        concentration = spectra.loc[(i,j), 'concentration']
+        spectrum = spectra.loc[(i, j), 'spectrum']
+        concentration = spectra.loc[(i, j), 'concentration']
         intensity = handler(spectrum=spectrum)
 
         #
-        blank.loc[(i,j), 'concentration'] = concentration
-        blank.loc[(i,j), 'intensity'] = intensity
-        blank.loc[(i,j), 'mask'] = any(spectrum.clipped)
+        blank.loc[(i, j), 'concentration'] = concentration
+        blank.loc[(i, j), 'intensity'] = intensity
+        blank.loc[(i, j), 'mask'] = any(spectrum.clipped)
 
     values = blank['intensity'].values.astype(float)
     loq = LOQ.calculate(
@@ -377,17 +376,17 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool =
         index=index,
     )
     for i, j in index:
-        spectrum = spectra.loc[(i,j), 'spectrum']
-        concentration = spectra.loc[(i,j), 'concentration']
+        spectrum = spectra.loc[(i, j), 'spectrum']
+        concentration = spectra.loc[(i, j), 'concentration']
         intensity = handler(spectrum=spectrum)
 
         #
-        data.loc[(i,j), 'concentration'] = concentration
-        data.loc[(i,j), 'intensity'] = intensity
+        data.loc[(i, j), 'concentration'] = concentration
+        data.loc[(i, j), 'intensity'] = intensity
 
-        is_traced = data.loc[(i,j), 'intensity'] < loq
+        is_traced = data.loc[(i, j), 'intensity'] < loq
         is_clipped = any(spectrum.clipped)
-        data.loc[(i,j), 'mask'] = is_traced or is_clipped
+        data.loc[(i, j), 'mask'] = is_traced or is_clipped
 
     # concentration calibration
     concentration_calibration = ConcentrationCalibration(
@@ -398,6 +397,5 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool =
     #
     if show:
         concentration_calibration.show()
-    
     #
     return concentration_calibration

@@ -1,5 +1,5 @@
 """
-Base type for any spectrum's background.
+Abstract type for any spectrum's background.
 
 Author: Vaschenko Pavel
  Email: vaschenko@vmk.ru
@@ -12,16 +12,16 @@ from spectrumlab.spectrum import Spectrum
 from spectrumlab.typing import Array
 
 
-class BaseBackgroundConfig(ABC):
-    """Base type for any background's config."""
+class AbstractBackgroundConfig(ABC):
+    """Abstract type for any background's config."""
 
     pass
 
 
-class BaseBackground(ABC):
-    """Base type for any spectrum's background."""
+class AbstractBackground(ABC):
+    """Abstract type for any spectrum's background."""
 
-    def __init__(self, config: BaseBackgroundConfig):
+    def __init__(self, config: AbstractBackgroundConfig):
         self.config = config
 
     # --------        handlers        --------

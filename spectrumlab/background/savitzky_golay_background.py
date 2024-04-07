@@ -4,7 +4,7 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.background.base_background import BaseBackground, BaseBackgroundConfig
+from spectrumlab.background import AbstractBackground, AbstractBackgroundConfig
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.spectrum import Spectrum
@@ -12,7 +12,7 @@ from spectrumlab.typing import Array, Number
 
 
 @dataclass
-class SavitzkyGolayBackgroundConfig(BaseBackgroundConfig):
+class SavitzkyGolayBackgroundConfig(AbstractBackgroundConfig):
     width: Number
     degree: int
 
@@ -24,7 +24,7 @@ class SavitzkyGolayBackgroundConfig(BaseBackgroundConfig):
         return self.width_min
 
 
-class SavitzkyGolayBackground(BaseBackground):
+class SavitzkyGolayBackground(AbstractBackground):
 
     def __init__(self, config: SavitzkyGolayBackgroundConfig):
         super().__init__(config)

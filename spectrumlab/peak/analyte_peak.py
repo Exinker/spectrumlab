@@ -1,21 +1,20 @@
 from dataclasses import dataclass, field
-from typing import Literal
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import interpolate
 
 from spectrumlab.concentration_calibration import ConcentrationCalibration
-from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.noise import Noise
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
-from spectrumlab.peak.base_peak import BasePeak
+from spectrumlab.peak.base_peak import AbstractPeak
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
-from spectrumlab.peak.intensity import IntensityConfig, AmplitudeIntensityConfig, IntegralIntensityConfig, ApproxIntensityConfig, calculate_intensity
-from spectrumlab.peak.position import PositionConfig, InterpolationPositionConfig, calculate_position
+from spectrumlab.peak.intensity import ApproxIntensityConfig, IntegralIntensityConfig, IntensityConfig, calculate_intensity
+from spectrumlab.peak.position import InterpolationPositionConfig, PositionConfig, calculate_position
 from spectrumlab.picture.config import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum
-from spectrumlab.typing import Array, Number, NanoMeter
+from spectrumlab.typing import Array, NanoMeter, Number
 
 
 # --------        analyte peak        --------
@@ -29,9 +28,18 @@ class AnalytePeakConfig:
     concentration_calibration: ConcentrationCalibration | None = field(default=None)
 
 
-class AnalytePeak(BasePeak):
+class AnalytePeak(AbstractPeak):
 
-    def __init__(self, minima: tuple[int, int], maxima: tuple | tuple[int, int] | tuple[int, ...], spectrum: Spectrum, mask: Array, config: AnalytePeakConfig, except_edges: bool = False, autocalculate: bool = True):
+    def __init__(
+        self,
+        minima: tuple[int, int],
+        maxima: tuple | tuple[int, int] | tuple[int, ...],
+        spectrum: Spectrum,
+        mask: Array,
+        config: AnalytePeakConfig,
+        except_edges: bool = False,
+        autocalculate: bool = True,
+        ):
         super().__init__(minima=minima, maxima=maxima, except_edges=except_edges)
 
         self.spectrum = spectrum
@@ -161,7 +169,7 @@ class AnalytePeak(BasePeak):
             color='k',
             ls=':',
         )
-        
+
         # draw peak
         if isinstance(config, IntegralIntensityConfig):
 
@@ -302,7 +310,7 @@ class GatherAnalytePeakConfig:
 
 
 def gather_analyte_peak(line: Line, spectrum: Spectrum, noise: Noise, config: GatherAnalytePeakConfig, verbose: bool = False, show: bool = False) -> AnalytePeak:
-    """Interface to gather a peak with selected config.
+    """Factory to gather a peak with selected config.
 
     Author: Vaschenko Pavel
      Email: vaschenko@vmk.ru
@@ -380,5 +388,5 @@ def gather_analyte_peak(line: Line, spectrum: Spectrum, noise: Noise, config: Ga
     if show:
         peak.show(verbose=True)
 
-    # 
+    #
     return peak

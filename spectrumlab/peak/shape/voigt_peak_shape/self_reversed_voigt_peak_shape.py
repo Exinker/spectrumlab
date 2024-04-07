@@ -6,7 +6,7 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.emulation.curve import pvoigt, rectangular
-from spectrumlab.peak.shape.base_shape import BasePeakShape 
+from spectrumlab.peak.shape.base_shape import AbstractPeakShape 
 from spectrumlab.peak.shape.approx_interface import ApproxInterface
 from spectrumlab.peak.shape.voigt_peak_shape import VoigtPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 warnings.filterwarnings('ignore')
 
 
-class SelfReversedVoigtPeakShapeNaive(BasePeakShape, ApproxInterface):
+class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, ApproxInterface):
     """Self reversed voigt peak's shape type."""
     MAX_EFFECT = 25
 
@@ -113,7 +113,7 @@ class SelfReversedVoigtPeakShapeNaive(BasePeakShape, ApproxInterface):
         return f'{cls.__name__}(w={self.width:.4f}; a={self.asymmetry:.4f}; r={self.ratio:.4f})'
 
 
-class SelfReversedVoigtPeakShape(BasePeakShape, ApproxInterface):
+class SelfReversedVoigtPeakShape(AbstractPeakShape, ApproxInterface):
     """Self reversed voigt peak's shape type."""
     MAX_EFFECT = 25
 

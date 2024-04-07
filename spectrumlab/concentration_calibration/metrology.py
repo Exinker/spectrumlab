@@ -3,7 +3,7 @@ from typing import Mapping, NewType
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.emulation.emulation import Emulation, EmittedSpectrumEmulation, AbsorbedSpectrumEmulation
+from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
 from spectrumlab.typing import Frame
 
 
@@ -11,7 +11,7 @@ Intercept = NewType('Intercept', float)
 Slope = NewType('Slope', float)
 
 
-class BaseLimit:
+class AbstractLimit:
 
     def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str):
         self._intensity = intensity
@@ -44,7 +44,7 @@ class BaseLimit:
 
 
 # --------        LOD and LOQ        --------
-class LOD(BaseLimit):
+class LOD(AbstractLimit):
     """Limit of Detection (LOD) in emission or absorption."""
     k_default = 3
 
@@ -80,7 +80,7 @@ class LOD(BaseLimit):
         )
 
 
-class LOQ(BaseLimit):
+class LOQ(AbstractLimit):
     """Limit of Quantity (LOQ) in emission or absorption."""
     k_default = 10
 
@@ -117,7 +117,7 @@ class LOQ(BaseLimit):
 
 
 # --------        limit of linearity        --------
-class LOL(BaseLimit):
+class LOL(AbstractLimit):
     """Limit of Linearity (LOL) in emission or absorption."""
 
     def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
@@ -228,7 +228,7 @@ def estimate_dynamic_range(emulation: Emulation, unicorn: Frame, coeff: tuple[fl
 
     if isinstance(emulation, AbsorbedSpectrumEmulation):
         lb = loq.to_concentration(coeff=coeff)
-        ub = calculate_concentration_LOL(
+        ub = estimate_lol(
             unicorn=unicorn,
             coeff=coeff,
             threshold=threshold,

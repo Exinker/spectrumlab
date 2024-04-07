@@ -17,7 +17,7 @@ from spectrumlab.typing import Array, Number
 
 
 @dataclass(frozen=True)
-class BaseExperimentConfig(ABC):
+class AbstractExperimentConfig(ABC):
     n_numbers: int
     n_frames: int
 
@@ -30,9 +30,9 @@ class BaseExperimentConfig(ABC):
     intensity: float | Array[float]
 
 
-class BaseExperiment(ABC):
+class AbstractExperiment(ABC):
 
-    def __init__(self, config: BaseExperimentConfig):
+    def __init__(self, config: AbstractExperimentConfig):
         self.config = config
 
         self._number = None
@@ -69,7 +69,7 @@ class BaseExperiment(ABC):
 
     # --------        handlers        --------
     @abstractmethod
-    def setup(self, seed: int | None = None, verbose: bool = False, show: bool = False) -> 'BaseExperiment':
+    def setup(self, seed: int | None = None, verbose: bool = False, show: bool = False) -> 'AbstractExperiment':
         pass
 
     def run(self, is_noised: bool = True, is_clipped: bool = True) -> EmittedSpectrum:
@@ -89,14 +89,14 @@ class BaseExperiment(ABC):
 
 
 # --------        shifted peak experiment        --------
-class ShiftedExperimentConfig(BaseExperimentConfig):
+class ShiftedExperimentConfig(AbstractExperimentConfig):
 
     @property
     def n_iters(self) -> int:
         return len(self.position)
 
 
-class ShiftedExperiment(BaseExperiment):
+class ShiftedExperiment(AbstractExperiment):
 
     def __init__(self, config: ShiftedExperimentConfig):
         super().__init__(config=config)
@@ -150,14 +150,14 @@ class ShiftedExperiment(BaseExperiment):
 
 
 # --------        scaled peak experiment        --------
-class ScaledExperimentConfig(BaseExperimentConfig):
+class ScaledExperimentConfig(AbstractExperimentConfig):
 
     @property
     def n_iters(self) -> int:
         return len(self.exposure)
 
 
-class ScaledExperiment(BaseExperiment):
+class ScaledExperiment(AbstractExperiment):
 
     def __init__(self, config: ScaledExperimentConfig):
         super().__init__(config=config)
@@ -211,7 +211,7 @@ class ScaledExperiment(BaseExperiment):
 
 
 # --------        random peak experiment        --------
-class RandomPeakExperimentConfig(BaseExperimentConfig):
+class RandomPeakExperimentConfig(AbstractExperimentConfig):
 
     @property
     def lines(self) -> tuple[Line]:
@@ -227,7 +227,7 @@ class RandomPeakExperimentConfig(BaseExperimentConfig):
         return len(self.lines)
 
 
-class RandomPeakExperiment(BaseExperiment):
+class RandomPeakExperiment(AbstractExperiment):
 
     def __init__(self, config: RandomPeakExperimentConfig):
         super().__init__(config=config)

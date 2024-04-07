@@ -160,8 +160,8 @@ class EffectedVoigtPeakShape(VoigtPeakShape):
 
 #         errors.append(max(np.abs(100*(y - y_hat) / y)))
 
-#     plt.xlabel('x')
-#     plt.ylabel('y')
+#     plt.xlabel(r'x')
+#     plt.ylabel(r'y')
 #     plt.grid(
 #         color='grey', linestyle=':',
 #     )
@@ -175,8 +175,8 @@ class EffectedVoigtPeakShape(VoigtPeakShape):
 #         color='black', linestyle='-', linewidth=1,
 #     )
 
-#     plt.xlabel('effect value')
-#     plt.ylabel('error, %')
+#     plt.xlabel(r'effect value')
+#     plt.ylabel(r'error, %')
 #     plt.grid(
 #         color='grey', linestyle=':',
 #     )

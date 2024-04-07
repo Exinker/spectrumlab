@@ -8,8 +8,8 @@ from spectrumlab.typing import Array, Number
 
 # --------        base peak        --------
 @dataclass(frozen=False, slots=False)
-class BasePeak:
-    """Base peak type."""
+class AbstractPeak:
+    """Abstract peak type."""
     minima: tuple[int, int]  # spectrum's internal index of the minima
     maxima: tuple | tuple[int, int] | tuple[int, ...]  # spectrum's internal index of the maximum (or indices, if line has a self-absorption)
 

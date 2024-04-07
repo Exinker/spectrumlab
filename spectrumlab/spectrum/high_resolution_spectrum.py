@@ -1,12 +1,11 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import interpolate
 
-from spectrumlab.grid import Grid
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.spectrum import EmittedSpectrum
-from spectrumlab.spectrum.base_spectrum import BaseSpectrum
-from spectrumlab.typing import Array, Number, MicroMeter, NanoMeter
+from spectrumlab.grid import Grid
+from spectrumlab.spectrum import AbstractSpectrum, EmittedSpectrum
+from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number
 
 
 def calculate_factor(ratio: float) -> int:
@@ -15,11 +14,11 @@ def calculate_factor(ratio: float) -> int:
     for n in range(1, 10):
         if n*ratio % 1 < 1e-9:
             return int(n*ratio)
-        
+
     raise ValueError
 
 
-class HighResolutionSpectrum(BaseSpectrum):
+class HighResolutionSpectrum(AbstractSpectrum):
 
     def __init__(self, shots: tuple[EmittedSpectrum], number: Array[Number], wavelength: Array[NanoMeter], move: MicroMeter, detector: Detector | None = None, **kwargs):
         n_numbers = len(number)
@@ -77,7 +76,7 @@ class HighResolutionSpectrum(BaseSpectrum):
         shots = []
         for t in range(spectrum.n_times):
             spe = EmittedSpectrum(
-                intensity=spectrum.intensity[t,:],
+                intensity=spectrum.intensity[t, :],
                 wavelength=spectrum.wavelength,
                 detector=spectrum.detector,
             )
@@ -129,7 +128,6 @@ if __name__ == '__main__':
     import warnings
     warnings.filterwarnings('ignore')
 
-
     # emulation
     move: MicroMeter = .5
     n_times, n_numbers = 28, 50
@@ -165,7 +163,7 @@ if __name__ == '__main__':
             background_level=0,
 
             # info='',
-        )
+        ),
     )
 
     # shots

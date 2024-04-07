@@ -1,2 +1,2 @@
-from .concentration_calibration import BaseConcentrationCalibration, ConcentrationCalibration, calibrate
-from .metrology import Intercept, Slope, LOD, LOQ, LOL, estimate_lol, DynamicRange, estimate_dynamic_range
+from .concentration_calibration import AbstractConcentrationCalibration, ConcentrationCalibration, calibrate
+from .metrology import DynamicRange, Intercept, LOD, LOL, LOQ, Slope, estimate_dynamic_range, estimate_lol

@@ -2,17 +2,16 @@ from abc import ABC
 from functools import partial
 from typing import Callable, TypeAlias
 
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate, optimize
-import matplotlib.pyplot as plt
 
 from spectrumlab.grid import Grid, T
 from spectrumlab.grid.shape import VoigtGridShape
 from spectrumlab.typing import Array, MicroMeter
 
 
-# --------        handlers        --------
-class BaseHandler(ABC):
+class AbstractGridFilter(ABC):
 
     def __init__(self, grid: Grid):
         self._grid = grid
@@ -63,7 +62,7 @@ class BaseHandler(ABC):
         return self.f(x)
 
 
-class LinearInterpolationHandler(BaseHandler):
+class LinearInterpolationGridFilter(AbstractGridFilter):
 
     def __init__(self, grid: Grid, show: bool = False):
         super().__init__(grid=grid)
@@ -81,7 +80,7 @@ class LinearInterpolationHandler(BaseHandler):
             self.show()
 
 
-class VoigtGridShapeHandler(BaseHandler):
+class VoigtGridShapeFilter(AbstractGridFilter):
 
     def __init__(self, grid: Grid, pitch: T, show: bool = False):
         super().__init__(grid=grid)
@@ -104,7 +103,7 @@ class VoigtGridShapeHandler(BaseHandler):
         position, width, asymmetry, ratio, intensity = optimize.minimize(
             lambda x: _loss(grid, pitch, *x),
             x0=[x0, pitch, 0, .1, np.sum(grid.y) / pitch],
-            bounds=[(x0-pitch/2, x0+pitch/2), (pitch/2, 100), (-1, 1), (0, 1), (0, np.inf)]
+            bounds=[(x0-pitch/2, x0+pitch/2), (pitch/2, 100), (-1, 1), (0, 1), (0, np.inf)],
         )['x']
 
         shape = VoigtGridShape(
@@ -120,6 +119,3 @@ class VoigtGridShapeHandler(BaseHandler):
         # show
         if show:
             self.show()
-
-
-Handler: TypeAlias = LinearInterpolationHandler | VoigtGridShapeHandler

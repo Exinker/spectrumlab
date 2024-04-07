@@ -9,15 +9,15 @@ import numpy as np
 from scipy import interpolate, optimize, signal
 from tqdm import tqdm
 
-from spectrumlab.core.approximate.base_variables import BaseVariables, Variable
 from spectrumlab.core.approximate.scope import ScopeVariables
-from spectrumlab.grid import Grid
+from spectrumlab.core.approximate.variables import AbstractVariables, Variable
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
+from spectrumlab.grid import Grid
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.approx_interface import ApproxInterface
-from spectrumlab.peak.shape.base_shape import BasePeakShape
+from spectrumlab.peak.shape.base_shape import AbstractPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail, restore_grid_from_blinks
 from spectrumlab.typing import Array, MicroMeter, Number
 from spectrumlab.utils import mse
@@ -30,7 +30,7 @@ warnings.filterwarnings('ignore')
 
 
 # --------        voigt peak shape        --------
-class VoigtPeakShapeVariables(BaseVariables):
+class VoigtPeakShapeVariables(AbstractVariables):
 
     def __init__(self, width: Number | None = None, asymmetry: float | None = None, ratio: float | None = None):
         super().__init__([
@@ -42,7 +42,7 @@ class VoigtPeakShapeVariables(BaseVariables):
         self.name = 'shape'
 
 
-class AssociatedVoigtPeakShapeVariables(BaseVariables):
+class AssociatedVoigtPeakShapeVariables(AbstractVariables):
 
     def __init__(self, grid: Grid, *args, **kwargs):
         super().__init__([
@@ -94,7 +94,7 @@ class AssociatedVoigtPeakShapeVariables(BaseVariables):
         return shape_variables, scope_variables
 
 
-class VoigtPeakShape(BasePeakShape, ApproxInterface):
+class VoigtPeakShape(AbstractPeakShape, ApproxInterface):
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = 1e-2) -> None:
         """Voigt peak's shape. A convolution of apparatus shape and aperture shape (rectangular) of a detector.

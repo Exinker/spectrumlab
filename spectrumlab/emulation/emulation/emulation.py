@@ -10,11 +10,11 @@ from abc import ABC, abstractmethod
 
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import Spectrum
-from spectrumlab.typing import Array, Percent, Number
+from spectrumlab.typing import Array, Number, Percent
 
 
-class EmulationInterface(ABC):
-    """Interface to emulate spectrum."""
+class AbstractEmulation(ABC):
+    """Abstract type to any spectrum emulations."""
 
     @property
     @abstractmethod
@@ -33,7 +33,7 @@ class EmulationInterface(ABC):
 
     # --------        handlers        --------
     @abstractmethod
-    def setup(self, number: Array[Number], position: Number, concentration: float) -> 'EmulationInterface':
+    def setup(self, number: Array[Number], position: Number, concentration: float) -> 'AbstractEmulation':
         """Setup emulation of spectrum."""
         raise NotImplementedError
 

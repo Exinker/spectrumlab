@@ -3,12 +3,12 @@ from typing import overload
 
 import numpy as np
 
-from spectrumlab.emulation.noise import BaseNoise
+from spectrumlab.emulation.noise import AbstractNoise
 from spectrumlab.typing import Array, Electron, Percent
 
 
 @dataclass(frozen=True)
-class ConstantNoise(BaseNoise):
+class ConstantNoise(AbstractNoise):
     """Constant noise dependence."""
     noise_level: int = field(default=1)
 

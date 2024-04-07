@@ -54,8 +54,8 @@ def transform(line: Line, shape: VoigtLineShape, dx: PicoMeter = 1e-1, rx: PicoM
             label=r'error',
         )
 
-        plt.xlabel('$x$ $[pm]$')
-        plt.ylabel('$f(x)$')
+        plt.xlabel(r'$x$ $[pm]$')
+        plt.ylabel(r'$f(x)$')
 
         plt.grid(color='grey', linestyle=':')
         plt.legend()

@@ -7,7 +7,7 @@ import numpy as np
 from scipy import integrate, interpolate, optimize
 
 from spectrumlab.grid import Grid, T
-from spectrumlab.grid.handler import Handler, LinearInterpolationHandler
+from spectrumlab.grid.filter import AbstractGridFilter, LinearInterpolationGridFilter
 from spectrumlab.typing import Array
 
 
@@ -42,9 +42,9 @@ def integrate_grid(grid: Grid, position: float, interval: float, kind: Interpola
 
 
 # --------        estimators        --------
-def estimate_bias(grid: Grid, pitch: T, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
+def estimate_bias(grid: Grid, pitch: T, handler: AbstractGridFilter | None = None, verbose: bool = False, show: bool = False) -> T:
     """Estimate a bias of the `grid`."""
-    handler = handler or LinearInterpolationHandler(grid=grid)
+    handler = handler or LinearInterpolationGridFilter(grid=grid)
 
     # bias
     def calculate_loss(x: T, handler: Callable[[T], float], pitch: T) -> float:
@@ -114,9 +114,9 @@ def estimate_bias(grid: Grid, pitch: T, handler: Handler | None = None, verbose:
     return bias
 
 
-def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: Handler | None = None, verbose: bool = False, show: bool = False) -> T:
+def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: AbstractGridFilter | None = None, verbose: bool = False, show: bool = False) -> T:
     """Estimate a full width at half maximum (FWHM) of the `grid`."""
-    handler = handler or LinearInterpolationHandler(grid=grid)
+    handler = handler or LinearInterpolationGridFilter(grid=grid)
 
     # fwhm
     def calculate_loss(x: T, handler: Callable[[T], float], y: float) -> float:

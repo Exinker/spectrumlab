@@ -6,7 +6,7 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulation.photodiode.characteristic.characteristic import CharacteristicBase, ConstantCharacteristic, DatasheetCharacteristic
+from spectrumlab.emulation.photodiode.characteristic.characteristic import AbstractCharacteristic, ConstantCharacteristic, DatasheetCharacteristic
 from spectrumlab.typing import Array, Meter, NanoMeter
 
 
@@ -17,8 +17,8 @@ DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')
 class DetectorConfig:
     """Detector's config."""
     name: str
-    sensitivity: CharacteristicBase
-    transmittance: CharacteristicBase
+    sensitivity: AbstractCharacteristic
+    transmittance: AbstractCharacteristic
     description: str = field(default='')
 
     # --------        private        --------

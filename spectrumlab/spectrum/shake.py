@@ -1,8 +1,8 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.optimize import minimize
 
-from spectrumlab.spectrum.interpolate import interpolate, interpolate_lanczos, InterpolationKind
+from spectrumlab.spectrum.interpolate import InterpolationKind, interpolate, interpolate_lanczos
 from spectrumlab.spectrum.spectrum import EmittedSpectrum
 from spectrumlab.typing import Array
 
@@ -24,7 +24,6 @@ def find_offset(x: Array[float], y: Array[float], y_base: Array[float]) -> float
     return minimize(lambda offset: fitness(x, y, y_base, offset), 0)['x'][0]
 
 
-
 def find_scale(y: Array[float], y_base: Array[float]) -> float:
     """Find scale of y."""
 
@@ -41,7 +40,7 @@ def shake_up(spectrum: EmittedSpectrum, n_iters: int, show: bool = False) -> tup
 
     offset = np.zeros((spectrum.n_times,))
     scale = np.ones((spectrum.n_times,))
-    for i in range(n_iters):
+    for _ in range(n_iters):
 
         # update offset
         for t, y in enumerate(y_normalized):
@@ -77,17 +76,17 @@ def shake_up(spectrum: EmittedSpectrum, n_iters: int, show: bool = False) -> tup
 
             ax_left.set_xlabel(r'$number$')
             ax_left.set_ylabel(r'$I$ [$\%$]')
-            ax_left.grid(color='grey', linestyle=':') 
+            ax_left.grid(color='grey', linestyle=':')
 
             ax_mid.plot(offset, color='black')
-            ax_mid.set_xlabel('$time$')
-            ax_mid.set_ylabel('$offset$')
-            ax_mid.grid(color='grey', linestyle=':') 
+            ax_mid.set_xlabel(r'$time$')
+            ax_mid.set_ylabel(r'$offset$')
+            ax_mid.grid(color='grey', linestyle=':')
 
             ax_right.plot(scale, color='black')
-            ax_right.set_xlabel('$time$')
-            ax_right.set_ylabel('$scale$')
-            ax_right.grid(color='grey', linestyle=':') 
+            ax_right.set_xlabel(r'$time$')
+            ax_right.set_ylabel(r'$scale$')
+            ax_right.grid(color='grey', linestyle=':')
 
             plt.show()
 

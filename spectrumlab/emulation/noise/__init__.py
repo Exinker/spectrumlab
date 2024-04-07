@@ -7,7 +7,7 @@ Author: Vaschenko Pavel
 """
 from typing import TypeAlias
 
-from .base_noise import BaseNoise
+from .noise import AbstractNoise
 from .constant_noise import ConstantNoise
 from .emitted_spectrum_noise import EmittedSpectrumNoise
 from .absorbed_spectrum_noise import AbsorbedSpectrumNoise

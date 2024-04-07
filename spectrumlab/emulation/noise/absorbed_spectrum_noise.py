@@ -4,12 +4,12 @@ from typing import overload
 import numpy as np
 
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.noise import BaseNoise, EmittedSpectrumNoise
+from spectrumlab.emulation.noise import AbstractNoise, EmittedSpectrumNoise
 from spectrumlab.typing import Absorbance, Array, Electron, Percent
 
 
 @dataclass(frozen=True)
-class AbsorbedSpectrumNoise(BaseNoise):
+class AbsorbedSpectrumNoise(AbstractNoise):
     """Detector's noise dependence for any absorbtion spectra."""
     detector: Detector
     n_frames: int

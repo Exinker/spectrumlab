@@ -2,20 +2,20 @@ import os
 from dataclasses import dataclass, field
 from typing import Literal
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from spectrumlab.grid import InterpolationKind
-from spectrumlab.concentration_calibration import BaseConcentrationCalibration, Intercept, Slope, LOD, LOQ, LOL, estimate_lol
+from spectrumlab.concentration_calibration import AbstractConcentrationCalibration, Intercept, LOD, LOL, LOQ, Slope, estimate_lol
 from spectrumlab.emulation.emulation import Emulation
-from spectrumlab.emulation.intensity import IntensityConfig, IntegralIntensityConfig, calculate_intensity, calculate_deviation
-from spectrumlab.picture.config import COLOR, ALPHA
-from spectrumlab.typing import Frame, Series, Number
+from spectrumlab.emulation.intensity import IntegralIntensityConfig, IntensityConfig, calculate_deviation, calculate_intensity
+from spectrumlab.grid import InterpolationKind
+from spectrumlab.picture.config import ALPHA, COLOR
+from spectrumlab.typing import Frame, Number, Series
 
-from .metrology import DynamicRange, estimate_blank_mean, estimate_blank_deviation, estimate_dynamic_range
 from .exceptions import EmulationError
+from .metrology import DynamicRange, estimate_blank_deviation, estimate_blank_mean, estimate_dynamic_range
 
 
 @dataclass
@@ -30,7 +30,7 @@ class ConcentrationCalibrationConfig:
     n_parallels: int = field(default=5)
 
 
-class ConcentrationCalibration(BaseConcentrationCalibration):
+class ConcentrationCalibration(AbstractConcentrationCalibration):
 
     def __init__(self, emulation: Emulation, config: ConcentrationCalibrationConfig):
         self.emulation = emulation
@@ -148,7 +148,7 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
         data = pd.DataFrame(
             data={'concentration': None, 'intensity': None, 'mask': False},
             columns=['concentration', 'intensity', 'mask'],
-            index=pd.MultiIndex.from_product([list(range(config.n_probes)), list(range(config.n_parallels))], names=['probe', 'parallel'])
+            index=pd.MultiIndex.from_product([list(range(config.n_probes)), list(range(config.n_parallels))], names=['probe', 'parallel']),
         )
         unicorn = pd.DataFrame(
             data={'concentration': None, 'intensity': None, 'mask': False},
@@ -163,17 +163,17 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
             for j in range(config.n_parallels):
                 spectrum = emulation.run(is_noised=True, is_clipped=config.is_clipped)
 
-                data.loc[(i,j), 'concentration'] = concentration
-                data.loc[(i,j), 'intensity'] = calculate_intensity(
+                data.loc[(i, j), 'concentration'] = concentration
+                data.loc[(i, j), 'intensity'] = calculate_intensity(
                     spectrum=spectrum,
                     background=emulation.config.background_level,
                     position=position,
                     config=config.intensity_config,
                 )
 
-                is_traced = data.loc[(i,j), 'intensity'] < loq
+                is_traced = data.loc[(i, j), 'intensity'] < loq
                 is_clipped = any(spectrum.clipped)
-                data.loc[(i,j), 'mask'] = is_traced or is_clipped
+                data.loc[(i, j), 'mask'] = is_traced or is_clipped
 
             # unicorn
             spectrum = emulation.run(is_noised=False, is_clipped=config.is_clipped)
@@ -309,7 +309,7 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
         )
 
         # show
-        fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True,)
+        fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True)
 
         title = ''
         plt.suptitle(title)  # TODO: add title's config
@@ -371,8 +371,8 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
 
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel('$C$')
-        plt.ylabel('$R$')
+        plt.xlabel(r'$C$')
+        plt.ylabel(r'$R$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
@@ -409,8 +409,8 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
             )
 
         plt.xscale('log')
-        plt.xlabel('$C$')
-        plt.ylabel('$bias, \%$')
+        plt.xlabel(r'$C$')
+        plt.ylabel(r'$bias, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
@@ -446,8 +446,8 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
 
         # plt.ylim([-.1, 2])
         plt.xscale('log')
-        plt.xlabel('$C$')
-        plt.ylabel('$deviation, \%$')
+        plt.xlabel(r'$C$')
+        plt.ylabel(r'$deviation, \%$')
         plt.grid(color='grey', linestyle=':')
         plt.legend()
 
@@ -457,16 +457,14 @@ class ConcentrationCalibration(BaseConcentrationCalibration):
             if not os.path.isdir(filedir):
                 os.mkdir(filedir)
             filename = self._get_filename(extension='png')
+            filepath = os.path.join(filedir, filename)
 
-            plt.savefig(
-                os.path.join(filedir, filename)
-            )
+            plt.savefig(filepath)
 
         #
         plt.show()
 
     def write(self):
-        
         data = self.data
 
         #

@@ -1,6 +1,6 @@
 from typing import Optional
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.emulation.emulation import emulate_emitted_spectrum, emulate_absorbed_spectrum, EmulationConfig, EmittedSpectrumEmulationConfig, AbsorbedSpectrumEmulationConfig
 from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
@@ -59,7 +59,7 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
 
     ax.set_xscale('log')
 
-    plt.xlabel('$I, \%$')
+    plt.xlabel(r'$I, \%$')
     plt.ylabel(r'$\sigma_{I}, \%$')
 
     plt.grid()
@@ -89,7 +89,7 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
     if ylim:
         plt.ylim(ylim)
 
-    plt.xlabel('$I, \%$')
+    plt.xlabel(r'$I, \%$')
     plt.ylabel(r'$\sigma_{I}/I, \%$')
 
     plt.grid()
@@ -148,7 +148,7 @@ def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims=(
     plt.plot(values, theoretical_noise, color='black', label='theoretical')
     plt.scatter(values, emulated_noise, marker='.', color='red', label=f'emulated')
 
-    plt.xlabel('A')
+    plt.xlabel(r'A')
     plt.ylabel(r'$\sigma_{A}$')
 
     plt.grid()
@@ -236,7 +236,7 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
 
     ax.set_xscale('log')
 
-    plt.xlabel('$I_{0}, \%$')
+    plt.xlabel(r'$I_{0}, \%$')
     plt.ylabel(r'$\sigma_{A}$')
 
     plt.grid()
@@ -253,7 +253,7 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
     if ylim:
         plt.ylim(ylim)
 
-    plt.xlabel('$I_{0}, \%$')
+    plt.xlabel(r'$I_{0}, \%$')
     plt.ylabel(r'$\sigma_{A}/I_{0}, \%$')
 
     plt.grid()

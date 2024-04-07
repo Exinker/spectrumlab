@@ -5,12 +5,12 @@ from typing import Literal
 
 import matplotlib.pyplot as plt
 
-from spectrumlab.emulation.photodiode.characteristic import WindowCharacteristic, DatasheetCharacteristic
+from spectrumlab.emulation.photodiode.characteristic import DatasheetCharacteristic, WindowCharacteristic
 from spectrumlab.typing import NanoMeter
 
 
 @dataclass
-class Filter(ABC):
+class AbstractFilter(ABC):
     """Interface for any filter."""
 
     # --------        handlers        --------
@@ -25,7 +25,7 @@ class Filter(ABC):
 
 
 @dataclass
-class WindowFilter(Filter, WindowCharacteristic):
+class WindowFilter(AbstractFilter, WindowCharacteristic):
     span: tuple[NanoMeter, NanoMeter]
     smooth: float  # smoothing rectangular edges by gauss
     wavelength_bounds: tuple[float, float]
@@ -47,7 +47,7 @@ class WindowFilter(Filter, WindowCharacteristic):
         match info:
             case 'title':
                 ax.set_title(text)
-            case 'text': 
+            case 'text':
                 ax.text(
                     0.05, 0.95,
                     text,
@@ -60,10 +60,10 @@ class WindowFilter(Filter, WindowCharacteristic):
         xlim = (x[0], x[-1])
         ax.set_xlim(xlim)
         ax.set_ylim([0, 1.25])
-        
-        ax.set_xlabel('$\lambda, нм$')
+
+        ax.set_xlabel(r'$\lambda, нм$')
         ax.set_ylabel(r'Коэффициент пропускания')
-        
+
         ax.grid(color='grey', linestyle=':')
 
         if save:
@@ -79,7 +79,7 @@ class WindowFilter(Filter, WindowCharacteristic):
 
 
 @dataclass
-class DatasheetFilter(Filter, DatasheetCharacteristic):
+class DatasheetFilter(AbstractFilter, DatasheetCharacteristic):
     path: str
     xscale: float  # transform to meter units
     norm: float = field(default=1)  # normalization scale

@@ -13,11 +13,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.spectrum.base_spectrum import BaseSpectrum
+from spectrumlab.spectrum import AbstractSpectrum
 from spectrumlab.typing import Absorbance, Array, Electron, MilliSecond, NanoMeter, Number, Percent
 
 
-class EmittedSpectrum(BaseSpectrum):
+class EmittedSpectrum(AbstractSpectrum):
     """Type for any emitted (or ordinary) spectrum."""
     def __init__(
             self,
@@ -140,7 +140,7 @@ class HighDynamicRangeEmittedSpectrum(EmittedSpectrum):
         return NotImplemented
 
 
-class AbsorbedSpectrum(BaseSpectrum):
+class AbsorbedSpectrum(AbstractSpectrum):
     """Type for any absorbtion spectrum."""
 
     def __init__(

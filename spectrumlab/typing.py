@@ -1,6 +1,5 @@
-
 from enum import Enum
-from typing import TypeAlias, NewType
+from typing import NewType, TypeAlias
 
 import pandas as pd
 from numpy.typing import NDArray

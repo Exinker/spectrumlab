@@ -25,7 +25,7 @@ class ParabolaPositionConfig:
 
 def _correct_position(value: Number, coeff: Sequence[float]) -> Number:
     """Correct position value by table values.
-    
+
     TODO: deviation calculations
 
     FIXME: fix self-absorption peak correction

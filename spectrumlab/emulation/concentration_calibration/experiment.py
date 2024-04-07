@@ -11,19 +11,19 @@ from configparser import ConfigParser
 
 import pandas as pd
 
-from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulation.emulation.experiment import BaseExperimentConfig, _parse_detector, _parse_device
+from spectrumlab.emulation.emulation.experiment import AbstractExperimentConfig, _parse_detector, _parse_device
 from spectrumlab.emulation.intensity import IntegralIntensityConfig
 from spectrumlab.emulation.line import Line, PVoigtLineShape
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.typing import Frame
 
 
 warnings.filterwarnings('ignore')
 
 
-class EmittedExperimentConfigNaive(BaseExperimentConfig):
+class EmittedExperimentConfigNaive(AbstractExperimentConfig):
     """Emitted spectra (naive) experiment's config."""
 
     def __init__(
@@ -100,7 +100,7 @@ class EmittedExperimentConfigNaive(BaseExperimentConfig):
         )
 
 
-class EmittedExperimentConfig(BaseExperimentConfig):
+class EmittedExperimentConfig(AbstractExperimentConfig):
     """Emitted spectra experiment's config."""
 
     def __init__(
@@ -126,7 +126,7 @@ class EmittedExperimentConfig(BaseExperimentConfig):
         self.ref = ref
 
 
-class AbsorbedExperimentConfig(BaseExperimentConfig):
+class AbsorbedExperimentConfig(AbstractExperimentConfig):
     """Absorbed spectra experiment's config."""
 
     def __init__(

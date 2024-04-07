@@ -6,14 +6,13 @@ import pandas as pd
 import pytest
 from tqdm import tqdm
 
-from spectrumlab.typing import Frame
 from spectrumlab.concentration_calibration import calibrate
-from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, SpectrumConfig
 from spectrumlab.emulation.emulation import fetch_emulation
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import Spectrum
+from spectrumlab.grid import InterpolationKind
 from spectrumlab.line import Line
 from spectrumlab.peak.analyte_peak import GatherAnalytePeakConfig, gather_analyte_peak
 from spectrumlab.peak.intensity import AmplitudeIntensityConfig
@@ -21,6 +20,8 @@ from spectrumlab.peak.intensity import ApproxIntensityConfig
 from spectrumlab.peak.intensity import IntegralIntensityConfig
 from spectrumlab.peak.position import InterpolationPositionConfig
 from spectrumlab.peak.shape import VoigtPeakShape
+from spectrumlab.typing import Frame
+
 
 @pytest.fixture(scope='module')
 def config() -> ExperimentConfig:
@@ -82,10 +83,10 @@ def spectra(config: ExperimentConfig, emulation: EmittedSpectrumEmulation) -> Fr
 
 
 def calculate_intensity(*args, **kwargs):
-    handler = partial(gather_analyte_peak, *args, **kwargs)
+    factory = partial(gather_analyte_peak, *args, **kwargs)
 
     def inner(spectrum: Spectrum) -> float:
-        peak = handler(spectrum=spectrum)
+        peak = factory(spectrum=spectrum)
 
         return peak.intensity
 

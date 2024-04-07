@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class ApproxInterface(ABC):
-    """Base peak's approx."""
+    """Abstract peak's approx."""
 
     @abstractmethod
     def approx_keys(self) -> tuple[str]:

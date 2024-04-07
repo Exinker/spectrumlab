@@ -4,11 +4,11 @@ from typing import Callable
 import numpy as np
 
 from spectrumlab.spectrum import Spectrum
-from spectrumlab.wavelength_calibration.exceptions import FitError
 from spectrumlab.typing import Array, NanoMeter, Number
+from spectrumlab.wavelength_calibration.exceptions import FitError
 
 
-class BaseWavelengthCalibration(ABC):
+class AbstractWavelengthCalibration(ABC):
 
     def __init__(self, deg: int) -> None:
         self._deg = deg
@@ -28,14 +28,14 @@ class BaseWavelengthCalibration(ABC):
 
     # --------        handlers        --------
     @abstractmethod
-    def fit(self, number: Array[Number], wavelength: Array[NanoMeter]) -> 'BaseWavelengthCalibration':
+    def fit(self, number: Array[Number], wavelength: Array[NanoMeter]) -> 'AbstractWavelengthCalibration':
         raise NotImplementedError
 
     def predict(self, number: Number | Array[Number]) -> Array[NanoMeter]:
         return np.polyval(self.coeff, number)
 
 
-class WavelengthCalibration(BaseWavelengthCalibration):
+class WavelengthCalibration(AbstractWavelengthCalibration):
 
     def __init__(self, deg: int) -> None:
         super().__init__(deg=deg)

@@ -19,7 +19,7 @@ DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')
 
 
 # --------        aperture shapes        --------
-class BaseApertureShape(ABC):
+class AbstractApertureShape(ABC):
     dx: Number = 1e-2  # шаг построения интерполяции
     rx: Number = 10  # границы построения интерполяции
 
@@ -35,7 +35,7 @@ class BaseApertureShape(ABC):
         return self.f(x - n)
 
 
-class RectangularApertureShape(BaseApertureShape):
+class RectangularApertureShape(AbstractApertureShape):
     """Rectangular aperture's profile shape."""
 
     def __init__(self):
@@ -48,7 +48,7 @@ class RectangularApertureShape(BaseApertureShape):
         return self._f
 
 
-class RoundedRectangularApertureShape(BaseApertureShape):
+class RoundedRectangularApertureShape(AbstractApertureShape):
     """Rounded rectangular (a convolution of rectangular and pvoigt) aperture's profile shape."""
 
     def __init__(self, width: Number = .2):
@@ -74,7 +74,7 @@ class RoundedRectangularApertureShape(BaseApertureShape):
         return self._f
 
 
-class VoigtApertureShape(BaseApertureShape):
+class VoigtApertureShape(AbstractApertureShape):
     """Voigt aperture's profile shape."""
 
     def __init__(self, width: Number, asymmetry: float, ratio: float):
@@ -119,7 +119,7 @@ class VoigtApertureShape(BaseApertureShape):
         return cls(*params[detector][kind])
 
 
-class MeasuredApertureShape(BaseApertureShape):
+class MeasuredApertureShape(AbstractApertureShape):
     """Voigt aperture's profile shape."""
 
     def __init__(self, grid: Grid):
@@ -202,7 +202,7 @@ class Aperture:
             label='$S(x - x_{{0}})$',
         )
         plt.xlabel(grid.xlabel)
-        plt.ylabel('$S(x - x_{k})$')
+        plt.ylabel(r'$S(x - x_{k})$')
         plt.grid(color='grey', linestyle=':')
         plt.legend(loc='upper right')
 
@@ -235,7 +235,7 @@ class Aperture:
         )
 
         plt.xlabel(grid.xlabel)
-        plt.ylabel('$S(x - x_{k})$')
+        plt.ylabel(r'$S(x - x_{k})$')
         plt.grid(color='grey', linestyle=':')
         plt.legend(loc='upper right')
 

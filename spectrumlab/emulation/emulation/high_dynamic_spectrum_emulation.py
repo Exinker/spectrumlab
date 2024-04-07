@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Generator, Literal
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from spectrumlab.picture.config import COLOR
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, emulate_emitted_spectrum
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
-from spectrumlab.emulation.spectrum import EmittedSpectrum, AbsorbedSpectrum, HighDynamicRangeEmittedSpectrum
+from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, HighDynamicRangeEmittedSpectrum
+from spectrumlab.picture.config import COLOR
 from spectrumlab.typing import Array, MilliSecond
 
 
@@ -29,7 +29,7 @@ class _HighDynamicRangeMode:
 
         return abs(total - self.total) <= tol
 
-    def items(self) -> tuple[int, MilliSecond]:
+    def items(self) -> Generator:
         """Generate tuples of n_frames and tau."""
 
         for degree, n_frames in enumerate(self.n_frames):
@@ -47,11 +47,11 @@ class HighDynamicRangeMode:
     method: Literal['naive', 'weighted'] = 'weighted'
 
     # --------        handlers        --------
-    def items(self) -> tuple[int, MilliSecond]:
+    def items(self) -> Generator:
         """Generate tuples of n_frames and tau."""
 
         for n_frames, tau in zip(self.n_frames, self.tau):
-                yield n_frames, tau
+            yield n_frames, tau
 
     # --------        private        --------
     def __post_init__(self):
@@ -104,7 +104,7 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
                 spectrum.number,
                 y1=config.background_level,
                 y2=y2,
-                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
+                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label='paek',
             )
             plt.xlim([spectrum.number.min()-1, spectrum.number.max()+1])
 
@@ -138,7 +138,7 @@ def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, inte
         )
         shorts[tau] = spe
 
-    # 
+    #
     spectrum = HighDynamicRangeEmittedSpectrum(
         number=number,
         shorts=shorts,

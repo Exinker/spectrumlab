@@ -1,5 +1,4 @@
-
-from typing import TypeAlias, TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 from spectrumlab.typing import Number
 from ._estimate_by_interpolation import InterpolationPositionConfig, estimate_position_by_interpolation

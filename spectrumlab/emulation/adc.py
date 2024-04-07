@@ -44,8 +44,8 @@ class ADC:
                 color='red',
                 label=r'$\hat{y}$',
             )
-            ax_left.set_xlabel('x')
-            ax_left.set_ylabel('y')
+            ax_left.set_xlabel(r'x')
+            ax_left.set_ylabel(r'y')
             ax_left.grid(color='grey', linestyle=':')
             ax_left.legend()
 
@@ -53,7 +53,7 @@ class ADC:
                 y - y_hat,
                 color='black',
             )
-            ax_right.set_xlabel('x')
+            ax_right.set_xlabel(r'x')
             ax_right.set_ylabel(r'$y - \hat{y}$')
             ax_right.grid(color='grey', linestyle=':')
 

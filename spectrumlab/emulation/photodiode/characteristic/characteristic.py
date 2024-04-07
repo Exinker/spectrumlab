@@ -8,9 +8,8 @@ from spectrumlab.emulation.curve import gauss, rectangular
 from spectrumlab.typing import Array, Meter, NanoMeter
 
 
-# --------        CharacteristicBase        --------
-class CharacteristicBase(ABC):
-    """Interface for any Characteristic."""
+class AbstractCharacteristic(ABC):
+    """Abstract type for any characteristic."""
 
     # --------        private        --------
     @abstractmethod
@@ -19,7 +18,7 @@ class CharacteristicBase(ABC):
 
 
 @dataclass(frozen=True)
-class ConstantCharacteristic(CharacteristicBase):
+class ConstantCharacteristic(AbstractCharacteristic):
     value: float
 
     # --------        private        --------
@@ -34,7 +33,7 @@ class ConstantCharacteristic(CharacteristicBase):
 
 
 @dataclass(frozen=True)
-class WindowCharacteristic(CharacteristicBase):
+class WindowCharacteristic(AbstractCharacteristic):
     span: tuple[NanoMeter, NanoMeter]
     smooth: float | None  # smoothing rectangular edges by gauss
     wavelength_bounds: tuple[float]
@@ -79,7 +78,7 @@ class WindowCharacteristic(CharacteristicBase):
 
 
 @dataclass(frozen=True)
-class DatasheetCharacteristic(CharacteristicBase):
+class DatasheetCharacteristic(AbstractCharacteristic):
     path: str
     xscale: float = field(default=1)  # transform x values to meter units
     yscale: float = field(default=1)  # normalize y values to scale

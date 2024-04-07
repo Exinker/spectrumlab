@@ -10,20 +10,20 @@ import warnings
 from configparser import ConfigParser
 from dataclasses import dataclass, field
 
-from spectrumlab.grid import InterpolationKind
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import IntegralIntensityConfig, IntensityConfig
 from spectrumlab.emulation.line import Line, PVoigtLineShape
+from spectrumlab.grid import InterpolationKind
 
 
 warnings.filterwarnings('ignore')
 
 
 @dataclass
-class BaseExperimentConfig:
+class AbstractExperimentConfig:
     device: Device
     detector: Detector
     apparatus: Apparatus
@@ -43,7 +43,7 @@ class BaseExperimentConfig:
         return tuple(reversed([self.concentration_base * (1/(2**(i))) for i in range(self.n_probes)]))
 
 
-class EmittedExperimentConfigNaive(BaseExperimentConfig):
+class EmittedExperimentConfigNaive(AbstractExperimentConfig):
     """Emitted spectra (naive) experiment's config."""
 
     def __init__(self, *args, **kwargs):
@@ -93,7 +93,7 @@ class EmittedExperimentConfigNaive(BaseExperimentConfig):
         )
 
 
-class EmittedExperimentConfig(BaseExperimentConfig):
+class EmittedExperimentConfig(AbstractExperimentConfig):
     """Emitted spectra experiment's config."""
 
     def __init__(self, *args, line: PVoigtLineShape, **kwargs):
@@ -102,7 +102,7 @@ class EmittedExperimentConfig(BaseExperimentConfig):
         self.line = line
 
 
-class AbsorbedExperimentConfig(BaseExperimentConfig):
+class AbsorbedExperimentConfig(AbstractExperimentConfig):
     """Absorbed spectra experiment's config."""
 
     def __init__(self, *args, line: PVoigtLineShape, base_level: float, base_n_frames: int, scattering_ratio: float, **kwargs):

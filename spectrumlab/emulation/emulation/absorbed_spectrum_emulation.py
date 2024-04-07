@@ -1,24 +1,24 @@
 from dataclasses import dataclass, field
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import integrate, interpolate, signal
 
-from spectrumlab.picture.config import COLOR
-from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.aperture import Aperture
+from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.device import Device
-from spectrumlab.emulation.emulation import EmulationInterface, SpectrumConfig, emulate_emitted_spectrum
+from spectrumlab.emulation.emulation import AbstractEmulation, SpectrumConfig, emulate_emitted_spectrum
 from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
-from spectrumlab.emulation.noise.absorbed_spectrum_noise import AbsorbedSpectrumNoise, calculate_squared_relative_standard_deviation, calculate_absorbance_deviation
-from spectrumlab.emulation.spectrum import EmittedSpectrum, AbsorbedSpectrum
-from spectrumlab.typing import Array, Absorbance, Percent, MicroMeter, Number
+from spectrumlab.emulation.noise.absorbed_spectrum_noise import AbsorbedSpectrumNoise, calculate_absorbance_deviation, calculate_squared_relative_standard_deviation
+from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum
+from spectrumlab.picture.config import COLOR
+from spectrumlab.typing import Absorbance, Array, MicroMeter, Number, Percent
 
 
 @dataclass
-class SpectrumBaseConfig:
+class SpectrumAbstractConfig:
     level: Percent
     n_frames: int = field(default=200)
 
@@ -31,7 +31,7 @@ class AbsorbedSpectrumEmulationConfig:
     line: Line
     apparatus: Apparatus
     aperture: Aperture
-    spectrum_base: SpectrumBaseConfig
+    spectrum_base: SpectrumAbstractConfig
     spectrum: SpectrumConfig
 
     concentration_ratio: float
@@ -44,7 +44,7 @@ class AbsorbedSpectrumEmulationConfig:
     dx: MicroMeter = field(default=.01)  # шаг сетки интерполяции
 
 
-class AbsorbedSpectrumEmulation(EmulationInterface):
+class AbsorbedSpectrumEmulation(AbstractEmulation):
     """Absorbed spectrum emulation."""
 
     def __init__(self, config: AbsorbedSpectrumEmulationConfig):
@@ -178,7 +178,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             # plt.suptitle(title)
 
             # in emission units
-            ax = plt.subplot(1, 2, 1)
+            plt.subplot(1, 2, 1)
 
             plt.plot(x/detector.pitch, S0 + physical_line(x - x0), label=r'$I(\lambda)$')  # f'physical line'
             plt.plot(x/detector.pitch, S0 + apparatus_line(x - x0), label=r'$I^{F}(\lambda)$')  # f'apparatus line'
@@ -196,7 +196,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
             plt.legend(loc='lower right')
 
             # in absorption units
-            ax = plt.subplot(1, 2, 2)
+            plt.subplot(1, 2, 2)
 
             plt.plot(x/detector.pitch, calculate_absorbance(S0 + physical_line(x - x0), I0), label=r'$A(\lambda)$')  # f'physical line'
             plt.plot(x/detector.pitch, calculate_absorbance(S0 + apparatus_line(x - x0), I0), label=r'$A^{F}(\lambda)$')  # f'apparatus line'
@@ -227,7 +227,13 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
         return intensity
 
     # --------        handlers        --------
-    def setup(self, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> 'EmulationInterface':
+    def setup(
+            self,
+            position: Number,
+            concentration: float,
+            show: bool = False,
+            ylim: tuple[float, float] | None = None,
+            ) -> 'AbstractEmulation':
         """Setup emulation of absorbed spectrum."""
         self.position = position
         self.concentration = concentration
@@ -272,7 +278,7 @@ class AbsorbedSpectrumEmulation(EmulationInterface):
                 spectrum.number,
                 y1=config.background_level,
                 y2=spectrum.intensity,
-                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label=f'paek',
+                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label='paek',
             )
             plt.xlabel(r'number')
             plt.ylabel({
@@ -291,11 +297,20 @@ def calculate_absorbance(level, base_level, scattering_ratio=0):
     scattering_level = scattering_ratio * base_level
 
     return np.log10(
-        (base_level - scattering_level) / (level - scattering_level)  # # (base_level - scattering_level) / (level - scattering_level)
+        (base_level - scattering_level) / (level - scattering_level)  # (base_level - scattering_level) / (level - scattering_level)
     )
 
 
-def emulate_absorbed_spectrum(number: Array, intensity: Array, noise: EmittedSpectrumNoise, base_level: float, base_noise: EmittedSpectrumNoise, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> AbsorbedSpectrum:
+def emulate_absorbed_spectrum(
+        number: Array,
+        intensity: Array,
+        noise: EmittedSpectrumNoise,
+        base_level: float,
+        base_noise: EmittedSpectrumNoise,
+        detector: Detector,
+        is_noised: bool = True,
+        is_clipped: bool = True,
+        ) -> AbsorbedSpectrum:
 
     # init base spectrum
     spectrum_base = emulate_emitted_spectrum(
