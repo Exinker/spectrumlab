@@ -223,6 +223,28 @@ class EmittedSpectrumEmulation(AbstractEmulation):
         # return intensity
         return intensity
 
+    def _setup_intensity(self, position: Number | Array[Number], concentration: float | Array[float],  show: bool = False, ylim: tuple[float, float] | None = None) -> Array[Percent]:
+
+        if isinstance(position, np.ndarray) and isinstance(concentration, np.ndarray):
+            return np.sum([
+                self._get_intensity(number=self.number, position=_pos, concentration=_conc, show=show, ylim=ylim)
+                for _pos, _conc in zip(position, concentration)
+            ], axis=0)
+
+        if isinstance(position, np.ndarray):
+            return np.array([
+                self._get_intensity(number=self.number, position=_pos, concentration=concentration, show=show, ylim=ylim)
+                for _pos in position
+            ])
+
+        if isinstance(concentration, np.ndarray):
+            return np.array([
+                self._get_intensity(number=self.number, position=position, concentration=_conc, show=show, ylim=ylim)
+                for _conc in concentration
+            ])
+
+        return self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
+
     @property
     def intensity(self) -> Array[Percent]:
         if self._intensity is None:
@@ -234,7 +256,7 @@ class EmittedSpectrumEmulation(AbstractEmulation):
     def setup(
             self,
             position: Number | Array[Number],
-            concentration: float,
+            concentration: float | Array[float],
             environment: Array[Percent] | None = None,
             show: bool = False,
             ylim: tuple[float, float] | None = None,
@@ -244,14 +266,12 @@ class EmittedSpectrumEmulation(AbstractEmulation):
         self.concentration = concentration
 
         # setup intensity
-        if isinstance(position, (int, float)):
-            self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
-
-        if isinstance(position, np.ndarray):
-            self._intensity = np.sum([
-                self._get_intensity(number=self.number, position=x, concentration=concentration, show=show, ylim=ylim)
-                for x in position
-            ], axis=0)
+        self._intensity = self._setup_intensity(
+            position=position,
+            concentration=concentration,
+            show=show,
+            ylim=ylim,
+        )
 
         # add spectral environment
         if isinstance(environment, np.ndarray):
