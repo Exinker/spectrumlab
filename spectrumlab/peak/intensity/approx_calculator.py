@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import Mapping, TYPE_CHECKING
 
 from spectrumlab.peak.intensity import AbstractIntensityCalculator
 from spectrumlab.peak.shape.utils import approx_peak
@@ -22,13 +21,22 @@ class ApproxIntensityCalculator(AbstractIntensityCalculator):
         self.by_tail = by_tail  # use the tail of peak for approximation
         self.show = show
 
+        self._params = None
+
     @property
     def color(self) -> str:
         return COLOR_INTENSITY['shape']
 
+    @property
+    def params(self) -> Mapping[str, float]:
+        if self._params is None:
+            raise ValueError('Calculate params before!')
+
+        return self._params
+
     def calculate(self, peak: 'AnalytePeak') -> Percent:
 
-        params = approx_peak(
+        self._params = approx_peak(
             peak=peak,
             shape=self.shape,
             delta=self.delta,
@@ -36,7 +44,7 @@ class ApproxIntensityCalculator(AbstractIntensityCalculator):
             show=self.show,
         )
 
-        value = params['intensity']
+        value = self.params['intensity']
 
         # verbose
         if self.verbose:
