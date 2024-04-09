@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulationConfig, SpectrumAbstractConfig, SpectrumConfig
+from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
 from spectrumlab.emulation.emulation import emulate_absorbed_spectrum
 from spectrumlab.emulation.emulation.experiment import AbsorbedExperimentConfig as ExperimentConfig
 from spectrumlab.emulation.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
@@ -24,7 +24,7 @@ def config() -> AbsorbedSpectrumEmulationConfig:
         apparatus=config.apparatus,
         aperture=config.aperture,
 
-        spectrum_base=SpectrumAbstractConfig(
+        spectrum_base=SpectrumBaseConfig(
             level=config.base_level,
             n_frames=config.base_n_frames,
         ),

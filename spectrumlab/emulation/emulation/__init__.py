@@ -11,7 +11,7 @@ from typing import TypeAlias, overload
 from .emulation import AbstractEmulation
 from .emitted_spectrum_emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, emulate_emitted_spectrum, SpectrumConfig, convolve
 from .high_dynamic_spectrum_emulation import HighDynamicRangeEmittedSpectrumEmulation, HighDynamicRangeMode, emulate_hdr_emitted_spectrum
-from .absorbed_spectrum_emulation import AbsorbedSpectrumEmulation, AbsorbedSpectrumEmulationConfig, emulate_absorbed_spectrum, SpectrumAbstractConfig, calculate_absorbance
+from .absorbed_spectrum_emulation import AbsorbedSpectrumEmulation, AbsorbedSpectrumEmulationConfig, emulate_absorbed_spectrum, SpectrumBaseConfig, calculate_absorbance
 
 
 EmulationConfig: TypeAlias = EmittedSpectrumEmulationConfig | AbsorbedSpectrumEmulationConfig

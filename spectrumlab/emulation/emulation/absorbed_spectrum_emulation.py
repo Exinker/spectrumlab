@@ -18,7 +18,7 @@ from spectrumlab.typing import Absorbance, Array, MicroMeter, Number, Percent
 
 
 @dataclass
-class SpectrumAbstractConfig:
+class SpectrumBaseConfig:
     level: Percent
     n_frames: int = field(default=200)
 
@@ -31,7 +31,7 @@ class AbsorbedSpectrumEmulationConfig:
     line: Line
     apparatus: Apparatus
     aperture: Aperture
-    spectrum_base: SpectrumAbstractConfig
+    spectrum_base: SpectrumBaseConfig
     spectrum: SpectrumConfig
 
     concentration_ratio: float
