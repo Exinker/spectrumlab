@@ -18,7 +18,7 @@ from spectrumlab.grid import Grid
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.approx_interface import ApproxInterface
 from spectrumlab.peak.shape.base_shape import AbstractPeakShape
-from spectrumlab.peak.shape.utils import approx_peak_by_tail, restore_grid_from_blinks
+from spectrumlab.peak.shape.utils import approx_peak_by_tail
 from spectrumlab.typing import Array, MicroMeter, Number
 from spectrumlab.utils import mse
 
@@ -442,8 +442,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
         pbar.update(1)
 
         # update shape
-        grid = restore_grid_from_blinks(
-            spectrum=spectrum,
+        grid = Grid.factory(spectrum=spectrum).create_from_blinks(
             blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
             offset=[offset[i] for i, mask in enumerate(mask) if not mask],
             scale=[scale[i] for i, mask in enumerate(mask) if not mask],
@@ -502,8 +501,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             )
 
         plt.sca(ax_mid)
-        grid = restore_grid_from_blinks(
-            spectrum=spectrum,
+        grid = Grid.factory(spectrum=spectrum).create_from_blinks(
             blinks=[blinks[i] for i, mask in enumerate(mask) if mask],
             offset=[offset[i] for i, mask in enumerate(mask) if mask],
             scale=[scale[i] for i, mask in enumerate(mask) if mask],
@@ -516,8 +514,7 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             alpha=.5,
         )
 
-        grid = restore_grid_from_blinks(
-            spectrum=spectrum,
+        grid = Grid.factory(spectrum=spectrum).create_from_blinks(
             blinks=[blinks[i] for i, mask in enumerate(mask) if not mask],
             offset=[offset[i] for i, mask in enumerate(mask) if not mask],
             scale=[scale[i] for i, mask in enumerate(mask) if not mask],

@@ -1,14 +1,19 @@
-from collections.abc import Iterator
-from typing import Callable, TypeVar
+from collections.abc import Iterator, Sequence
+from typing import Callable, TYPE_CHECKING, TypeVar
 from warnings import warn
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, interpolate
 
-from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number, PicoMeter
+from spectrumlab.spectrum import Spectrum
+from spectrumlab.typing import Absorbance, Array, Digit, Electron, MicroMeter, NanoMeter, Number, Percent, PicoMeter
+
+if TYPE_CHECKING:
+    from spectrumlab.peak.blink_peak import BlinkPeak
 
 
+U = TypeVar('U', Digit, Electron, Percent, Absorbance)
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
@@ -34,7 +39,116 @@ class IteratorGrid:
             raise StopIteration
 
 
+# --------        grid        --------
+class _FactoryBatch:
+
+    def __init__(self, spectrum: Spectrum):
+        self.spectrum = spectrum
+
+    def create_from_blink(self, blink: 'BlinkPeak', threshold: float) -> '_Batch':
+        lb, ub = blink.minima
+
+        is_clipped = self.spectrum.clipped[lb:ub]
+        is_snr_low = np.abs(self.spectrum.intensity[lb:ub]) / self.spectrum.deviation[lb:ub] < threshold
+        mask = ~is_clipped & ~is_snr_low
+
+        x = self.spectrum.number[lb:ub][mask]
+        y = self.spectrum.intensity[lb:ub][mask]
+
+        return _Batch(x, y)
+
+    def create_from_frame(self, t: int, threshold: float) -> '_Batch':
+        is_clipped = self.spectrum.clipped[t]
+        is_snr_low = np.abs(self.spectrum.intensity[t]) / self.spectrum.deviation[t] < threshold
+        mask = ~is_clipped & ~is_snr_low
+
+        x = self.spectrum.number[mask]
+        y = self.spectrum.intensity[mask] if self.spectrum.n_times == 1 else self.spectrum.intensity[t, mask]
+
+        return _Batch(x, y)
+
+
+class _Batch:
+    factory = _FactoryBatch
+
+    def __init__(self, x: Array[T], y: Array[U]):
+        self.x = x
+        self.y = y
+
+
+class FactoryGrid:
+
+    def __init__(self, spectrum: Spectrum):
+        self.spectrum = spectrum
+
+    def create_from_blinks(self, blinks: Sequence['BlinkPeak'], offset: Array[T] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
+        """Get a grid from sequence of blinks from spectrum."""
+        assert self.spectrum.n_times == 1, 'time resolved spectra are not supported!'
+
+        batches = tuple(
+            _Batch.factory(spectrum=self.spectrum).create_from_blink(blink=blink, threshold=threshold)
+            for blink in blinks
+        )
+
+        return self._create(
+            batches=batches,
+            offset=offset,
+            scale=scale,
+            background=background,
+        )
+
+    def create_from_frames(self, offset: Array[T] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
+        """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
+        # assert spectrum.n_times > 1, 'only time resolved spectra are supported!'
+
+        batches = tuple(
+            _Batch.factory(spectrum=self.spectrum).create_from_frame(t=t, threshold=threshold)
+            for t in range(self.spectrum.n_times)
+        )
+
+        return self._create(
+            batches=batches,
+            offset=offset,
+            scale=scale,
+            background=background,
+        )
+
+    # --------        private        --------
+    def _create(self, batches: Sequence[_Batch], offset: Array[T] | None = None, scale: Array[float] | None = None, background: Array[U] | None = None) -> 'Grid':
+        """Get a grid from sequence of batches."""
+        n_batches = len(batches)
+
+        if offset is None:
+            offset = np.full(n_batches, 0)
+        assert len(offset) == n_batches, f'len of `offset` have to be equal of `n_batches`: {n_batches}'
+
+        if scale is None:
+            scale = np.full(n_batches, 1)
+        assert len(scale) == n_batches, f'len of `scale` have to be equal of `n_batches`: {n_batches}'
+
+        if background is None:
+            background = np.full(n_batches, 0)
+        assert len(background) == n_batches, f'len of `background` have to be equal of `n_batches`: {n_batches}'
+
+        #
+        x, y = [], []
+        for t, batch in enumerate(batches):
+            x.extend(batch.x - offset[t])
+            y.extend((batch.y - background[t]) / scale[t])
+
+        x, y = np.array(x).squeeze(), np.array(y).squeeze()
+
+        index = np.argsort(x)
+
+        #
+        return Grid(
+            x=x[index],
+            y=y[index],
+        )
+
+
 class Grid:
+    factory = FactoryGrid
 
     def __init__(self, x: Array[T], y: Array[float] | None = None, units: T | None = None):
         assert len(x) == len(y)

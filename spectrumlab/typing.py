@@ -50,12 +50,12 @@ PicoMeter = NewType('Pico', float)
 
 Number = NewType('Number', float)
 
-
 # --------        value units        --------
-Absorbance = NewType('Absorbance', float)
+Digit = NewType('Digit', float)
 Electron = NewType('Electron', float)
 Percent = NewType('Percent', float)
 
+Absorbance = NewType('Absorbance', float)
 
 # --------        other units        --------
 Symbol = NewType('Symbol', str)

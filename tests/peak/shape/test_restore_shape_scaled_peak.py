@@ -7,8 +7,8 @@ from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.peak import ScaledExperiment, ScaledExperimentConfig
+from spectrumlab.grid import Grid
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
-from spectrumlab.peak.shape.utils import restore_grid_from_frames
 
 from config import DETECTOR, INTENSITY, IS_NOISED, N_FRAMES, N_ITERS, N_NUMBERS, POSITION, SHAPE
 from core import distance
@@ -66,8 +66,7 @@ def shape_hat(experiment: ScaledExperiment) -> VoigtPeakShape:
     spectrum = experiment.run(is_noised=IS_NOISED)
 
     # grid
-    grid = restore_grid_from_frames(
-        spectrum=spectrum,
+    grid = Grid.factory(spectrum=spectrum).create_from_frames(
         offset=np.full((config.n_iters, ), config.n_numbers//2),
         scale=config.exposure,
         background=np.full((config.n_iters, ), 0),
@@ -156,8 +155,7 @@ if __name__ == '__main__':
     spectrum = experiment.run(is_noised=IS_NOISED)
 
     # restore shape
-    grid = restore_grid_from_frames(
-        spectrum=spectrum,
+    grid = Grid.factory(spectrum=spectrum).create_from_frames(
         offset=np.full((config.n_iters, ), config.position),
         scale=config.exposure,
         background=np.full((config.n_iters, ), 0),
