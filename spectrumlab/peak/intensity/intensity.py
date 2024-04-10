@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from typing import TYPE_CHECKING
 
 from spectrumlab.typing import Percent
@@ -11,6 +11,10 @@ class AbstractIntensityCalculator(ABC):
 
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
+
+    @abstractproperty
+    def color(self) -> str:
+        raise NotImplementedError
 
     @abstractmethod
     def calculate(self, peak: 'AnalytePeak') -> Percent:
