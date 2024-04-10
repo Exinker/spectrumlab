@@ -12,7 +12,7 @@ from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number, PicoMeter
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
-class GridIterator:
+class IteratorGrid:
 
     def __init__(self, x: Array[T], y: Array[float]):
         self.x = x
@@ -149,7 +149,7 @@ class Grid:
             stacklevel=1,
         )
 
-        return GridIterator(
+        return IteratorGrid(
             x=self.x,
             y=self.y,
         )
