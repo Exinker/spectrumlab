@@ -134,9 +134,9 @@ class VoigtPeakShape(AbstractPeakShape, ApproxInterface):
         sign = {+1: '+'}.get(np.sign(self.asymmetry), '') if is_signed else ''
 
         return sep.join([
-            f'w={self.width:.4f}',
-            f'a={sign}{self.asymmetry:.4f}',
-            f'r={self.ratio:.4f}',
+            f'width={self.width:.4f}',
+            f'asymmetry={sign}{self.asymmetry:.4f}',
+            f'ratio={self.ratio:.4f}',
         ])
 
     @property
