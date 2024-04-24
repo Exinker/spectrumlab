@@ -163,17 +163,17 @@ def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: AbstractGridFi
 
         plt.axvline(
             lb,
-            color='grey', linestyle=':', linewidth=1,
+            color='grey', linestyle='--', linewidth=1,
             alpha=1,
         )
         plt.axvline(
             rb,
-            color='grey', linestyle=':', linewidth=1,
+            color='grey', linestyle='--', linewidth=1,
             alpha=1,
         )
         plt.axhline(
             handler(position)/2,
-            color='grey', linestyle=':', linewidth=1,
+            color='grey', linestyle='--', linewidth=1,
             alpha=1,
         )
 

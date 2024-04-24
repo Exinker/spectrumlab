@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TypeAlias
+from typing import Literal
 
 import numpy as np
 from scipy import interpolate, signal
@@ -34,6 +34,16 @@ class VoigtGridShape:
             fill_value=0,
         )
 
+    # --------        private        --------
+    def _get_content(self, sep: Literal[r'\n', ', '] = ', ', is_signed: bool = True) -> str:
+        sign = {+1: '+'}.get(np.sign(self.asymmetry), '') if is_signed else ''
+
+        return sep.join([
+            f'width={self.width:.4f}',
+            f'asymmetry={sign}{self.asymmetry:.4f}',
+            f'ratio={self.ratio:.4f}',
+        ])
+
     def __call__(self, x: T | Array[T], position: T, intensity: float, background: float = 0) -> Array[float]:
         """interpolate by grip"""
         f = self._f
@@ -41,7 +51,4 @@ class VoigtGridShape:
         return background + intensity*f(x - position)
 
     def __repr__(self) -> str:
-        return f'{type(self).__name__} (w={self.width:.4f}; a={self.asymmetry:.4f}; r={self.ratio:.4f})'
-
-
-GridShape: TypeAlias = VoigtGridShape
+        return f'{type(self).__name__}({self._get_content()})'
