@@ -1,4 +1,6 @@
-# ---------        COLOR        ---------
+from typing import TypeAlias
+
+
 COLOR = {
     'selected': [0, 0.37254902, 0.88627451, .5],
     'is_not_active': '#707C80',
@@ -33,11 +35,4 @@ COLOR_INTENSITY = {
 }
 
 
-# ---------        ALPHA        ---------
-ALPHA = {
-    'default': .5,
-    'is_not_active': .2,
-
-    'probe': .5,
-    'parallel': .2,
-}
+Color: TypeAlias = str | tuple[float, float, float] | tuple[float, float, float, float]

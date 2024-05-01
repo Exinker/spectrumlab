@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from spectrumlab.emulation.spectrum import Spectrum
-from spectrumlab.picture.config import ALPHA, COLOR
+from spectrumlab.picture.config import ALPHA, COLOR, Alpha, Color
 from spectrumlab.typing import Frame, Series
 
 from .exceptions import FitError
@@ -59,7 +59,7 @@ class AbstractConcentrationCalibration(ABC):
     def _get_filename(self, extension: Literal['png', 'txt']) -> str:
         raise NotImplementedError
 
-    def _get_color(self, mask: Series, color: str) -> list[str]:
+    def _get_color(self, mask: Series, color: str) -> list[Color]:
         mapping = {
             True: 'grey',
             False: color,
@@ -67,7 +67,7 @@ class AbstractConcentrationCalibration(ABC):
 
         return list(map(lambda x: mapping[x], mask))
 
-    def _get_alpha(self, mask: Series, alpha: float) -> list[float]:
+    def _get_alpha(self, mask: Series, alpha: float) -> list[Alpha]:
         mapping = {
             True: ALPHA['is_not_active'],
             False: alpha,

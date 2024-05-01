@@ -4,7 +4,7 @@ from typing import NewType, TypeAlias
 import pandas as pd
 from numpy.typing import NDArray
 
-from spectrumlab.picture import COLOR_DATABASE
+from spectrumlab.picture import COLOR_DATABASE, Color
 
 
 # --------        structures        --------
@@ -22,7 +22,7 @@ class Dataset(Enum):
     test = 'test'
 
     @property
-    def color(self) -> str:
+    def color(self) -> Color:
         return COLOR_DATABASE[self.name]
 
 

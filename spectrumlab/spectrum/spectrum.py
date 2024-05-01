@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.picture import fetch_cmap
+from spectrumlab.picture import Colormap, fetch_cmap
 from spectrumlab.typing import Array, NanoMeter, Number
 
 
@@ -227,7 +227,7 @@ class EmittedSpectrum(AbstractSpectrum):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, deviation=deviation, detector=detector)
 
     # --------        handlers        --------
-    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None, grid: bool = False) -> None:
+    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap: Colormap | None = None, clim: tuple[float, float] | None = None, grid: bool = False) -> None:
         is_filling = ax is not None
 
         if not is_filling:
@@ -268,7 +268,7 @@ class AbsorbedSpectrum(AbstractSpectrum):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
     # --------        handlers        --------
-    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap=None, clim: tuple[float, float] | None = None) -> None:
+    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap: Colormap | None = None, clim: tuple[float, float] | None = None) -> None:
         is_filling = ax is not None
         cmap = cmap or fetch_cmap(filename='absorption 7.002.txt')
         clim = clim or (-.01, .5)

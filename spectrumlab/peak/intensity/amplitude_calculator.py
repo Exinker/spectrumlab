@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from spectrumlab.peak.units import U
-from spectrumlab.picture import COLOR_INTENSITY
+from spectrumlab.picture import COLOR_INTENSITY, Color
 
 from .calculator import AbstractIntensityCalculator
 
@@ -17,7 +17,7 @@ class AmplitudeIntensityCalculator(AbstractIntensityCalculator):
         super().__init__(verbose)
 
     @property
-    def color(self) -> str:
+    def color(self) -> Color:
         return COLOR_INTENSITY['amplitude']
 
     def calculate(self, peak: 'AnalytePeak') -> U:

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from spectrumlab.grid import Grid, InterpolationKind, integrate_grid
 from spectrumlab.peak.units import U
-from spectrumlab.picture import COLOR_INTENSITY
+from spectrumlab.picture import COLOR_INTENSITY, Color
 from spectrumlab.typing import Number
 
 from .calculator import AbstractIntensityCalculator
@@ -24,7 +24,7 @@ class IntegralIntensityCalculator(AbstractIntensityCalculator):
         self.kind = kind
 
     @property
-    def color(self) -> str:
+    def color(self) -> Color:
 
         if self.kind == InterpolationKind.NEAREST:
             return COLOR_INTENSITY['nearest']

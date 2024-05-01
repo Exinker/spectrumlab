@@ -1,9 +1,13 @@
 import os
+from typing import TypeAlias
 
 import matplotlib as mpl
 
 
-def fetch_cmap(filename: str):
+Colormap: TypeAlias = mpl.colors.LinearSegmentedColormap
+
+
+def fetch_cmap(filename: str) -> Colormap:
 
     filepath = os.path.join(os.path.dirname(__file__), 'colormaps', filename)
     with open(filepath, 'r') as file:
