@@ -68,7 +68,7 @@ class AbstractConcentrationCalibration(ABC):
 
         return list(map(lambda x: mapping[x], mask))
 
-    def _get_alpha(self, mask: Series, alpha: float) -> list[Alpha]:
+    def _get_alpha(self, mask: Series, alpha: Alpha) -> list[Alpha]:
         mapping = {
             True: ALPHA['is_not_active'],
             False: alpha,
