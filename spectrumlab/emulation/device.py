@@ -8,7 +8,7 @@ Author: Vaschenko Pavel
 from dataclasses import dataclass
 from enum import Enum
 
-from spectrumlab.typing import MicroMeter, PicoMeter
+from spectrumlab.types import MicroMeter, PicoMeter
 
 
 @dataclass(frozen=True)

@@ -7,7 +7,7 @@ import numpy as np
 from scipy import integrate, interpolate
 
 from spectrumlab.spectrum import Spectrum
-from spectrumlab.typing import Absorbance, Array, Digit, Electron, MicroMeter, NanoMeter, Number, Percent, PicoMeter
+from spectrumlab.types import Absorbance, Array, Digit, Electron, MicroMeter, NanoMeter, Number, Percent, PicoMeter
 
 if TYPE_CHECKING:
     from spectrumlab.peak.blink_peak import BlinkPeak

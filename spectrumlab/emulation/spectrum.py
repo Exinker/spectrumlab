@@ -14,7 +14,7 @@ import numpy as np
 
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.spectrum import AbstractSpectrum
-from spectrumlab.typing import Absorbance, Array, Electron, MilliSecond, NanoMeter, Number, Percent
+from spectrumlab.types import Absorbance, Array, Electron, MilliSecond, NanoMeter, Number, Percent
 
 
 class EmittedSpectrum(AbstractSpectrum):

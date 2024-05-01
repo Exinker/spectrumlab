@@ -13,7 +13,7 @@ from spectrumlab.emulation.intensity import AbstractIntensityCalculator, Integra
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.picture.alpha import ALPHA
 from spectrumlab.picture.color import COLOR
-from spectrumlab.typing import Frame, Number, Series
+from spectrumlab.types import Frame, Number, Series
 
 from .exceptions import EmulationError
 from .metrology import DynamicRange, estimate_blank_deviation, estimate_blank_mean, estimate_dynamic_range

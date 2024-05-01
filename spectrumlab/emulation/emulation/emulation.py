@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import Spectrum
-from spectrumlab.typing import Array, Number, Percent
+from spectrumlab.types import Array, Number, Percent
 
 
 class AbstractEmulation(ABC):

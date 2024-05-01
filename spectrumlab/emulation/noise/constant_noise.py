@@ -4,7 +4,7 @@ from typing import overload
 import numpy as np
 
 from spectrumlab.emulation.noise import AbstractNoise
-from spectrumlab.typing import Array, Electron, Percent
+from spectrumlab.types import Array, Electron, Percent
 
 
 @dataclass(frozen=True)

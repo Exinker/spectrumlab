@@ -5,7 +5,7 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.emulation.curve import gauss, rectangular
-from spectrumlab.typing import Array, Meter, NanoMeter
+from spectrumlab.types import Array, Meter, NanoMeter
 
 
 class AbstractCharacteristic(ABC):

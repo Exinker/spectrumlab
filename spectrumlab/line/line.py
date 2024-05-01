@@ -1,4 +1,4 @@
-from spectrumlab.typing import NanoMeter, Symbol
+from spectrumlab.types import NanoMeter, Symbol
 
 
 class Line:

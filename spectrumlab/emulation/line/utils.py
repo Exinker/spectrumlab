@@ -6,7 +6,7 @@ import numpy as np
 from spectrumlab.emulation.curve import voigt2pvoigt
 from spectrumlab.emulation.line import PVoigtLineShape, VoigtLineShape
 from spectrumlab.line import Line
-from spectrumlab.typing import PicoMeter
+from spectrumlab.types import PicoMeter
 
 
 def transform(line: Line, shape: VoigtLineShape, dx: PicoMeter = 1e-1, rx: PicoMeter = 10, show: bool = False, save: bool = False) -> PVoigtLineShape:

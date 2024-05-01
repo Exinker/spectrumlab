@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from spectrumlab.typing import Electron, Percent
+from spectrumlab.types import Electron, Percent
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 

@@ -13,7 +13,7 @@ from spectrumlab.emulation.noise import EmittedSpectrumNoise, Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.line import Line
 from spectrumlab.picture.color import COLOR
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 
 
 @dataclass(frozen=True)

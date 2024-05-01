@@ -9,7 +9,7 @@ from spectrumlab.emulation.curve import gauss, pvoigt, voigt
 from spectrumlab.grid import Grid
 from spectrumlab.grid.utils import estimate_fwhm
 from spectrumlab.picture.color import COLOR
-from spectrumlab.typing import Array, PicoMeter
+from spectrumlab.types import Array, PicoMeter
 
 
 # --------        shape        --------

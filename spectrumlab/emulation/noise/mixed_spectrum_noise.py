@@ -4,7 +4,7 @@ from typing import overload
 
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.noise import AbstractNoise
-from spectrumlab.typing import Array, Percent
+from spectrumlab.types import Array, Percent
 
 
 @dataclass(frozen=True)

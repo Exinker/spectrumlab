@@ -2,7 +2,7 @@ import numpy as np
 
 from spectrumlab.core.approximate.variables import AbstractVariables, Variable
 from spectrumlab.grid import Grid
-from spectrumlab.typing import Number
+from spectrumlab.types import Number
 
 
 class ScopeVariables(AbstractVariables):

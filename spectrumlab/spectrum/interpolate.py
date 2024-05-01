@@ -5,7 +5,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from spectrumlab.emulation.curve import lanczos
-from spectrumlab.typing import Array
+from spectrumlab.types import Array
 
 
 class InterpolationKind(Enum):

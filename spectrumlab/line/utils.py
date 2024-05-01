@@ -2,7 +2,7 @@ import numpy as np
 
 from spectrumlab.element import Element, PeriodicTable
 from spectrumlab.line import Line
-from spectrumlab.typing import Kelvin, PicoMeter, Second
+from spectrumlab.types import Kelvin, PicoMeter, Second
 
 
 LIGHT_SPEED = 299_792_458  # light speed [m/s]

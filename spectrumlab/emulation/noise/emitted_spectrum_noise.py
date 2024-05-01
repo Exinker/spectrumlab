@@ -5,7 +5,7 @@ import numpy as np
 
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.noise import AbstractNoise
-from spectrumlab.typing import Array, Electron, Percent
+from spectrumlab.types import Array, Electron, Percent
 
 
 @dataclass(frozen=True)

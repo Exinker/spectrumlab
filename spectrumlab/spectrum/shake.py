@@ -4,7 +4,7 @@ from scipy.optimize import minimize
 
 from spectrumlab.spectrum.interpolate import InterpolationKind, interpolate, interpolate_lanczos
 from spectrumlab.spectrum.spectrum import EmittedSpectrum
-from spectrumlab.typing import Array
+from spectrumlab.types import Array
 
 
 def find_offset(x: Array[float], y: Array[float], y_base: Array[float]) -> float:

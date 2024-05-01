@@ -20,7 +20,7 @@ from spectrumlab.peak.shape.approx import InterfaceApprox
 from spectrumlab.peak.shape.shape import AbstractPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail
 from spectrumlab.peak.units import U
-from spectrumlab.typing import Array, MicroMeter, Number
+from spectrumlab.types import Array, MicroMeter, Number
 from spectrumlab.utils import mse
 
 if TYPE_CHECKING:

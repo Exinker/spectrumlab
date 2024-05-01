@@ -10,7 +10,7 @@ from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
 from spectrumlab.picture.color import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum
-from spectrumlab.typing import Array, Inch, NanoMeter, Number
+from spectrumlab.types import Array, Inch, NanoMeter, Number
 
 from .blink_peak import DraftBlinkPeakConfig, draft_blinks
 from .intensity import AbstractIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator

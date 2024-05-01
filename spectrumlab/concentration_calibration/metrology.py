@@ -4,7 +4,7 @@ import numpy as np
 from scipy import interpolate
 
 from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
-from spectrumlab.typing import Frame
+from spectrumlab.types import Frame
 
 
 Intercept = NewType('Intercept', float)

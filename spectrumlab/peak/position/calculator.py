@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from spectrumlab.typing import Number
+from spectrumlab.types import Number
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

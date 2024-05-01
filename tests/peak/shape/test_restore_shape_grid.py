@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 from spectrumlab.grid import Grid
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
 

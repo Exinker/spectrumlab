@@ -14,7 +14,7 @@ from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.picture.color import COLOR
-from spectrumlab.typing import Array, MicroMeter, Number, Percent
+from spectrumlab.types import Array, MicroMeter, Number, Percent
 
 
 @dataclass

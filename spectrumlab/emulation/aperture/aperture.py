@@ -12,7 +12,7 @@ from spectrumlab.grid import Grid
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.picture.color import COLOR
-from spectrumlab.typing import Array, MicroMeter, Number
+from spectrumlab.types import Array, MicroMeter, Number
 
 
 DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')

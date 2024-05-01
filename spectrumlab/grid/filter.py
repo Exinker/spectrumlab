@@ -8,7 +8,7 @@ from scipy import interpolate, optimize
 
 from spectrumlab.grid import Grid, T
 from spectrumlab.grid.shape import VoigtGridShape
-from spectrumlab.typing import Array, MicroMeter
+from spectrumlab.types import Array, MicroMeter
 
 
 class AbstractGridFilter(ABC):

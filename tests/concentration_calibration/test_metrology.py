@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from spectrumlab.typing import Array
+from spectrumlab.types import Array
 from spectrumlab.concentration_calibration.metrology import LOD, LOQ
 
 

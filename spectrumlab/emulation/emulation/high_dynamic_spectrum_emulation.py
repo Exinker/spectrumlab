@@ -9,7 +9,7 @@ from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpe
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, HighDynamicRangeEmittedSpectrum
 from spectrumlab.picture.color import COLOR
-from spectrumlab.typing import Array, MilliSecond
+from spectrumlab.types import Array, MilliSecond
 
 
 # --------        HDR emission emulation        --------

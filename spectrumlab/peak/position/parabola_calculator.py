@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.typing import Number
+from spectrumlab.types import Number
 
 from .calculator import AbstractPositionCalculator
 

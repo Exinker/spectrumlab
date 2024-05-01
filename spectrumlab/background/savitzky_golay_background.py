@@ -8,7 +8,7 @@ from spectrumlab.background import AbstractBackground, AbstractBackgroundConfig
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.spectrum import Spectrum
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 
 
 @dataclass

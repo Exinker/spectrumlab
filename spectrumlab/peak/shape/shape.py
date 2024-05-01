@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from spectrumlab.peak.units import U
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 
 
 class AbstractPeakShape(ABC):

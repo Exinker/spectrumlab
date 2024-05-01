@@ -8,7 +8,7 @@ from scipy import integrate, interpolate, optimize
 
 from spectrumlab.grid import Grid, T
 from spectrumlab.grid.filter import AbstractGridFilter, LinearInterpolationGridFilter
-from spectrumlab.typing import Array
+from spectrumlab.types import Array
 
 
 # --------        handlers        --------
@@ -224,7 +224,7 @@ def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: AbstractGridFi
 
 
 if __name__ == '__main__':
-    from spectrumlab.typing import Array, MicroMeter, Number
+    from spectrumlab.types import Array, MicroMeter, Number
     from spectrumlab.emulation.aperture import MeasuredApertureShape
     from spectrumlab.emulation.detector import Detector
 

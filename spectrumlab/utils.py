@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 
-from spectrumlab.typing import Array
+from spectrumlab.types import Array
 
 
 def timeit(func):

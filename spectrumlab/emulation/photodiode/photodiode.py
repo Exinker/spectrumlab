@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulation.photodiode.characteristic.characteristic import AbstractCharacteristic, ConstantCharacteristic, DatasheetCharacteristic
-from spectrumlab.typing import Array, Meter, NanoMeter
+from spectrumlab.types import Array, Meter, NanoMeter
 
 
 DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')

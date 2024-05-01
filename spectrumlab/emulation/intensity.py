@@ -4,7 +4,7 @@ import numpy as np
 from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, Spectrum
 from spectrumlab.grid import Grid, InterpolationKind, integrate_grid, interpolate_grid
 from spectrumlab.peak.intensity import AbstractIntensityCalculator, AmplitudeIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 
 
 # --------        estimate intensity        --------

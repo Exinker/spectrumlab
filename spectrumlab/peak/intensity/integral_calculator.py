@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from spectrumlab.grid import Grid, InterpolationKind, integrate_grid
 from spectrumlab.peak.units import U
 from spectrumlab.picture.color import COLOR_INTENSITY, Color
-from spectrumlab.typing import Number
+from spectrumlab.types import Number
 
 from .calculator import AbstractIntensityCalculator
 

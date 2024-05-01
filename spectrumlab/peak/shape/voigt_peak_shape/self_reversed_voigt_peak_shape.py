@@ -10,7 +10,7 @@ from spectrumlab.peak.shape.approx import InterfaceApprox
 from spectrumlab.peak.shape.shape import AbstractPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail
 from spectrumlab.peak.units import U
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 
 from .voigt_peak_shape import VoigtPeakShape
 

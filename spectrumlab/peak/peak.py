@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 
 
 @dataclass(frozen=False, slots=False)

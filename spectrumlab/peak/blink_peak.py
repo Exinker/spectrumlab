@@ -6,7 +6,7 @@ import numpy as np
 
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.spectrum import Spectrum
-from spectrumlab.typing import Number
+from spectrumlab.types import Number
 
 from .peak import AbstractPeak
 from .units import U

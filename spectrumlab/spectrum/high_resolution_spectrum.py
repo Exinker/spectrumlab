@@ -5,7 +5,7 @@ from scipy import interpolate
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.grid import Grid
 from spectrumlab.spectrum import AbstractSpectrum, EmittedSpectrum
-from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number
+from spectrumlab.types import Array, MicroMeter, NanoMeter, Number
 
 
 def calculate_factor(ratio: float) -> int:

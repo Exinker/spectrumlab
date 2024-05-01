@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from scipy import interpolate
 
-from spectrumlab.typing import Number
+from spectrumlab.types import Number
 
 from .calculator import AbstractPositionCalculator
 

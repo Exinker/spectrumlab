@@ -8,7 +8,7 @@ from scipy import interpolate, signal
 
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.peak.shape import VoigtPeakShape
-from spectrumlab.typing import Array, Number
+from spectrumlab.types import Array, Number
 
 
 @dataclass

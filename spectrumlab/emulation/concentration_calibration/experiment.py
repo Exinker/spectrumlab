@@ -17,7 +17,7 @@ from spectrumlab.emulation.emulation.experiment import AbstractExperimentConfig,
 from spectrumlab.emulation.intensity import IntegralIntensityCalculator
 from spectrumlab.emulation.line import Line, PVoigtLineShape
 from spectrumlab.grid import InterpolationKind
-from spectrumlab.typing import Frame
+from spectrumlab.types import Frame
 
 
 warnings.filterwarnings('ignore')

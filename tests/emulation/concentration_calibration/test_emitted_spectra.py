@@ -18,7 +18,7 @@ from spectrumlab.peak.analyte_peak import AnalytePeak, FactoryAnalytePeak
 from spectrumlab.peak.intensity import AmplitudeIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator
 from spectrumlab.peak.position import InterpolationPositionCalculator
 from spectrumlab.peak.shape import VoigtPeakShape
-from spectrumlab.typing import Frame
+from spectrumlab.types import Frame
 
 
 @pytest.fixture(scope='module')

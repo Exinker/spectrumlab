@@ -4,7 +4,7 @@ from typing import TypeVar
 import numpy as np
 from scipy import optimize, signal
 
-from spectrumlab.typing import Array, MicroMeter, NanoMeter, Number, PicoMeter
+from spectrumlab.types import Array, MicroMeter, NanoMeter, Number, PicoMeter
 from spectrumlab.utils import mse
 
 

@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.spectrum import Spectrum
-from spectrumlab.typing import Array
+from spectrumlab.types import Array
 
 
 class AbstractBackgroundConfig(ABC):

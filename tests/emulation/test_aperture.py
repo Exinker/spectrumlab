@@ -4,7 +4,7 @@ from functools import partial
 import numpy as np
 import pytest
 
-from spectrumlab.typing import Array, MicroMeter
+from spectrumlab.types import Array, MicroMeter
 from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
 from spectrumlab.emulation.detector import Detector
 
