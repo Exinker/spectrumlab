@@ -5,7 +5,7 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.emulation.curve import gauss, rectangular
-from spectrumlab.types import Array, Meter, NanoMeter
+from spectrumlab.types import Array, File, Meter, NanoMeter
 
 
 class AbstractCharacteristic(ABC):
@@ -79,7 +79,7 @@ class WindowCharacteristic(AbstractCharacteristic):
 
 @dataclass(frozen=True)
 class DatasheetCharacteristic(AbstractCharacteristic):
-    path: str
+    path: File
     xscale: float = field(default=1)  # transform x values to meter units
     yscale: float = field(default=1)  # normalize y values to scale
     delimiter: str = field(default=',')

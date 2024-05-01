@@ -1,3 +1,4 @@
+from pathlib import Path
 from enum import Enum
 from typing import NewType, TypeAlias
 
@@ -5,6 +6,11 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from spectrumlab.picture.color import COLOR_DATABASE, Color
+
+
+# --------        paths        --------
+Directory: TypeAlias = str | Path
+File: TypeAlias = str | Path
 
 
 # --------        structures        --------

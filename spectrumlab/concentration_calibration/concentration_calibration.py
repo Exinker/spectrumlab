@@ -60,7 +60,7 @@ class AbstractConcentrationCalibration(ABC):
     def _get_filename(self, extension: Literal['png', 'txt']) -> str:
         raise NotImplementedError
 
-    def _get_color(self, mask: Series, color: str) -> list[Color]:
+    def _get_color(self, mask: Series, color: Color) -> list[Color]:
         mapping = {
             True: 'grey',
             False: color,
