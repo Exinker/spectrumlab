@@ -8,7 +8,7 @@ from scipy import integrate
 from spectrumlab.emulation.curve import gauss, pvoigt, voigt
 from spectrumlab.grid import Grid
 from spectrumlab.grid.utils import estimate_fwhm
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.color import COLOR
 from spectrumlab.typing import Array, PicoMeter
 
 

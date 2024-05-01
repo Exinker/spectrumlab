@@ -11,7 +11,7 @@ from scipy import interpolate, signal
 from spectrumlab.grid import Grid
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.color import COLOR
 from spectrumlab.typing import Array, MicroMeter, Number
 
 

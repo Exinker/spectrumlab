@@ -12,7 +12,7 @@ from spectrumlab.emulation.emulation import convolve, emulate_emitted_spectrum
 from spectrumlab.emulation.noise import EmittedSpectrumNoise, Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.line import Line
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.color import COLOR
 from spectrumlab.typing import Array, Number
 
 

@@ -8,7 +8,7 @@ from spectrumlab.concentration_calibration import ConcentrationCalibration
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.color import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum
 from spectrumlab.typing import Array, Inch, NanoMeter, Number
 

@@ -8,7 +8,7 @@ from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, emulate_emitted_spectrum
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum, HighDynamicRangeEmittedSpectrum
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.color import COLOR
 from spectrumlab.typing import Array, MilliSecond
 
 

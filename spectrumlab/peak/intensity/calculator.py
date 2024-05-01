@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from typing import TYPE_CHECKING
 
 from spectrumlab.peak.units import U
-from spectrumlab.picture import Color
+from spectrumlab.picture.color import Color
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

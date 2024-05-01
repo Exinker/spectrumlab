@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.picture import Colormap, fetch_cmap
+from spectrumlab.picture.colormap import Colormap, fetch_cmap
 from spectrumlab.typing import Array, NanoMeter, Number
 
 

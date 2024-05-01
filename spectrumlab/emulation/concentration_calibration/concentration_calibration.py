@@ -11,7 +11,8 @@ from spectrumlab.concentration_calibration import AbstractConcentrationCalibrati
 from spectrumlab.emulation.emulation import Emulation
 from spectrumlab.emulation.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator, calculate_deviation, calculate_intensity
 from spectrumlab.grid import InterpolationKind
-from spectrumlab.picture.config import ALPHA, COLOR
+from spectrumlab.picture.alpha import ALPHA
+from spectrumlab.picture.color import COLOR
 from spectrumlab.typing import Frame, Number, Series
 
 from .exceptions import EmulationError

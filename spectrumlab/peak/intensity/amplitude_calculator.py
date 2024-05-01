@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from spectrumlab.peak.units import U
-from spectrumlab.picture import COLOR_INTENSITY, Color
+from spectrumlab.picture.color import COLOR_INTENSITY, Color
 
 from .calculator import AbstractIntensityCalculator
 

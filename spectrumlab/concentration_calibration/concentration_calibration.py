@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 
 from spectrumlab.emulation.spectrum import Spectrum
-from spectrumlab.picture.config import ALPHA, COLOR, Alpha, Color
+from spectrumlab.picture.alpha import ALPHA, Alpha
+from spectrumlab.picture.color import COLOR, Color
 from spectrumlab.typing import Frame, Series
 
 from .exceptions import FitError

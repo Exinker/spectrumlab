@@ -13,7 +13,7 @@ from spectrumlab.emulation.line import Line
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.noise.absorbed_spectrum_noise import AbsorbedSpectrumNoise, calculate_absorbance_deviation, calculate_squared_relative_standard_deviation
 from spectrumlab.emulation.spectrum import AbsorbedSpectrum, EmittedSpectrum
-from spectrumlab.picture.config import COLOR
+from spectrumlab.picture.color import COLOR
 from spectrumlab.typing import Absorbance, Array, MicroMeter, Number, Percent
 
 
