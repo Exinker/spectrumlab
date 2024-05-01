@@ -1,4 +1,4 @@
-from .position import AbstractPositionCalculator
+from .calculator import AbstractPositionCalculator
 
 from .parabola_calculator import ParabolaPositionCalculator, CORR_COEFF
 from .interpolation_calculator import InterpolationPositionCalculator

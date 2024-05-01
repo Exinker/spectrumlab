@@ -8,24 +8,26 @@ from spectrumlab.concentration_calibration import ConcentrationCalibration
 from spectrumlab.emulation.noise import Noise
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
-from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
-from spectrumlab.peak.intensity import AbstractIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator
-from spectrumlab.peak.peak import AbstractPeak
-from spectrumlab.peak.position import AbstractPositionCalculator, InterpolationPositionCalculator
 from spectrumlab.picture.config import COLOR
 from spectrumlab.spectrum.spectrum import Spectrum
-from spectrumlab.typing import Array, NanoMeter, Number, Percent
+from spectrumlab.typing import Array, Inch, NanoMeter, Number
+
+from .blink_peak import DraftBlinkPeakConfig, draft_blinks
+from .intensity import AbstractIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator
+from .peak import AbstractPeak
+from .position import AbstractPositionCalculator, InterpolationPositionCalculator
+from .units import U
 
 
 @dataclass
 class FactoryAnalytePeak:
-    noise_level: int = field(default=5)
+    noise_level: float = field(default=5)
     position_calculator: AbstractPositionCalculator = field(default_factory=InterpolationPositionCalculator)
     intensity_calculator: AbstractIntensityCalculator = field(default_factory=IntegralIntensityCalculator)
 
     except_edges: bool | None = field(default=False)
     autocalculate: bool | None = field(default=False)
-    # window: int | None = field(default=None)  # FIXME: добавить размер вырезаемого участка спектра
+    # window: int | None = field(default=None)  # TODO: добавить размер вырезаемого участка спектра
 
     def create(self, line: Line, spectrum: Spectrum, noise: Noise, verbose: bool = False, show: bool = False) -> 'AnalytePeak':
         assert spectrum.n_times == 1, 'time resolved spectra are not supported yet!'
@@ -118,8 +120,8 @@ class AnalytePeak(AbstractPeak):
 
     def __init__(
             self,
-            minima: tuple[int, int],
-            maxima: tuple | tuple[int, int] | tuple[int, ...],
+            minima: tuple[Number, Number],
+            maxima: tuple[Number] | tuple[Number, Number] | tuple[Number, ...],
             spectrum: Spectrum,
             mask: Array,
             config: AnalytePeakConfig,
@@ -176,13 +178,13 @@ class AnalytePeak(AbstractPeak):
 
     # --------            intensity            --------
     @property
-    def intensity(self) -> Percent:
+    def intensity(self) -> U:
         if self._intensity is None:
             self._intensity = self.calculate_intensity()
 
         return self._intensity
 
-    def calculate_intensity(self, calculator: AbstractIntensityCalculator | None = None) -> Percent:
+    def calculate_intensity(self, calculator: AbstractIntensityCalculator | None = None) -> U:
         """Calculate peak's intensity."""
         calculator = calculator or self.config.intensity_calculator
 
@@ -240,7 +242,7 @@ class AnalytePeak(AbstractPeak):
 
         return np.linspace(left, right, n_points)
 
-    def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), verbose: bool = False) -> None:
+    def show(self, ax: plt.Axes | None = None, figsize: tuple[Inch, Inch] = (6, 4), verbose: bool = False) -> None:
         is_filling = ax is not None
         ylim = None
 
@@ -280,7 +282,7 @@ class AnalytePeak(AbstractPeak):
 
             # draw intensity
             x = self.transform(
-                np.linspace(self.position - calculator.interval/2, self.position + calculator.interval/2, round(2*calculator.interval*101))
+                number=np.linspace(self.position - calculator.interval/2, self.position + calculator.interval/2, round(2*calculator.interval*101)),
             )
             f = interpolate.interp1d(
                 self.wavelength, self.value,

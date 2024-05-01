@@ -5,12 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulation.noise import Noise
-from spectrumlab.peak.peak import AbstractPeak
 from spectrumlab.spectrum import Spectrum
+from spectrumlab.typing import Number
+
+from .peak import AbstractPeak
+from .units import U
 
 
 # --------        utils        --------
-def find_minima(values: Sequence[float]) -> tuple[int]:
+def find_minima(values: Sequence[U]) -> tuple[Number]:
     """Find local minima index in a sequence of values."""
     n_values = len(values)
     extrema = []
@@ -35,7 +38,7 @@ def find_minima(values: Sequence[float]) -> tuple[int]:
     return tuple(extrema)
 
 
-def find_maxima(values: Sequence[float]) -> tuple[int]:
+def find_maxima(values: Sequence[U]) -> tuple[Number]:
     """Find local maxima index in a sequence of values."""
     n_values = len(values)
     extrema = []
@@ -62,7 +65,7 @@ def find_maxima(values: Sequence[float]) -> tuple[int]:
     return tuple(extrema)
 
 
-def get_pairwise(values: Sequence[int]) -> Iterator:
+def get_pairwise(values: Sequence[Number]) -> Iterator:
     """Get sequence by pairwise:
 
     Example:
@@ -73,7 +76,7 @@ def get_pairwise(values: Sequence[int]) -> Iterator:
         yield a, b
 
 
-def find_pairs(maxima: tuple[int], minima: tuple[int]) -> list[tuple[int, int]]:
+def find_pairs(maxima: tuple[Number], minima: tuple[Number]) -> list[tuple[Number, Number]]:
     """Find pairs (from a sequense of minima) for each of maxima."""
     pairs = get_pairwise(minima)
 
@@ -94,7 +97,7 @@ def find_pairs(maxima: tuple[int], minima: tuple[int]) -> list[tuple[int, int]]:
 class BlinkPeak(AbstractPeak):
     """Peak for any secondary application: masking of peaks for background algorithms, masking of overlapping peaks for intensity calculation and etc..."""
 
-    def __init__(self, minima: tuple[int, int], maxima: tuple | tuple[int, int] | tuple[int, ...], amplitude: float, deviation: float, except_edges: bool = False):
+    def __init__(self, minima: tuple[Number, Number], maxima: tuple[Number] | tuple[Number, Number] | tuple[Number, ...], amplitude: U, deviation: U, except_edges: bool = False):
         super().__init__(minima=minima, maxima=maxima, except_edges=except_edges)
 
         self.amplitude = amplitude

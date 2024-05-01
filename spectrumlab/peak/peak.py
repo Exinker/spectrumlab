@@ -8,8 +8,8 @@ from spectrumlab.typing import Array, Number
 @dataclass(frozen=False, slots=False)
 class AbstractPeak:
     """Abstract peak type."""
-    minima: tuple[int, int]  # spectrum's internal index of the minima
-    maxima: tuple | tuple[int, int] | tuple[int, ...]  # spectrum's internal index of the maximum (or indices, if line has a self-absorption)
+    minima: tuple[Number, Number]  # spectrum's internal index of the minima
+    maxima: tuple[Number] | tuple[Number, Number] | tuple[Number, ...]  # spectrum's internal index of the maximum (or indices, if line has a self-absorption)
 
     except_edges: bool = field(default=False)
 
@@ -70,6 +70,6 @@ class AbstractPeak:
 
         return number[index]
 
-    def include(self, n: int) -> bool:
+    def include(self, n: Number) -> bool:
         """Is `n` included in a range of the peak's number?"""
         return n in self.number

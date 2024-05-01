@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from typing import TYPE_CHECKING
 
-from spectrumlab.typing import Percent
+from spectrumlab.peak.units import U
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -17,5 +17,5 @@ class AbstractIntensityCalculator(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def calculate(self, peak: 'AnalytePeak') -> Percent:
+    def calculate(self, peak: 'AnalytePeak') -> U:
         raise NotImplementedError

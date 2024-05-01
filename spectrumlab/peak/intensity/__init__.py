@@ -1,4 +1,4 @@
-from .intensity import AbstractIntensityCalculator
+from .calculator import AbstractIntensityCalculator
 
 from .amplitude_calculator import AmplitudeIntensityCalculator
 from .integral_calculator import IntegralIntensityCalculator

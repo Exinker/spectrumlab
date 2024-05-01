@@ -16,9 +16,10 @@ from spectrumlab.emulation.noise import Noise
 from spectrumlab.emulation.spectrum import EmittedSpectrum
 from spectrumlab.grid import Grid
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
-from spectrumlab.peak.shape.approx_interface import ApproxInterface
-from spectrumlab.peak.shape.base_shape import AbstractPeakShape
+from spectrumlab.peak.shape.approx import InterfaceApprox
+from spectrumlab.peak.shape.shape import AbstractPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail
+from spectrumlab.peak.units import U
 from spectrumlab.typing import Array, MicroMeter, Number
 from spectrumlab.utils import mse
 
@@ -94,7 +95,7 @@ class AssociatedVoigtPeakShapeVariables(AbstractVariables):
         return shape_variables, scope_variables
 
 
-class VoigtPeakShape(AbstractPeakShape, ApproxInterface):
+class VoigtPeakShape(AbstractPeakShape, InterfaceApprox):
 
     def __init__(self, width: Number, asymmetry: float, ratio: float, rx: Number = 10, dx: Number = 1e-2) -> None:
         """Voigt peak's shape. A convolution of apparatus shape and aperture shape (rectangular) of a detector.
@@ -130,6 +131,10 @@ class VoigtPeakShape(AbstractPeakShape, ApproxInterface):
             fill_value=0,
         )
 
+    @property
+    def f(self) -> Callable[[Array[Number]], Array[U]]:
+        return self._f
+
     def get_content(self, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
         sign = {+1: '+'}.get(np.sign(self.asymmetry), '') if is_signed else ''
 
@@ -138,10 +143,6 @@ class VoigtPeakShape(AbstractPeakShape, ApproxInterface):
             f'asymmetry={sign}{self.asymmetry:.4f}',
             f'ratio={self.ratio:.4f}',
         ])
-
-    @property
-    def f(self) -> Callable[[Number], float]:
-        return self._f
 
     # --------        approx interface        --------
     def approx_keys(self) -> tuple[str]:
@@ -244,9 +245,9 @@ class VoigtPeakShape(AbstractPeakShape, ApproxInterface):
 
     # --------        private        --------
     @overload
-    def __call__(self, x: Number, position: Number, intensity: float, background: float = 0) -> float: ...
+    def __call__(self, x: Number, position: Number, intensity: float, background: float = 0) -> U: ...
     @overload
-    def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0) -> Array[float]: ...
+    def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0) -> Array[U]: ...
     def __call__(self, x, position, intensity, background=0):
         return background + intensity*self.f(x - position)
 

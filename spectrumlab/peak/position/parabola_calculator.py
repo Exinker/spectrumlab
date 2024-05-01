@@ -3,8 +3,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peak.position import AbstractPositionCalculator
 from spectrumlab.typing import Number
+
+from .calculator import AbstractPositionCalculator
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak

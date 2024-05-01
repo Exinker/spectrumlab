@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 
 
-class ApproxInterface(ABC):
-    """Abstract peak's approx."""
+class InterfaceApprox(ABC):
+    """Abstract peak's approximation interface."""
 
     @abstractmethod
     def approx_keys(self) -> tuple[str]:
@@ -20,7 +20,7 @@ class ApproxInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def approx_bounds(self, peak: 'AnalytePeak') -> tuple[tuple[float,float]]:
+    def approx_bounds(self, peak: 'AnalytePeak') -> tuple[tuple[float, float]]:
         raise NotImplementedError
 
     def approx_parse(self, params: Sequence[float]) -> Mapping[str, float]:

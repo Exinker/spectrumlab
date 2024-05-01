@@ -2,9 +2,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peak.intensity import AbstractIntensityCalculator
+from spectrumlab.peak.units import U
 from spectrumlab.picture import COLOR_INTENSITY
-from spectrumlab.typing import Percent
+
+from .calculator import AbstractIntensityCalculator
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -19,7 +20,7 @@ class AmplitudeIntensityCalculator(AbstractIntensityCalculator):
     def color(self) -> str:
         return COLOR_INTENSITY['amplitude']
 
-    def calculate(self, peak: 'AnalytePeak') -> Percent:
+    def calculate(self, peak: 'AnalytePeak') -> U:
 
         value = np.max(peak.value)
 
