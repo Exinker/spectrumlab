@@ -54,9 +54,11 @@ class WindowCharacteristic(AbstractCharacteristic):
 
         else:
             grid_x = np.arange(-10 * width, +10 * width, 1)
-            R = lambda x: width * rectangular(x, 0, w=width)
-            G = lambda x: gauss(x, 0, w=self.smooth)
-            grid_f = signal.convolve(R(grid_x), G(grid_x), mode='same') * (grid_x[-1] - grid_x[0])/len(grid_x)
+            grid_f = signal.convolve(
+                (lambda x: width * rectangular(x, 0, w=width))(grid_x),
+                (lambda x: gauss(x, 0, w=self.smooth))(grid_x),
+                mode='same',
+            ) * (grid_x[-1] - grid_x[0])/len(grid_x)
 
             x = np.linspace(lb, ub, int((ub - lb)/step) + 1)
             y = interpolate.interp1d(

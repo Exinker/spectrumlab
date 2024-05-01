@@ -1,7 +1,7 @@
 import pytest
 
-from spectrumlab.types import Symbol
 from spectrumlab.element import PeriodicTable
+from spectrumlab.types import Symbol
 
 
 @pytest.mark.parametrize(

@@ -10,8 +10,7 @@ from spectrumlab.emulation.peak import ShiftedExperiment, ShiftedExperimentConfi
 from spectrumlab.grid import Grid
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
 
-
-from config import DETECTOR, EXPOSURE, INTENSITY, IS_NOISED, N_FRAMES, N_ITERS, N_NUMBERS, POSITION, SHAPE
+from config import DETECTOR, EXPOSURE, INTENSITY, IS_NOISED, N_FRAMES, N_ITERS, N_NUMBERS, POSITION, SHAPE  # noqa: I100
 from core import distance
 
 
@@ -148,7 +147,7 @@ if __name__ == '__main__':
         position=POSITION + np.linspace(-.5, +.5, N_ITERS, endpoint=False),
         intensity=INTENSITY,
     )
-    experiment = ShiftedExperiment(
+    experiment = ShiftedExperiment(  # noqa: F811
         config=config,
     )
     experiment = experiment.setup(

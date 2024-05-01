@@ -129,7 +129,7 @@ class SigmoidsLineShape:
         w = self.width
         p = self.power
 
-        sigmoid = lambda x: ((4/np.pi) * (np.arctan(-w[0]*(x - position)) + np.pi/2) * (1/(1 + np.exp(-w[1]*(x - position)))))**p
+        sigmoid = lambda x: ((4/np.pi) * (np.arctan(-w[0]*(x - position)) + np.pi/2) * (1/(1 + np.exp(-w[1]*(x - position)))))**p  # noqa: E731
         f = intensity*sigmoid(x)/integrate.quad(sigmoid, a=position-1e+3, b=position+1e+3)[0]
 
         return f

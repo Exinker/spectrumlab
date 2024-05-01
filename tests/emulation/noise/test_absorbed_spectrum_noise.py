@@ -3,7 +3,7 @@ import pytest
 
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import emulate_absorbed_spectrum
-from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
+from spectrumlab.emulation.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 @pytest.mark.parametrize(
@@ -22,7 +22,6 @@ def test_emulate_absorbed_spectrum_noise(detector: Detector):
 
     number = np.arange(n_numbers)
     absorbance = np.logspace(-3, np.log10(3), n_numbers)
-
 
     theoretical_noise = AbsorbedSpectrumNoise(
         detector=detector,

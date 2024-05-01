@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-from spectrumlab.types import Array, Number
 from spectrumlab.peak.shape.voigt_peak_shape import SelfReversedVoigtPeakShapeNaive
+from spectrumlab.types import Array, Number
 
 
 @dataclass

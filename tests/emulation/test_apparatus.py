@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from spectrumlab.types import Array, MicroMeter
-from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape, VoigtApparatusShape
+from spectrumlab.emulation.apparatus import Apparatus, ApparatusShape, VoigtApparatusShape   # noqa: I100
 from spectrumlab.emulation.detector import Detector
 
 
@@ -36,7 +36,7 @@ def config() -> Config:
         (Detector.BLPP2000, VoigtApparatusShape(width=28, asymmetry=+0, ratio=0)),
         (Detector.BLPP4000, VoigtApparatusShape(width=28, asymmetry=-0.1, ratio=0)),
         (Detector.BLPP2000, VoigtApparatusShape(width=28, asymmetry=+0.1, ratio=0)),
-    ]
+    ],
 )
 def test_integral(detector: Detector, shape: ApparatusShape, config: Config):
     tolerance = 1e-2  # 1 [%]

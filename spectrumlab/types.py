@@ -1,9 +1,9 @@
-from pathlib import Path
 from enum import Enum
+from pathlib import Path
 from typing import NewType, TypeAlias
 
 import pandas as pd
-from numpy.typing import NDArray
+from numpy.typing import NDArray  # noqa: I100
 
 from spectrumlab.picture.color import COLOR_DATABASE, Color
 

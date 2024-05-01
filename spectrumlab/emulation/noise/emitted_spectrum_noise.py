@@ -32,14 +32,14 @@ class EmittedSpectrumNoise(AbstractNoise):
             kc = detector.config.capacity / 100
 
             return (1/kc) * np.sqrt(
-                read_noise**2 + value*kc
+                read_noise**2 + value*kc  # noqa: C815
             ) / np.sqrt(n_frames)
 
         if self.units == Electron:
             read_noise = detector.config.read_noise
 
             return np.sqrt(
-                read_noise**2 + value
+                read_noise**2 + value  # noqa: C815
             ) / np.sqrt(n_frames)
 
         raise TypeError(f'{self.units} units is not supported!')

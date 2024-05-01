@@ -37,4 +37,3 @@ def test_emulate_emitted_spectrum_noise(detector: Detector):
     emulated_noise = np.std(spectrum.intensity, ddof=1, axis=0)
 
     assert np.all((emulated_noise - theoretical_noise)/theoretical_noise < tolerance)  # relative deviation
-

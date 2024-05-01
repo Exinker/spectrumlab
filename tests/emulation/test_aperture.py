@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from spectrumlab.types import Array, MicroMeter
-from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape
+from spectrumlab.emulation.aperture import Aperture, ApertureShape, RectangularApertureShape   # noqa: I100
 from spectrumlab.emulation.detector import Detector
 
 
@@ -35,7 +35,7 @@ def config() -> Config:
     [
         (Detector.BLPP2000, RectangularApertureShape()),
         (Detector.BLPP4000, RectangularApertureShape()),
-    ]
+    ],
 )
 def test_integral(detector: Detector, shape: ApertureShape, config: Config):
     tolerance = 1e-9

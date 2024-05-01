@@ -122,26 +122,26 @@ class AbsorbedSpectrumEmulation(AbstractEmulation):
         rx = config.rx
         dx = config.dx
 
-        I0 = config.spectrum_base.level  # base level, in percent
-        S0 = config.spectrum_base.level * config.scattering_ratio  # scattering level, in percent
+        I0 = config.spectrum_base.level  # base level, in percent  # noqa: N806
+        S0 = config.spectrum_base.level * config.scattering_ratio  # scattering level, in percent  # noqa: N806
 
-        B = calculate_absorbance(I0*10**(-config.background_level), I0, config.scattering_ratio)  # true background (recalculate to true absorbance), in A
-        B0 = (I0 - S0)*10**(-B)  # true background, in percent
+        B = calculate_absorbance(I0*10**(-config.background_level), I0, config.scattering_ratio)  # true background (recalculate to true absorbance), in A  # noqa: N806
+        B0 = (I0 - S0)*10**(-B)  # true background, in percent  # noqa: N806
 
-        L = config.concentration_ratio  # path length (concentration coefficient to agreement between theory and emulation)
-        D = device.config.dispersion
+        L = config.concentration_ratio  # path length (concentration coefficient to agreement between theory and emulation)  # noqa: N806
+        D = device.config.dispersion  # noqa: N806
 
         # physical line shape
-        I = L/D*concentration  # it's divided by D because an amplitude of absorption is independent of dispersion!
+        I = L/D*concentration  # it's divided by D because an amplitude of absorption is independent of dispersion!  # noqa: E741, N806
 
-        physical_line = lambda x: (I0 - S0)*10**(
+        physical_line = lambda x: (I0 - S0)*10**(  # noqa: E731
             -(B + line(x, position=0, intensity=I))
         )
 
         # apparatus line function
         span = 10*rx
 
-        x = np.linspace(-span, +span, 2*int(span/dx) + 1)        
+        x = np.linspace(-span, +span, 2*int(span/dx) + 1)
         apparatus_line = interpolate.interp1d(
             x,
             B0 + signal.convolve(apparatus(x, 0), physical_line(x) - B0, mode='same') * 2*span/len(x),
@@ -156,7 +156,7 @@ class AbsorbedSpectrumEmulation(AbstractEmulation):
         intensity = np.zeros(number.shape)
         for n in number:
             intensity[n] = integrate.quad(
-                lambda x: apparatus_line(x - x0) * aperture(x, n),
+                lambda x: apparatus_line(x - x0) * aperture(x, n),  # noqa: B023
                 n*detector.pitch - rx,
                 n*detector.pitch + rx,
             )[0]
@@ -297,7 +297,7 @@ def calculate_absorbance(level, base_level, scattering_ratio=0):
     scattering_level = scattering_ratio * base_level
 
     return np.log10(
-        (base_level - scattering_level) / (level - scattering_level)  # (base_level - scattering_level) / (level - scattering_level)
+        (base_level - scattering_level) / (level - scattering_level)  # noqa: C812
     )
 
 

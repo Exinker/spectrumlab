@@ -134,7 +134,7 @@ class SelfReversedVoigtPeakShape(AbstractPeakShape, InterfaceApprox):
                 'intensity',
                 'effect',
                 'effect_width',
-                'effect_ratio'
+                'effect_ratio',
             )
 
         return (

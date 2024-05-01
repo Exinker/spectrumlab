@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.types import Array, Number, MicroMeter
-from spectrumlab.emulation.detector import Detector
+from spectrumlab.types import Array, MicroMeter, Number   # noqa: I100
+from spectrumlab.emulation.detector import Detector  # noqa: I100
 from spectrumlab.peak.shape import VoigtPeakShape
 
 
@@ -37,7 +37,7 @@ def config() -> Config:
 
 # --------        tests        --------
 @pytest.mark.parametrize(
-    ['detector', ],
+    ['detector'],
     [
         (Detector.BLPP2000, ),
         (Detector.BLPP4000, ),
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from spectrumlab.grid import Grid
 
-    config = Config(
+    config = Config(  # noqa: F811
         width=28,
         asymmetry=0.1,
         ratio=0.1,

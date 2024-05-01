@@ -2,8 +2,8 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulation.emulation import emulate_emitted_spectrum, emulate_absorbed_spectrum, EmulationConfig, EmittedSpectrumEmulationConfig, AbsorbedSpectrumEmulationConfig
-from spectrumlab.emulation.noise import EmittedSpectrumNoise, AbsorbedSpectrumNoise
+from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulationConfig, EmittedSpectrumEmulationConfig, EmulationConfig, emulate_absorbed_spectrum, emulate_emitted_spectrum
+from spectrumlab.emulation.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 N_NUMBERS, N_TIMES = 100, 50
@@ -48,7 +48,7 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
     )
     plt.scatter(
         values, emulated_noise,
-        marker='.', color='red', label=f'emulated',
+        marker='.', color='red', label='emulated',
     )
     plt.axvline(
         detection_limit,
@@ -74,7 +74,7 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
     )
     plt.scatter(
         values, 100 * emulated_noise / values,
-        marker='.', color='red', label=f'emulated',
+        marker='.', color='red', label='emulated',
     )
     plt.axvline(
         x=detection_limit,
@@ -100,7 +100,7 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
     plt.show()
 
 
-def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims=(-3, np.log10(2)), ylim: Optional[tuple[float, float]] = None) -> None:
+def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims: tuple[float, float] = (-3, np.log10(2)), ylim: Optional[tuple[float, float]] = None) -> None:  # noqa: B008
     number = np.arange(N_NUMBERS)
     values = np.logspace(*lims, N_NUMBERS)
 
@@ -116,7 +116,7 @@ def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims=(
     )(values)
 
     # emulated noise
-    scattering_level = config.scattering_ratio * config.spectrum_base.level
+    # scattering_level = config.scattering_ratio * config.spectrum_base.level
 
     spectrum = emulate_absorbed_spectrum(
         intensity=np.array([config.spectrum_base.level * 10**(-values)]*N_TIMES),
@@ -135,7 +135,7 @@ def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims=(
 
     emulated_noise = np.std(spectrum.intensity, ddof=1, axis=0)
 
-    detection_limit = values[np.argmin(np.abs(values - 3*theoretical_noise))]
+    # detection_limit = values[np.argmin(np.abs(values - 3*theoretical_noise))]
 
     #
     plt.figure(
@@ -143,10 +143,10 @@ def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims=(
     )
 
     # sigma vs. intenisty
-    ax = plt.subplot(1, 2, 1)
+    plt.subplot(1, 2, 1)
 
     plt.plot(values, theoretical_noise, color='black', label='theoretical')
-    plt.scatter(values, emulated_noise, marker='.', color='red', label=f'emulated')
+    plt.scatter(values, emulated_noise, marker='.', color='red', label='emulated')
 
     plt.xlabel(r'A')
     plt.ylabel(r'$\sigma_{A}$')
@@ -155,10 +155,10 @@ def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims=(
     plt.legend()
 
     # ОСКО vs. intenisty
-    ax = plt.subplot(1, 2, 2)
+    plt.subplot(1, 2, 2)
 
     plt.plot(values, 100 * theoretical_noise / values, color='black', label='theoretical')
-    plt.scatter(values, 100 * emulated_noise / values, marker='.', color='red', label=f'emulated')
+    plt.scatter(values, 100 * emulated_noise / values, marker='.', color='red', label='emulated')
 
     if ylim:
         plt.ylim(ylim)
@@ -180,8 +180,8 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
     # theoretical noise
     theoretical_noise = []
     for base_level in base_levels:
-        I0 = base_level
-        S0 = config.scattering_ratio
+        I0 = base_level  # noqa: N806
+        S0 = config.scattering_ratio  # noqa: N806
 
         value = AbsorbedSpectrumNoise(
             detector=config.detector,
@@ -200,8 +200,8 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
     # emulated noise
     emulated_noise = []
     for base_level in base_levels:
-        I0 = base_level
-        S0 = config.scattering_ratio
+        I0 = base_level  # noqa: N806
+        S0 = config.scattering_ratio  # noqa: N806
 
         spectrum = emulate_absorbed_spectrum(
             intensity=(I0 - S0) * 10**(-np.full((N_NUMBERS,), 0)),
@@ -232,7 +232,7 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
     ax = plt.subplot(1, 2, 1)
 
     plt.plot(base_levels, theoretical_noise, color='black', label='theoretical')
-    plt.scatter(base_levels, emulated_noise, marker='.', color='red', label=f'emulated')
+    plt.scatter(base_levels, emulated_noise, marker='.', color='red', label='emulated')
 
     ax.set_xscale('log')
 
@@ -246,7 +246,7 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
     ax = plt.subplot(1, 2, 2)
 
     plt.plot(base_levels, 100 * theoretical_noise / base_levels, color='black', label='theoretical')
-    plt.scatter(base_levels, 100 * emulated_noise / base_levels, marker='.', color='red', label=f'emulated')
+    plt.scatter(base_levels, 100 * emulated_noise / base_levels, marker='.', color='red', label='emulated')
 
     ax.set_xscale('log')
 

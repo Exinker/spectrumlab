@@ -205,7 +205,7 @@ def estimate_dynamic_range(emulation: Emulation, unicorn: Frame, coeff: tuple[fl
     #
     if isinstance(emulation, EmittedSpectrumEmulation):
         emulation = emulation.setup(position=n_numbers//2, concentration=1)
-        B = config.background_level
+        B = config.background_level  # noqa: N806
         k = 3
         lb = k * (emulation.noise(B) / np.max(emulation.intensity))
         ub = 100 / (B + np.max(emulation.intensity))

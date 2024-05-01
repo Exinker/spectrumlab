@@ -1,6 +1,6 @@
 from abc import ABC
 from functools import partial
-from typing import Callable, TypeAlias
+from typing import Callable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,7 +11,7 @@ from spectrumlab.grid.shape import VoigtGridShape
 from spectrumlab.types import Array, MicroMeter
 
 
-class AbstractGridFilter(ABC):
+class AbstractGridFilter(ABC):  # noqa: B024
 
     def __init__(self, grid: Grid):
         self._grid = grid
@@ -95,7 +95,7 @@ class VoigtGridShapeFilter(AbstractGridFilter):
 
             f = partial(shape, position=position, intensity=intensity)
             return np.sum(
-                (grid.y - f(grid.x))**2
+                (grid.y - f(grid.x))**2  # noqa: C815
             )
 
         # shape

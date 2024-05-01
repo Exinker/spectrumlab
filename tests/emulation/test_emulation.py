@@ -3,12 +3,12 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.types import Array, MicroMeter
 from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import convolve
 from spectrumlab.peak.shape import VoigtPeakShape
+from spectrumlab.types import Array, MicroMeter
 
 
 @dataclass
@@ -41,7 +41,7 @@ def config() -> Config:
 
 # --------        tests        --------
 @pytest.mark.parametrize(
-    ['detector', ],
+    ['detector'],
     [
         (Detector.BLPP2000, ),
         (Detector.BLPP4000, ),
@@ -69,7 +69,7 @@ def test_shape(detector: Detector, config: Config):
     )
     f_hat = convolve(x/detector.pitch, apparatus=apparatus, aperture=aperture, pitch=detector.pitch)
 
-    # 
+    #
     mask = (x > -(config.rx-apparatus.shape.width/2)) & (x < +(config.rx-apparatus.shape.width/2))  # remove edges
     error = (f(x/detector.pitch, 0, 1) - f_hat(x/detector.pitch)) / f(0, 0, 1)
 
@@ -77,7 +77,7 @@ def test_shape(detector: Detector, config: Config):
 
 
 @pytest.mark.parametrize(
-    ['detector', ],
+    ['detector'],
     [
         (Detector.BLPP2000, ),
         (Detector.BLPP4000, ),
@@ -104,8 +104,8 @@ def test_integral(detector: Detector, config: Config):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    
-    config = Config(
+
+    config = Config(  # noqa: F811
         width=28,
         asymmetry=0,
         ratio=0,
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     plt.plot(
         x, y_hat,
         color='black', linestyle='-', linewidth=1,
-        label='$\hat{y}$',
+        label=fr'$\hat{y}$',
     )
 
     plt.plot(

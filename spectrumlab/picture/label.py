@@ -16,14 +16,14 @@ PREFIX = {
 
 
 def format_label(value: float, units: str | None = None, n_digits: int = 2, prefix: bool = False) -> str:
-    """format value and units to label
+    """Format value and units to label.
 
-    1e-5 -> r'10.00 \cdot 10^{-6}'
-    1e-5, 'A' -> r'10.00 \cdot 10^{-6}, A'
-    1e-5, 'A' -> r'10.00, \muA'
+    Examples:
+    - 1e-5 -> '10.00 ⋅ 10^{-6}'
+    - 1e-5, 'A' -> '10.00 ⋅ 10^{-6}, A'
+    - 1e-5, 'A' -> '10.00, μA'
 
     FIXME: 1e-06, 'A' -> $999.99, nA$
-
     """
     assert n_digits >= 0, '`n_digits` have to be greater 0'
 

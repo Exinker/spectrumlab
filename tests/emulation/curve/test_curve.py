@@ -5,8 +5,8 @@ from typing import Callable, Mapping
 import numpy as np
 import pytest
 
-from spectrumlab.types import Array
 from spectrumlab.emulation.curve import gauss, pvoigt, rectangular
+from spectrumlab.types import Array
 
 
 # --------        fixtures        --------
@@ -68,7 +68,7 @@ def test_curve_flip(curve: Callable, params: Mapping[str, float], config: Config
         # (pvoigt, dict(x0=0, w=2, a=-0.1, r=0)),  # FIXME: check it!
         # (pvoigt, dict(x0=0, w=2, a=+0.1, r=0)),  # FIXME: check it!
         (rectangular, dict(x0=0, w=1)),
-    ]
+    ],
 )
 def test_curve_integral(curve: Callable, params: Mapping[str, float], config: Config):
     x = config.x

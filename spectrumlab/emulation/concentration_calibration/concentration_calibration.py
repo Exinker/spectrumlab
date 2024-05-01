@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from spectrumlab.concentration_calibration import AbstractConcentrationCalibration, Intercept, LOD, LOL, LOQ, Slope, estimate_lol
+from spectrumlab.concentration_calibration import AbstractConcentrationCalibration, Intercept, LOD, LOL, LOQ, Slope, estimate_lol  # noqa: I100
 from spectrumlab.emulation.emulation import Emulation
 from spectrumlab.emulation.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator, calculate_deviation, calculate_intensity
 from spectrumlab.grid import InterpolationKind

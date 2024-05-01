@@ -36,12 +36,12 @@ class ParabolaPositionCalculator(AbstractPositionCalculator):
         x = peak.number[index]
         y = peak.value[index]
 
-        Y = np.array([[y[0] - y[1]], [y[0] - y[2]]])
-        M = np.array([
+        Y = np.array([[y[0] - y[1]], [y[0] - y[2]]])  # noqa: N806
+        M = np.array([  # noqa: N806
                 [x[0]**2 - x[1]**2, x[0] - x[1]],
                 [x[0]**2 - x[2]**2, x[0] - x[2]],
             ])
-        X = np.linalg.solve(M, Y)
+        X = np.linalg.solve(M, Y)  # noqa: N806
 
         value = float(-X[1] / 2 / X[0])
 

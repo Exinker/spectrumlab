@@ -162,7 +162,7 @@ class EmittedSpectrumEmulation(AbstractEmulation):
         number = self.number
 
         # I
-        I = concentration
+        I = concentration  # noqa: E741, N806
         I *= config.concentration_ratio  # normalize to path length (concentration coefficient to agreement between theory and emulation)
         I *= (detector.pitch * detector.config.height)  # normalize to detector's square
         I *= (100/detector.config.capacity)  # normalize to detector's capacity

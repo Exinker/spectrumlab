@@ -3,11 +3,11 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.types import Array, Number
 from spectrumlab.grid import Grid
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
+from spectrumlab.types import Array, Number
 
-from core import distance
+from core import distance  # noqa: I100
 
 
 @dataclass
@@ -68,7 +68,7 @@ def test_restore_shape_from_grid(config: Config):
 if __name__ == '__main__':
 
     # shape
-    config = Config(
+    config = Config(  # noqa: F811
         width=2.0,
         asymmetry=0.1,
         ratio=0.1,

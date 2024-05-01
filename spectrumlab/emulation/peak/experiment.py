@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-from spectrumlab.emulation.aperture import Aperture
+from spectrumlab.emulation.aperture import Aperture  # noqa: I100
 from spectrumlab.emulation.apparatus import Apparatus
 from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.emulation import convolve, emulate_emitted_spectrum

@@ -9,7 +9,7 @@ from spectrumlab.emulation.detector import Detector
 from spectrumlab.emulation.peak import RandomPeakExperiment, RandomPeakExperimentConfig
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_spectrum
 
-from config import DETECTOR, EXPOSURE, IS_NOISED, N_FRAMES, N_ITERS, SHAPE
+from config import DETECTOR, EXPOSURE, IS_NOISED, N_FRAMES, N_ITERS, SHAPE  # noqa: I100
 from core import distance
 
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     )
 
     # experiment
-    experiment = RandomPeakExperiment(
+    experiment = RandomPeakExperiment(  # noqa: F811
         config=config,
     )
     experiment = experiment.setup(

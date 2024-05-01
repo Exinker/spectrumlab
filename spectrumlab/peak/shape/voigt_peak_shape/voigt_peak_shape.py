@@ -9,7 +9,7 @@ import numpy as np
 from scipy import interpolate, optimize, signal
 from tqdm import tqdm
 
-from spectrumlab.core.approximate.scope import ScopeVariables
+from spectrumlab.core.approximate.scope import ScopeVariables  # noqa: I100
 from spectrumlab.core.approximate.variables import AbstractVariables, Variable
 from spectrumlab.emulation.curve import pvoigt, rectangular
 from spectrumlab.emulation.noise import Noise

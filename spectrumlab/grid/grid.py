@@ -81,7 +81,14 @@ class FactoryGrid:
     def __init__(self, spectrum: Spectrum):
         self.spectrum = spectrum
 
-    def create_from_blinks(self, blinks: Sequence['BlinkPeak'], offset: Array[T] | None = None, scale: Array[float] | None = None, background: Array[float] | None = None, threshold: float = 0) -> 'Grid':
+    def create_from_blinks(
+        self,
+        blinks: Sequence['BlinkPeak'],
+        offset: Array[T] | None = None,
+        scale: Array[float] | None = None,
+        background: Array[float] | None = None,
+        threshold: float = 0,
+    ) -> 'Grid':
         """Get a grid from sequence of blinks from spectrum."""
         assert self.spectrum.n_times == 1, 'time resolved spectra are not supported!'
 

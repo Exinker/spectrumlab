@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from spectrumlab.types import Array
 from spectrumlab.concentration_calibration.metrology import LOD, LOQ
+from spectrumlab.types import Array
 
 
 # --------        limits (LOD and LOQ)        --------

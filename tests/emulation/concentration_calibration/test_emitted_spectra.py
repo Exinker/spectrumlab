@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from tqdm import tqdm
 
-from spectrumlab.concentration_calibration import calibrate
+from spectrumlab.concentration_calibration import calibrate  # noqa: I100
 from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, SpectrumConfig
 from spectrumlab.emulation.emulation import fetch_emulation

@@ -26,13 +26,13 @@ def find(values: Array[float]) -> Array[float]:
 
 # --------        errors        --------
 def se(y: float | Array[float], y_hat: Array[float]) -> Array[float]:
-    """Calculate squared error (SE) between true values $y$ and predicted values $\hat{y}$."""
+    """Calculate squared error (SE) between true values $y$ and predicted values $\hat{y}$."""  # noqa: W605
 
     return np.square(y - y_hat)
 
 
 def mse(y: float | Array[float], y_hat: Array[float]) -> float:
-    """Calculate mean squared error (MSE) between true values $y$ and predicted values $\hat{y}$."""
+    """Calculate mean squared error (MSE) between true values $y$ and predicted values $\hat{y}$."""  # noqa: W605
     n = len(y_hat)
 
     xi = se(y, y_hat)
@@ -40,7 +40,7 @@ def mse(y: float | Array[float], y_hat: Array[float]) -> float:
 
 
 def rmse(y: float | Array[float], y_hat: Array[float]) -> float:
-    """Calculate relative mean squared error (RMSE) between true values $y$ and predicted values $\hat{y}$."""
+    """Calculate relative mean squared error (RMSE) between true values $y$ and predicted values $\hat{y}$."""  # noqa: W605
     n = len(y_hat)
 
     xi = se(y, y_hat) / np.abs(y)

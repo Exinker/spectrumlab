@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 from typing import overload
 
-from tqdm import tqdm
-
 import numpy as np
 from scipy import interpolate, signal
+from tqdm import tqdm
 
-from spectrumlab.emulation.curve import pvoigt, rectangular
+from spectrumlab.emulation.curve import pvoigt, rectangular  # noqa: I100
+from spectrumlab.emulation.emulation import Emulation
 from spectrumlab.peak.shape import VoigtPeakShape
 from spectrumlab.types import Array, Number
 
@@ -24,24 +24,21 @@ class SelfReversedEffect:
 
         x = np.linspace(-self.shape.rx, self.shape.rx, 2*int(self.shape.rx/self.shape.dx) + 1)
 
-        f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
-        g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)
-        h = lambda x: rectangular(x, x0=0, w=1)
+        f = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)  # noqa: E731
+        g = lambda x: pvoigt(x, x0=0, w=width, a=asymmetry, r=ratio)  # noqa: E731
+        h = lambda x: rectangular(x, x0=0, w=1)  # noqa: E731
 
         return signal.convolve(f(x) * 10**(-value * g(x)), h(x), mode='same') * (x[-1] - x[0])/len(x)
 
 
 ####
-from spectrumlab.emulation.emulation import Emulation
-
 @dataclass
 class Effect:
-    
+
     frames: tuple
 
     def __init__(self):
         pass
-
 
 
 @dataclass
@@ -92,19 +89,11 @@ class EffectedVoigtPeakShape(VoigtPeakShape):
     def from_emulation(cls, emulation: Emulation, position: Number, concentrations: tuple[float]) -> 'EffectedVoigtPeakShape':
 
         frames = []
-        for i, concentration in enumerate(tqdm(concentrations)):
+        for concentration in tqdm(concentrations):
             emulation = emulation.setup(position=position, concentration=concentration)
             spectrum = emulation.run(is_noised=False, is_clipped=False)
 
             frames.append(spectrum.intensity)
-
-        assert False
-
-
-
-
-
-
 
 
 # if __name__ == '__main__':

@@ -10,7 +10,7 @@ from spectrumlab.emulation.peak import ScaledExperiment, ScaledExperimentConfig
 from spectrumlab.grid import Grid
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid
 
-from config import DETECTOR, INTENSITY, IS_NOISED, N_FRAMES, N_ITERS, N_NUMBERS, POSITION, SHAPE
+from config import DETECTOR, INTENSITY, IS_NOISED, N_FRAMES, N_ITERS, N_NUMBERS, POSITION, SHAPE  # noqa: I100
 from core import distance
 
 THRESHOLD = 100
@@ -143,7 +143,7 @@ if __name__ == '__main__':
         position=POSITION,
         intensity=INTENSITY,
     )
-    experiment = ScaledExperiment(
+    experiment = ScaledExperiment(  # noqa: F811
         config=config,
     )
     experiment = experiment.setup(
