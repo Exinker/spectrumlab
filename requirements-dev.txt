@@ -8,6 +8,7 @@ flake8-builtins
 pep8-naming
 
 pytest
+pytest-cov
 
 plotly
 jupyter
