@@ -6,7 +6,7 @@ from typing import Literal
 import matplotlib.pyplot as plt
 
 from spectrumlab.emulation.photodiode.characteristic import DatasheetCharacteristic, WindowCharacteristic
-from spectrumlab.types import File, NanoMeter
+from spectrumlab.types import FilePath, NanoMeter
 
 
 @dataclass
@@ -80,7 +80,7 @@ class WindowFilter(AbstractFilter, WindowCharacteristic):
 
 @dataclass
 class DatasheetFilter(AbstractFilter, DatasheetCharacteristic):
-    path: File
+    path: FilePath
     xscale: float  # transform to meter units
     norm: float = field(default=1)  # normalization scale
 

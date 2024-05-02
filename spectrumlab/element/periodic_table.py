@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from spectrumlab.element import Element
-from spectrumlab.types import Directory, Frame
+from spectrumlab.types import DirPath, Frame
 
 
 DATABASE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'database')
@@ -12,7 +12,7 @@ DATABASE_VERSION = '0.01'
 
 class PeriodicTable:
 
-    def __init__(self, version: str = DATABASE_VERSION, filedir: Directory = DATABASE_DIRECTORY):
+    def __init__(self, version: str = DATABASE_VERSION, filedir: DirPath = DATABASE_DIRECTORY):
         self._version = version
         self._filedir = filedir
         self._database = pd.read_csv(

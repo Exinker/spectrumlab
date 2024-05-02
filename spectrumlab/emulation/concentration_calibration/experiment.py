@@ -17,7 +17,7 @@ from spectrumlab.emulation.emulation.experiment import AbstractExperimentConfig,
 from spectrumlab.emulation.intensity import IntegralIntensityCalculator
 from spectrumlab.emulation.line import Line, PVoigtLineShape
 from spectrumlab.grid import InterpolationKind
-from spectrumlab.types import Directory, File, Frame
+from spectrumlab.types import DirPath, FilePath, Frame
 
 
 warnings.filterwarnings('ignore')
@@ -48,7 +48,7 @@ class EmittedExperimentConfigNaive(AbstractExperimentConfig):
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: Directory, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: DirPath, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 
         # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
@@ -159,7 +159,7 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: Directory, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: DirPath, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
 
         # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
@@ -225,7 +225,7 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
         )
 
 
-def _load_ref(filepath: File) -> Frame | None:
+def _load_ref(filepath: FilePath) -> Frame | None:
     """Get reference concentration calibration data."""
 
     if os.path.isfile(filepath):

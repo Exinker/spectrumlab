@@ -17,7 +17,7 @@ from spectrumlab.emulation.device import Device
 from spectrumlab.emulation.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator
 from spectrumlab.emulation.line import Line, PVoigtLineShape
 from spectrumlab.grid import InterpolationKind
-from spectrumlab.types import Directory
+from spectrumlab.types import DirPath
 
 
 warnings.filterwarnings('ignore')
@@ -52,7 +52,7 @@ class EmittedExperimentConfigNaive(AbstractExperimentConfig):
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: Directory, filename: str) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: DirPath, filename: str) -> 'EmittedExperimentConfigNaive':
 
         # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
@@ -118,7 +118,7 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
 
     # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: Directory, filename: str) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: DirPath, filename: str) -> 'EmittedExperimentConfigNaive':
 
         # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')

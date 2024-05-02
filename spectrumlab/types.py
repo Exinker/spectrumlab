@@ -9,8 +9,8 @@ from spectrumlab.picture.color import COLOR_DATASET, Color
 
 
 # --------        paths        --------
-Directory: TypeAlias = str | Path
-File: TypeAlias = str | Path
+DirPath: TypeAlias = str | Path
+FilePath: TypeAlias = str | Path
 
 
 # --------        structures        --------
