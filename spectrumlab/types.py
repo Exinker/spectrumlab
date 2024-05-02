@@ -5,7 +5,7 @@ from typing import NewType, TypeAlias
 import pandas as pd
 from numpy.typing import NDArray  # noqa: I100
 
-from spectrumlab.picture.color import COLOR_DATABASE, Color
+from spectrumlab.picture.color import COLOR_DATASET, Color
 
 
 # --------        paths        --------
@@ -29,7 +29,7 @@ class Dataset(Enum):
 
     @property
     def color(self) -> Color:
-        return COLOR_DATABASE[self.name]
+        return COLOR_DATASET[self.name]
 
 
 # --------        temperature units        --------
