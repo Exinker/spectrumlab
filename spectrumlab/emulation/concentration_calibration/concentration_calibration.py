@@ -260,7 +260,7 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
             },
             coeff=self.coeff,
         )
-        self._loq = LOD.from_json(
+        self._loq = LOQ.from_json(
             data={
                 'mean': mean,
                 'deviation': deviation,
