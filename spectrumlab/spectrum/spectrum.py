@@ -270,7 +270,7 @@ class AbsorbedSpectrum(AbstractSpectrum):
     # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap: Colormap | None = None, clim: tuple[float, float] | None = None) -> None:
         is_filling = ax is not None
-        cmap = cmap or fetch_cmap(filename='absorption 7.002.txt')
+        cmap = cmap or fetch_cmap(kind='absorption')
         clim = clim or (-.01, .5)
 
         #
