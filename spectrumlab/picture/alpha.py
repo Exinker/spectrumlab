@@ -1,6 +1,7 @@
 from typing import TypeAlias
 
 
+# ---------        constants        ---------
 ALPHA = {
     'default': .5,
     'is_not_active': .2,
@@ -10,4 +11,5 @@ ALPHA = {
 }
 
 
+# ---------        types        ---------
 Alpha: TypeAlias = float

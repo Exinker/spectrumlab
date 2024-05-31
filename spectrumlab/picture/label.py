@@ -3,6 +3,7 @@ from decimal import Decimal
 import numpy as np
 
 
+# ---------        constants        ---------
 PREFIX = {
     -12: 'p',
     -9: 'n',
@@ -15,6 +16,7 @@ PREFIX = {
 }
 
 
+# ---------        utils        ---------
 def format_label(value: float, units: str | None = None, n_digits: int = 2, prefix: bool = False) -> str:
     """Format value and units to label.
 

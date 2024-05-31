@@ -4,9 +4,11 @@ from typing import TypeAlias
 import matplotlib as mpl
 
 
+# ---------        types        ---------
 Colormap: TypeAlias = mpl.colors.LinearSegmentedColormap
 
 
+# ---------        utils        ---------
 def fetch_cmap(filename: str) -> Colormap:
 
     filepath = os.path.join(os.path.dirname(__file__), 'colormaps', filename)
