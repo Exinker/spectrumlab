@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import abc
 from typing import TypeAlias, overload
 
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ def reshape(values):
     return values
 
 
-class AbstractSpectrum(ABC):
+class AbstractSpectrum(abc.ABC):
     """Abstract type for any emitted or absorbed spectrum."""
 
     def __init__(
@@ -102,7 +102,7 @@ class AbstractSpectrum(ABC):
         return self._clipped
 
     # --------        handlers        --------
-    @abstractmethod
+    @abc.abstractmethod
     def show(self, canvas, yscale):
         pass
 

@@ -1,16 +1,16 @@
-from abc import ABC, abstractmethod
+import abc
 
 from spectrumlab.peak.units import U
 from spectrumlab.types import Array, Number
 
 
-class AbstractPeakShape(ABC):
+class AbstractPeakShape(abc.ABC):
     """Abstract peak's shape."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def __call__(self, x: Array[Number], position: Number, intensity: float, background: float) -> Array[U]:
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def __repr__(self) -> str:
         raise NotImplementedError

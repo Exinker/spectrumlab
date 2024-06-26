@@ -1,5 +1,5 @@
+import abc
 import os
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -10,16 +10,16 @@ from spectrumlab.types import FilePath, NanoMeter
 
 
 @dataclass
-class AbstractFilter(ABC):
+class AbstractFilter(abc.ABC):
     """Interface for any filter."""
 
     # --------        handlers        --------
-    @abstractmethod
+    @abc.abstractmethod
     def show(self, ax: plt.Axes | None = None) -> None:
         raise NotImplementedError
 
     # --------        private        --------
-    @abstractmethod
+    @abc.abstractmethod
     def __repr__(self) -> str:
         raise NotImplementedError
 

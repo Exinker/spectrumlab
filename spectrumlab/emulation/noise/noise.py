@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod
+import abc
 
 from spectrumlab.types import Array, Electron, Percent
 
 
-class AbstractNoise(ABC):
+class AbstractNoise(abc.ABC):
     """Abstract noise dependence type."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def __call__(self, value: Percent | Array[Percent] | Electron | Array[Electron]) -> Percent | Array[Percent] | Electron | Array[Electron]:
         pass

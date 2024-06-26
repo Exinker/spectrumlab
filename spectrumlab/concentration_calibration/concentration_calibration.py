@@ -1,5 +1,5 @@
+import abc
 import os
-from abc import ABC, abstractmethod, abstractproperty
 from typing import Callable, Literal
 
 import matplotlib.pyplot as plt
@@ -15,22 +15,23 @@ from .exceptions import FitError
 from .metrology import DynamicRange, Intercept, LOD, LOL, LOQ, Slope, estimate_lol
 
 
-class AbstractConcentrationCalibration(ABC):
+class AbstractConcentrationCalibration(abc.ABC):
 
-    @abstractproperty
+    @property
+    @abc.abstractmethod
     def coeff(self) -> tuple[Intercept, Slope]:
         raise NotImplementedError
 
     # --------        handlers        --------
-    @abstractmethod
+    @abc.abstractmethod
     def fit(self, intensity: Series, concentration: Series):
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def predict(self, intensity: Series) -> Series:
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def show(self, save: bool = False):
         """Show concentration calibration."""
         raise NotImplementedError
@@ -56,7 +57,7 @@ class AbstractConcentrationCalibration(ABC):
         )
 
     # --------        private        --------
-    @abstractmethod
+    @abc.abstractmethod
     def _get_filename(self, extension: Literal['png', 'txt']) -> str:
         raise NotImplementedError
 

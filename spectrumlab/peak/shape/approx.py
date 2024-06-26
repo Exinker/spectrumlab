@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import abc
 from collections.abc import Sequence
 from typing import Mapping, TYPE_CHECKING
 
@@ -8,18 +8,18 @@ if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 
 
-class InterfaceApprox(ABC):
+class InterfaceApprox(abc.ABC):
     """Abstract peak's approximation interface."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def approx_keys(self) -> tuple[str]:
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def approx_initial(self, peak: 'AnalytePeak') -> Array[float]:
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def approx_bounds(self, peak: 'AnalytePeak') -> tuple[tuple[float, float]]:
         raise NotImplementedError
 

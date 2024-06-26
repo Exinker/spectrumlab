@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import abc
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -8,11 +8,11 @@ from spectrumlab.emulation.curve import gauss, rectangular
 from spectrumlab.types import Array, FilePath, Meter, NanoMeter
 
 
-class AbstractCharacteristic(ABC):
+class AbstractCharacteristic(abc.ABC):
     """Abstract type for any characteristic."""
 
     # --------        private        --------
-    @abstractmethod
+    @abc.abstractmethod
     def __call__(self, x: Array[Meter], fill_value: float = np.nan) -> Array[float]:
         raise NotImplementedError
 

@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod, abstractproperty
+import abc
 from typing import TYPE_CHECKING
 
 from spectrumlab.peak.units import U
@@ -8,15 +8,16 @@ if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
 
 
-class AbstractIntensityCalculator(ABC):
+class AbstractIntensityCalculator(abc.ABC):
 
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
 
-    @abstractproperty
+    @property
+    @abc.abstractmethod
     def color(self) -> Color:
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def calculate(self, peak: 'AnalytePeak') -> U:
         raise NotImplementedError

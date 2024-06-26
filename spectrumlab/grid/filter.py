@@ -1,4 +1,4 @@
-from abc import ABC
+import abc
 from functools import partial
 from typing import Callable
 
@@ -11,7 +11,7 @@ from spectrumlab.grid.shape import VoigtGridShape
 from spectrumlab.types import Array, MicroMeter
 
 
-class AbstractGridFilter(ABC):  # noqa: B024
+class AbstractGridFilter(abc.ABC):  # noqa: B024
 
     def __init__(self, grid: Grid):
         self._grid = grid

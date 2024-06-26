@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import abc
 from typing import Callable
 
 import numpy as np
@@ -8,7 +8,7 @@ from spectrumlab.types import Array, NanoMeter, Number
 from spectrumlab.wavelength_calibration.exceptions import FitError
 
 
-class AbstractWavelengthCalibration(ABC):
+class AbstractWavelengthCalibration(abc.ABC):
 
     def __init__(self, deg: int) -> None:
         self._deg = deg
@@ -27,7 +27,7 @@ class AbstractWavelengthCalibration(ABC):
         return self._coeff
 
     # --------        handlers        --------
-    @abstractmethod
+    @abc.abstractmethod
     def fit(self, number: Array[Number], wavelength: Array[NanoMeter]) -> 'AbstractWavelengthCalibration':
         raise NotImplementedError
 

@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import abc
 from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ from spectrumlab.types import Array, Number
 
 
 @dataclass(frozen=True)
-class AbstractExperimentConfig(ABC):
+class AbstractExperimentConfig(abc.ABC):
     n_numbers: int
     n_frames: int
 
@@ -30,7 +30,7 @@ class AbstractExperimentConfig(ABC):
     intensity: float | Array[float]
 
 
-class AbstractExperiment(ABC):
+class AbstractExperiment(abc.ABC):
 
     def __init__(self, config: AbstractExperimentConfig):
         self.config = config
@@ -68,7 +68,7 @@ class AbstractExperiment(ABC):
         return self._background
 
     # --------        handlers        --------
-    @abstractmethod
+    @abc.abstractmethod
     def setup(self, seed: int | None = None, verbose: bool = False, show: bool = False) -> 'AbstractExperiment':
         pass
 

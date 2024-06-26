@@ -1,5 +1,5 @@
+import abc
 import os
-from abc import ABC, abstractproperty
 from dataclasses import dataclass
 from functools import partial
 from typing import Callable, Literal
@@ -19,7 +19,7 @@ DATASHEET_DIRECTORY = os.path.join(os.path.dirname(__file__), 'datasheet')
 
 
 # --------        aperture shapes        --------
-class AbstractApertureShape(ABC):
+class AbstractApertureShape(abc.ABC):
     dx: Number = 1e-2  # шаг построения интерполяции
     rx: Number = 10  # границы построения интерполяции
 
@@ -27,7 +27,8 @@ class AbstractApertureShape(ABC):
     def x(self) -> Array[Number]:
         return np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
 
-    @abstractproperty
+    @property
+    @abc.abstractmethod
     def f(self, x: Array[Number]) -> Callable[[Number], Array[float]]:
         pass
 
