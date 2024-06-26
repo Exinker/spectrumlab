@@ -25,8 +25,8 @@ class FactoryAnalytePeak:
     position_calculator: AbstractPositionCalculator = field(default_factory=InterpolationPositionCalculator)
     intensity_calculator: AbstractIntensityCalculator = field(default_factory=IntegralIntensityCalculator)
 
-    except_edges: bool | None = field(default=False)
-    autocalculate: bool | None = field(default=False)
+    except_edges: bool = field(default=False)
+    autocalculate: bool = field(default=False)
     # window: int | None = field(default=None)  # TODO: добавить размер вырезаемого участка спектра
 
     def create(self, line: Line, spectrum: Spectrum, noise: Noise, verbose: bool = False, show: bool = False) -> 'AnalytePeak':
