@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Generator, Literal
+from typing import Iterator, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -29,7 +29,7 @@ class _HighDynamicRangeMode:
 
         return abs(total - self.total) <= tol
 
-    def items(self) -> Generator:
+    def items(self) -> Iterator[int, MilliSecond]:
         """Generate tuples of n_frames and tau."""
 
         for degree, n_frames in enumerate(self.n_frames):
@@ -47,7 +47,7 @@ class HighDynamicRangeMode:
     method: Literal['naive', 'weighted'] = 'weighted'
 
     # --------        handlers        --------
-    def items(self) -> Generator:
+    def items(self) -> Iterator[int, MilliSecond]:
         """Generate tuples of n_frames and tau."""
 
         for n_frames, tau in zip(self.n_frames, self.tau):
