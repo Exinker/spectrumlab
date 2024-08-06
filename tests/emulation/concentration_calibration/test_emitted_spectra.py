@@ -1,4 +1,3 @@
-import os
 from functools import partial
 
 import numpy as np
@@ -8,8 +7,7 @@ from tqdm import tqdm
 
 from spectrumlab.concentration_calibration import calibrate  # noqa: I100
 from spectrumlab.emulation.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulation.emulation import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, SpectrumConfig
-from spectrumlab.emulation.emulation import fetch_emulation
+from spectrumlab.emulation.emulation import EmittedSpectrumEmulation
 from spectrumlab.emulation.noise import EmittedSpectrumNoise
 from spectrumlab.emulation.spectrum import Spectrum
 from spectrumlab.grid import InterpolationKind
@@ -19,37 +17,6 @@ from spectrumlab.peak.intensity import AmplitudeIntensityCalculator, ApproxInten
 from spectrumlab.peak.position import InterpolationPositionCalculator
 from spectrumlab.peak.shape import VoigtPeakShape
 from spectrumlab.types import Frame
-
-
-@pytest.fixture(scope='module')
-def config() -> ExperimentConfig:
-    return ExperimentConfig.from_ini(
-        filedir=os.path.join(os.path.dirname(__file__), 'ini'),
-        filename='config_emission_naive.ini',
-    )
-
-
-@pytest.fixture(scope='module')
-def emulation(config: ExperimentConfig) -> EmittedSpectrumEmulation:
-    return fetch_emulation(
-        config=EmittedSpectrumEmulationConfig(
-            device=config.device,
-            detector=config.detector,
-
-            line=None,
-            apparatus=config.apparatus,
-            aperture=config.aperture,
-
-            spectrum=SpectrumConfig(
-                n_numbers=config.n_numbers,
-                n_frames=config.n_frames,
-            ),
-            concentration_ratio=config.concentration_ratio,
-            background_level=config.background_level,
-
-            rx=400,
-        ),
-    )
 
 
 @pytest.fixture(scope='module')
