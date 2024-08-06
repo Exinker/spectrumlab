@@ -23,6 +23,7 @@ class Config:
         return np.linspace(-self.rx, +self.rx, self.n)
 
 
+@pytest.mark.skip('interp2d is removed in version scipy==1.14.0!')
 @pytest.mark.parametrize('config', [
     Config(
         shape=SelfReversedVoigtPeakShapeNaive(
