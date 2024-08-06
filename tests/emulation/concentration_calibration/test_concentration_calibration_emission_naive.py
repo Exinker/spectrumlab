@@ -1,44 +1,10 @@
-import os
-
 import numpy as np
 import pytest
 
 from spectrumlab.emulation.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig, EmittedExperimentConfigNaive as ExperimentConfig
 from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.emulation import EmittedSpectrumEmulationConfig, Emulation, SpectrumConfig
-from spectrumlab.emulation.emulation import fetch_emulation
+from spectrumlab.emulation.emulation import Emulation
 from spectrumlab.emulation.intensity import AbstractIntensityCalculator, AmplitudeIntensityCalculator, IntegralIntensityCalculator
-
-
-@pytest.fixture(scope='module')
-def config() -> ExperimentConfig:
-    return ExperimentConfig.from_ini(
-        filedir=os.path.join(os.path.dirname(__file__), 'ini'),
-        filename='config_emission_naive.ini',
-    )
-
-
-@pytest.fixture(scope='module')
-def emulation(config: ExperimentConfig) -> Emulation:
-    return fetch_emulation(
-        config=EmittedSpectrumEmulationConfig(
-            device=config.device,
-            detector=config.detector,
-
-            line=None,
-            apparatus=config.apparatus,
-            aperture=config.aperture,
-
-            spectrum=SpectrumConfig(
-                n_numbers=config.n_numbers,
-                n_frames=config.n_frames,
-            ),
-            concentration_ratio=config.concentration_ratio,
-            background_level=config.background_level,
-
-            # info='',
-        ),
-    )
 
 
 @pytest.fixture(scope='module')

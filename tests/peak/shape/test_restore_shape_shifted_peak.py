@@ -102,7 +102,7 @@ def test_params_error(detector: Detector, shape: VoigtApparatusShape, shape_hat:
     ) < tolerance
 
 
-@pytest.mark.skip()  # FIXME: исправить!
+@pytest.mark.skip(reason='FIXME: исправить!')
 def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: VoigtPeakShape):
     tolerance = 1e-6
 
