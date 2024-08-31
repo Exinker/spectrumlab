@@ -1,16 +1,17 @@
 .coverage
-
+.coverage.*
 .git/
-__pycache__/
 .mypy_cache/
 .pytest_cache/
 .vscode/
 .VSCodeCounter/
+__pycache__/
 *.egg-info/
 
 env/
 build/
 data/
+htmlcov/
 
 *.in
 

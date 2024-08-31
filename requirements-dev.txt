@@ -12,5 +12,4 @@ pep8-naming
 pytest
 pytest-cov
 
-plotly
 jupyter
