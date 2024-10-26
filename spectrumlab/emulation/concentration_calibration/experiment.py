@@ -125,6 +125,67 @@ class EmittedExperimentConfig(AbstractExperimentConfig):
         self.concentration_blank = concentration_blank
         self.ref = ref
 
+    # --------        fabric        --------
+    @classmethod
+    def from_ini(cls, filedir: DirPath, filename: str, n_blanks: int | None = None, n_probes: int | None = None, n_parallels: int | None = None) -> 'EmittedExperimentConfigNaive':
+
+        # ini parser
+        parser = ConfigParser(inline_comment_prefixes='#')
+        parser.read(os.path.join(filedir, filename))
+
+        assert parser.get('emulation', 'kind') == 'emission'
+
+        filepath = os.path.join(filedir, 'concentration_calibration.csv')
+        if os.path.exists(filepath):
+            ref = _load_ref(filepath)
+        else:
+            ref = None
+
+        #
+        device = _parse_device(parser)
+        detector = _parse_detector(parser)
+
+        return EmittedExperimentConfig(
+            device=device,
+            detector=detector,
+            line=PVoigtLineShape(
+                width=float(parser.get('line', 'width')) / device.config.dispersion,  # in micron
+                asymmetry=float(parser.get('line', 'asymmetry')),
+                ratio=float(parser.get('line', 'ratio')),
+            ),
+            apparatus=Apparatus(
+                detector=detector,
+                shape=VoigtApparatusShape(
+                    width=float(parser.get('apparatus', 'width')),
+                    asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                    ratio=float(parser.get('apparatus', 'ratio')),
+                ),
+            ),
+            aperture=Aperture(
+                detector=detector,
+                shape=RectangularApertureShape(),
+            ),
+
+            position=int(parser.get('spectrum', 'n_numbers'))/2,
+            intensity_calculator=IntegralIntensityCalculator(
+                kind=InterpolationKind.LINEAR,
+                interval=float(parser.get('concentration-calibration', 'interval')),
+            ),
+
+            n_blanks=n_blanks or int(parser.get('concentration-calibration', 'n_blanks')),
+            n_probes=n_probes or int(parser.get('concentration-calibration', 'n_probes')),
+            n_parallels=n_parallels or int(parser.get('concentration-calibration', 'n_parallels')),
+            concentration_blank=float(parser.get('concentration-calibration', 'concentration_blank')),
+            concentration_base=float(parser.get('concentration-calibration', 'concentration_base')),
+            ref=ref,
+
+            n_numbers=int(parser.get('spectrum', 'n_numbers')),
+            n_frames=int(parser.get('spectrum', 'n_frames')),
+
+            concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
+            background_level=float(parser.get('others', 'background_level')),
+        )
+
 
 class AbsorbedExperimentConfig(AbstractExperimentConfig):
     """Absorbed spectra experiment's config."""
@@ -175,7 +236,10 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
         base_n_frames = int(parser.get('base spectrum', 'n_frames'))
 
         filepath = os.path.join(filedir, 'concentration_calibration.csv')
-        ref = _load_ref(filepath)
+        if os.path.exists(filepath):
+            ref = _load_ref(filepath)
+        else:
+            ref = None
 
         #
         return AbsorbedExperimentConfig(

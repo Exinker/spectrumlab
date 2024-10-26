@@ -102,6 +102,54 @@ class EmittedExperimentConfig(AbstractExperimentConfig):
 
         self.line = line
 
+    # --------        fabric        --------
+    @classmethod
+    def from_ini(cls, filedir: DirPath, filename: str) -> 'EmittedExperimentConfigNaive':
+
+        # ini parser
+        parser = ConfigParser(inline_comment_prefixes='#')
+        parser.read(os.path.join(filedir, filename))
+
+        assert parser.get('emulation', 'kind') == 'emission'
+
+        #
+        device = _parse_device(parser)
+        detector = _parse_detector(parser)
+
+        return EmittedExperimentConfig(
+            device=device,
+            detector=detector,
+            line=PVoigtLineShape(
+                width=float(parser.get('line', 'width')) / device.config.dispersion,  # in micron
+                asymmetry=float(parser.get('line', 'asymmetry')),
+                ratio=float(parser.get('line', 'ratio')),
+            ),
+            apparatus=Apparatus(
+                detector=detector,
+                shape=VoigtApparatusShape(
+                    width=float(parser.get('apparatus', 'width')),
+                    asymmetry=float(parser.get('apparatus', 'asymmetry')),
+                    ratio=float(parser.get('apparatus', 'ratio')),
+                ),
+            ),
+            aperture=Aperture(
+                detector=detector,
+                shape=RectangularApertureShape(),
+            ),
+
+            position=int(parser.get('spectrum', 'n_numbers'))/2,
+            intensity_calculator=IntegralIntensityCalculator(
+                kind=InterpolationKind.LINEAR,
+                interval=3,
+            ),
+
+            n_numbers=int(parser.get('spectrum', 'n_numbers')),
+            n_frames=int(parser.get('spectrum', 'n_frames')),
+
+            concentration_ratio=10**(float(parser.get('others', 'concentration_ratio'))),
+            background_level=float(parser.get('others', 'background_level')),
+        )
+
 
 class AbsorbedExperimentConfig(AbstractExperimentConfig):
     """Absorbed spectra experiment's config."""
@@ -188,6 +236,10 @@ def _parse_device(parser: ConfigParser) -> Device:
         if poly == 'II':
             return Device.GRAND2_II
         raise ValueError(f'Device poly {poly} is not supported!')
+    if kind == 'custom':
+        device = Device.dynamic
+        device.config.dispersion = float(parser.get('device', 'dispersion'))
+        return device
 
     raise ValueError(f'Device kind {kind} is not supported!')
 
