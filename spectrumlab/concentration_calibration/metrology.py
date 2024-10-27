@@ -3,7 +3,7 @@ from typing import Mapping, NewType
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
+from spectrumlab.emulations.emulations import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
 from spectrumlab.types import Frame
 
 

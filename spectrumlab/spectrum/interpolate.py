@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
 
-from spectrumlab.emulation.curve import lanczos
+from spectrumlab.emulations.curves import lanczos
 from spectrumlab.types import Array
 
 

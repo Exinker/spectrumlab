@@ -4,7 +4,7 @@ from functools import partial
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.curve import gauss
+from spectrumlab.emulations.curves import gauss
 from spectrumlab.grid import Grid
 from spectrumlab.grid.utils import estimate_fwhm
 from spectrumlab.types import Array, Number

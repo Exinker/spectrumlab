@@ -225,8 +225,8 @@ def estimate_fwhm(grid: Grid, pitch: T, position: T = 0, handler: AbstractGridFi
 
 if __name__ == '__main__':
     from spectrumlab.types import Array, MicroMeter, Number
-    from spectrumlab.emulation.aperture import MeasuredApertureShape
-    from spectrumlab.emulation.detector import Detector
+    from spectrumlab.emulations.apertures import MeasuredApertureShape
+    from spectrumlab.emulations.detectors import Detector
 
     for detector in [Detector.BLPP369M1, Detector.BLPP2000, Detector.BLPP4000]:
         rx = 5

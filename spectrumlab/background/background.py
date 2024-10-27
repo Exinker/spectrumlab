@@ -7,7 +7,7 @@ Author: Vaschenko Pavel
 """
 import abc
 
-from spectrumlab.emulation.noise import Noise
+from spectrumlab.emulations.noises import Noise
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.types import Array
 

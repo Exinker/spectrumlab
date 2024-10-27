@@ -11,9 +11,9 @@ from tqdm import tqdm
 
 from spectrumlab.core.approximate.scope import ScopeVariables  # noqa: I100
 from spectrumlab.core.approximate.variables import AbstractVariables, Variable
-from spectrumlab.emulation.curve import pvoigt, rectangular
-from spectrumlab.emulation.noise import Noise
-from spectrumlab.emulation.spectrum import EmittedSpectrum
+from spectrumlab.emulations.curves import pvoigt, rectangular
+from spectrumlab.emulations.noises import Noise
+from spectrumlab.emulations.spectrum import EmittedSpectrum
 from spectrumlab.grid import Grid
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.approx import InterfaceApprox

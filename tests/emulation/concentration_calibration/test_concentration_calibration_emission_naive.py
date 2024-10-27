@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig, EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.emulation import Emulation
-from spectrumlab.emulation.intensity import AbstractIntensityCalculator, AmplitudeIntensityCalculator, IntegralIntensityCalculator
+from spectrumlab.emulations.concentration_calibration import ConcentrationCalibration, ConcentrationCalibrationConfig, EmittedExperimentConfigNaive as ExperimentConfig
+from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.emulations import Emulation
+from spectrumlab.emulations.intensity import AbstractIntensityCalculator, AmplitudeIntensityCalculator, IntegralIntensityCalculator
 
 
 @pytest.fixture(scope='module')

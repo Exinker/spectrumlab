@@ -5,7 +5,7 @@ import numpy as np
 from scipy import interpolate
 
 from spectrumlab.concentration_calibration import ConcentrationCalibration
-from spectrumlab.emulation.noise import Noise
+from spectrumlab.emulations.noises import Noise
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
 from spectrumlab.picture.color import COLOR

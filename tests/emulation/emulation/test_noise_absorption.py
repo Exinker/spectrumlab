@@ -3,10 +3,10 @@ import os
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
-from spectrumlab.emulation.emulation import emulate_absorbed_spectrum
-from spectrumlab.emulation.emulation.experiment import AbsorbedExperimentConfig as ExperimentConfig
-from spectrumlab.emulation.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
+from spectrumlab.emulations.emulations import AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
+from spectrumlab.emulations.emulations import emulate_absorbed_spectrum
+from spectrumlab.emulations.emulations.experiment import AbsorbedExperimentConfig as ExperimentConfig
+from spectrumlab.emulations.noises import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 @pytest.fixture(scope='module')

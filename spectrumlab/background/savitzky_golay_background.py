@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.background import AbstractBackground, AbstractBackgroundConfig
-from spectrumlab.emulation.noise import Noise
+from spectrumlab.emulations.noises import Noise
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.types import Array, Number

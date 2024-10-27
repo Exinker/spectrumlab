@@ -3,10 +3,10 @@ from functools import partial
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.aperture import Aperture, RectangularApertureShape
-from spectrumlab.emulation.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.peak import RandomPeakExperiment, RandomPeakExperimentConfig
+from spectrumlab.emulations.apertures import Aperture, RectangularApertureShape
+from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
+from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.experiments.spectra_emulation import RandomPeakExperiment, RandomPeakExperimentConfig
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_spectrum
 
 from config import DETECTOR, EXPOSURE, IS_NOISED, N_FRAMES, N_ITERS, SHAPE  # noqa: I100
@@ -119,7 +119,6 @@ def test_shape_error(detector: Detector, shape: VoigtApparatusShape, shape_hat: 
 
 if __name__ == '__main__':
 
-    # config
     config = RandomPeakExperimentConfig(
         n_numbers=N_NUMBERS,
         n_frames=N_FRAMES,
@@ -141,7 +140,6 @@ if __name__ == '__main__':
         intensity=10**np.random.normal(MU, SIGMA, size=(N_ITERS,)),
     )
 
-    # experiment
     experiment = RandomPeakExperiment(  # noqa: F811
         config=config,
     )
@@ -149,10 +147,8 @@ if __name__ == '__main__':
         verbose=True,
     )
 
-    # spectrum
     spectrum = experiment.run(is_noised=IS_NOISED)
 
-    # restore shape
     restore_shape_from_spectrum(
         spectrum=spectrum,
         noise=experiment.noise,

@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.detector import Detector
-from spectrumlab.emulation.emulation import emulate_emitted_spectrum
-from spectrumlab.emulation.noise import EmittedSpectrumNoise
+from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.emulations import emulate_emitted_spectrum
+from spectrumlab.emulations.noises import EmittedSpectrumNoise
 
 
 @pytest.mark.parametrize(

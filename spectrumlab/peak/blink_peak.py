@@ -4,7 +4,7 @@ from typing import Iterator, Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulation.noise import Noise
+from spectrumlab.emulations.noises import Noise
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.types import Number
 

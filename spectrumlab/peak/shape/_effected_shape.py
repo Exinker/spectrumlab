@@ -5,8 +5,8 @@ import numpy as np
 from scipy import interpolate, signal
 from tqdm import tqdm
 
-from spectrumlab.emulation.curve import pvoigt, rectangular  # noqa: I100
-from spectrumlab.emulation.emulation import Emulation
+from spectrumlab.emulations.curves import pvoigt, rectangular  # noqa: I100
+from spectrumlab.emulations.emulations import Emulation
 from spectrumlab.peak.shape import VoigtPeakShape
 from spectrumlab.types import Array, Number
 

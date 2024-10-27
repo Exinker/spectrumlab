@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from spectrumlab.types import Array, MicroMeter, Number   # noqa: I100
-from spectrumlab.emulation.detector import Detector  # noqa: I100
+from spectrumlab.emulations.detectors import Detector  # noqa: I100
 from spectrumlab.peak.shape import VoigtPeakShape
 
 

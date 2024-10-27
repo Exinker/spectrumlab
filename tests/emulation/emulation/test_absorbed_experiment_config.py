@@ -1,8 +1,8 @@
 import os
 import pytest
 
-from spectrumlab.emulation.emulation import calculate_absorbance
-from spectrumlab.emulation.emulation.experiment import AbsorbedExperimentConfig as ExperimentConfig
+from spectrumlab.emulations.emulations import calculate_absorbance
+from spectrumlab.emulations.emulations.experiment import AbsorbedExperimentConfig as ExperimentConfig
 
 
 @pytest.fixture(scope='module')

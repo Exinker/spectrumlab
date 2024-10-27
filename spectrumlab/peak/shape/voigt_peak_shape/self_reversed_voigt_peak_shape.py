@@ -5,7 +5,7 @@ from typing import overload
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.emulation.curve import pvoigt, rectangular
+from spectrumlab.emulations.curves import pvoigt, rectangular
 from spectrumlab.peak.shape.approx import InterfaceApprox
 from spectrumlab.peak.shape.shape import AbstractPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail

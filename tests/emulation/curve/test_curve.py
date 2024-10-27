@@ -5,7 +5,7 @@ from typing import Callable, Mapping
 import numpy as np
 import pytest
 
-from spectrumlab.emulation.curve import gauss, pvoigt, rectangular
+from spectrumlab.emulations.curves import gauss, pvoigt, rectangular
 from spectrumlab.types import Array
 
 

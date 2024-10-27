@@ -1,5 +1,5 @@
-from spectrumlab.emulation.apparatus import VoigtApparatusShape
-from spectrumlab.emulation.detector import Detector
+from spectrumlab.emulations.apparatus import VoigtApparatusShape
+from spectrumlab.emulations.detectors import Detector
 
 IS_NOISED = False
 

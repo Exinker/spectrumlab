@@ -2,8 +2,8 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulation.emulation import AbsorbedSpectrumEmulationConfig, EmittedSpectrumEmulationConfig, EmulationConfig, emulate_absorbed_spectrum, emulate_emitted_spectrum
-from spectrumlab.emulation.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
+from spectrumlab.emulations.emulations import AbsorbedSpectrumEmulationConfig, EmittedSpectrumEmulationConfig, EmulationConfig, emulate_absorbed_spectrum, emulate_emitted_spectrum
+from spectrumlab.emulations.noises import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 N_NUMBERS, N_TIMES = 100, 50

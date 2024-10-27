@@ -1,10 +1,10 @@
-import abc
+from abc import ABC, abstractmethod
 from typing import TypeAlias, overload
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulation.detector import Detector
+from spectrumlab.emulations.detectors import Detector
 from spectrumlab.picture.colormap import Colormap, fetch_cmap
 from spectrumlab.types import Array, NanoMeter, Number
 
@@ -24,17 +24,17 @@ def reshape(values):
     return values
 
 
-class AbstractSpectrum(abc.ABC):
+class AbstractSpectrum(ABC):
     """Abstract type for any emitted or absorbed spectrum."""
 
     def __init__(
-            self,
-            intensity: Array[float],
-            wavelength: Array[NanoMeter] | None = None,
-            number: Array[Number] | None = None,
-            deviation: Array[float] | None = None,
-            clipped: Array[bool] | None = None,
-            detector: Detector | None = None,
+        self,
+        intensity: Array[float],
+        wavelength: Array[NanoMeter] | None = None,
+        number: Array[Number] | None = None,
+        deviation: Array[float] | None = None,
+        clipped: Array[bool] | None = None,
+        detector: Detector | None = None,
     ):
         self.intensity = reshape(intensity)
         self.detector = detector
@@ -101,12 +101,10 @@ class AbstractSpectrum(abc.ABC):
 
         return self._clipped
 
-    # --------        handlers        --------
-    @abc.abstractmethod
+    @abstractmethod
     def show(self, canvas, yscale):
         pass
 
-    # --------        private        --------
     def __repr__(self) -> str:
         if self.intensity.ndim == 1:
             n_times, n_numbers = 1, self.shape[-1]
@@ -212,21 +210,19 @@ class AbstractSpectrum(abc.ABC):
         return self - other
 
 
-# --------        spectrum        --------
 class EmittedSpectrum(AbstractSpectrum):
     """Type for any emitted (or ordinary) spectrum."""
     def __init__(
-            self,
-            intensity: Array[float],
-            wavelength: Array[NanoMeter] | None = None,
-            number: Array[Number] | None = None,
-            deviation: Array[float] | None = None,
-            clipped: Array[bool] | None = None,
-            detector: Detector | None = None,
-            ):
+        self,
+        intensity: Array[float],
+        wavelength: Array[NanoMeter] | None = None,
+        number: Array[Number] | None = None,
+        deviation: Array[float] | None = None,
+        clipped: Array[bool] | None = None,
+        detector: Detector | None = None,
+    ) -> None:
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, clipped=clipped, deviation=deviation, detector=detector)
 
-    # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap: Colormap | None = None, clim: tuple[float, float] | None = None, grid: bool = False) -> None:
         is_filling = ax is not None
 
