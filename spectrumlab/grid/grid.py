@@ -25,7 +25,6 @@ class IteratorGrid:
 
         self._index = -1
 
-    # --------        private        --------
     def __iter__(self) -> Iterator:
         return self
 
@@ -120,7 +119,6 @@ class FactoryGrid:
             background=background,
         )
 
-    # --------        private        --------
     def _create(self, batches: Sequence[_Batch], offset: Array[T] | None = None, scale: Array[float] | None = None, background: Array[U] | None = None) -> 'Grid':
         """Get a grid from sequence of batches."""
         n_batches = len(batches)
@@ -211,7 +209,6 @@ class Grid:
 
         return self._interpolate
 
-    # --------        handlers        --------
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
 
@@ -259,7 +256,6 @@ class Grid:
 
         plt.show()
 
-    # --------        private        --------
     def __len__(self) -> int:
         return len(self.x)
 

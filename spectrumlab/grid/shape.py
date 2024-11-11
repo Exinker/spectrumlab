@@ -34,7 +34,6 @@ class VoigtGridShape:
             fill_value=0,
         )
 
-    # --------        private        --------
     def _get_content(self, sep: Literal[r'\n', ', '] = ', ', is_signed: bool = True) -> str:
         sign = {+1: '+'}.get(np.sign(self.asymmetry), '') if is_signed else ''
 

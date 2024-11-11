@@ -3,8 +3,8 @@ import os
 import pytest
 
 from spectrumlab.emulations.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulations.emulations import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, SpectrumConfig
-from spectrumlab.emulations.emulations import fetch_emulation
+from spectrumlab.emulations.emulators import EmittedSpectrumEmulator, EmittedSpectrumEmulationConfig, SpectrumConfig
+from spectrumlab.emulations.emulators import fetch_emulation
 
 
 @pytest.fixture(scope='module')
@@ -16,7 +16,7 @@ def config() -> ExperimentConfig:
 
 
 @pytest.fixture(scope='module')
-def emulation(config: ExperimentConfig) -> EmittedSpectrumEmulation:
+def emulation(config: ExperimentConfig) -> EmittedSpectrumEmulator:
     return fetch_emulation(
         config=EmittedSpectrumEmulationConfig(
             device=config.device,

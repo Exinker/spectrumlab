@@ -16,7 +16,6 @@ class ScopeVariables(AbstractVariables):
 
         self.name = 'scope'
 
-    # --------        private        --------
     def _init_position(self, grid: Grid, position: Number | None = None) -> Variable:
         initial = grid.x[np.argmax(grid.y)] if position is None else position
         bounds = (initial-2, initial+2) if position is None else (initial-1e-10, initial+1e-10)

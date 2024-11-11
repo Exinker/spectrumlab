@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulations.curves import voigt2pvoigt
-from spectrumlab.emulations.lines import PVoigtLineShape, VoigtLineShape
+from spectrumlab.emulations.line import PVoigtLineShape, VoigtLineShape
 from spectrumlab.line import Line
 from spectrumlab.types import PicoMeter
 

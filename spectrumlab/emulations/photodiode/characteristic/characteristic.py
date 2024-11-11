@@ -11,7 +11,6 @@ from spectrumlab.types import Array, FilePath, Meter, NanoMeter
 class AbstractCharacteristic(abc.ABC):
     """Abstract type for any characteristic."""
 
-    # --------        private        --------
     @abc.abstractmethod
     def __call__(self, x: Array[Meter], fill_value: float = np.nan) -> Array[float]:
         raise NotImplementedError
@@ -21,7 +20,6 @@ class AbstractCharacteristic(abc.ABC):
 class ConstantCharacteristic(AbstractCharacteristic):
     value: float
 
-    # --------        private        --------
     def __call__(self, x: float | Array[Meter], fill_value: float = np.nan) -> Array[float]:
 
         if isinstance(x, float):  # TODO: don't remove! It's for integrate.quad functions!
@@ -41,7 +39,6 @@ class WindowCharacteristic(AbstractCharacteristic):
     _x: Array[Meter] = field(init=False, repr=False)
     _y: Array[float] = field(init=False, repr=False)
 
-    # --------        private        --------
     def __post_init__(self):
         lb, ub = self.wavelength_bounds
         step = self.wavelength_step
@@ -89,7 +86,6 @@ class DatasheetCharacteristic(AbstractCharacteristic):
     _x: Array[NanoMeter] = field(init=False, repr=False)
     _y: Array[float] = field(init=False, repr=False)
 
-    # --------        private        --------
     def __post_init__(self):
         dat = np.genfromtxt(self.path, delimiter=self.delimiter, dtype=np.float32)
 

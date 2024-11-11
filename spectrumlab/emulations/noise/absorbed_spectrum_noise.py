@@ -3,8 +3,8 @@ from typing import overload
 
 import numpy as np
 
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.noises import AbstractNoise, EmittedSpectrumNoise
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.noise import AbstractNoise, EmittedSpectrumNoise
 from spectrumlab.types import Absorbance, Array, Electron, Percent
 
 
@@ -45,7 +45,6 @@ class AbsorbedSpectrumNoise(AbstractNoise):
         return calculate_absorbance_deviation(part_base=part_base, part_recorded=part_recorded)
 
 
-# --------        handlers        --------
 @overload
 def calculate_squared_relative_standard_deviation(value: Percent, noise: EmittedSpectrumNoise) -> float: ...
 @overload

@@ -1,11 +1,11 @@
 import abc
 from dataclasses import dataclass
 
-from spectrumlab.emulations.apertures import Aperture  # noqa: I100
+from spectrumlab.emulations.aperture import Aperture  # noqa: I100
 from spectrumlab.emulations.apparatus import Apparatus
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.emulations import emulate_emitted_spectrum
-from spectrumlab.emulations.noises import EmittedSpectrumNoise, Noise
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.emulators import emitted_spectrum_factory
+from spectrumlab.emulations.noise import EmittedSpectrumNoise, Noise
 from spectrumlab.emulations.spectrum import EmittedSpectrum
 from spectrumlab.types import Array, Number
 
@@ -61,7 +61,6 @@ class AbstractExperiment(abc.ABC):
 
         return self._background
 
-    # --------        handlers        --------
     @abc.abstractmethod
     def setup(self, seed: int | None = None, verbose: bool = False, show: bool = False) -> 'AbstractExperiment':
         pass
@@ -70,7 +69,7 @@ class AbstractExperiment(abc.ABC):
         config = self.config
 
         # spectrum
-        spectrum = emulate_emitted_spectrum(
+        spectrum = emitted_spectrum_factory(
             number=self.number,
             intensity=self.intensity,
             noise=self.noise,

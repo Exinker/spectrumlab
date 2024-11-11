@@ -13,12 +13,10 @@ from spectrumlab.types import FilePath, NanoMeter
 class AbstractFilter(abc.ABC):
     """Interface for any filter."""
 
-    # --------        handlers        --------
     @abc.abstractmethod
     def show(self, ax: plt.Axes | None = None) -> None:
         raise NotImplementedError
 
-    # --------        private        --------
     @abc.abstractmethod
     def __repr__(self) -> str:
         raise NotImplementedError
@@ -31,7 +29,6 @@ class WindowFilter(AbstractFilter, WindowCharacteristic):
     wavelength_bounds: tuple[float, float]
     wavelength_step: float
 
-    # --------        handlers        --------
     def show(self, info: Literal['title', 'text', 'none'] = 'text', save: bool = False, ax: plt.Axes | None = None) -> None:
         fill = ax is not None
 
@@ -73,7 +70,6 @@ class WindowFilter(AbstractFilter, WindowCharacteristic):
         if not fill:
             plt.show()
 
-    # --------        private        --------
     def __str__(self) -> str:
         return '{}, нм'.format('-'.join(map(str, self.span)))
 
@@ -84,11 +80,9 @@ class DatasheetFilter(AbstractFilter, DatasheetCharacteristic):
     xscale: float  # transform to meter units
     norm: float = field(default=1)  # normalization scale
 
-    # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None) -> None:
         raise NotImplementedError
 
-    # --------        private        --------
     def __str__(self) -> str:
         head, tail = os.path.split(self.path)
         return 'file: {}'.format(head)

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.emulations.curves import pvoigt, rectangular
-from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.detector import Detector
 from spectrumlab.types import Array, MicroMeter
 
 
@@ -67,7 +67,6 @@ class Apparatus:
     def pitch(self) -> MicroMeter:
         return self.detector.pitch
 
-    # --------        handlers        --------
     def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01) -> None:
 
         #
@@ -88,7 +87,6 @@ class Apparatus:
 
         plt.show()
 
-    # --------        private        --------
     def __call__(self, x: MicroMeter | Array[MicroMeter], x0: MicroMeter = 0) -> Array[float]:
         return self.shape(x, x0=x0, pitch=self.pitch)
 

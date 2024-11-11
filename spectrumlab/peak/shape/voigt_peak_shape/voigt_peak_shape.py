@@ -12,7 +12,7 @@ from tqdm import tqdm
 from spectrumlab.core.approximate.scope import ScopeVariables  # noqa: I100
 from spectrumlab.core.approximate.variables import AbstractVariables, Variable
 from spectrumlab.emulations.curves import pvoigt, rectangular
-from spectrumlab.emulations.noises import Noise
+from spectrumlab.emulations.noise import Noise
 from spectrumlab.emulations.spectrum import EmittedSpectrum
 from spectrumlab.grid import Grid
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
@@ -84,7 +84,6 @@ class AssociatedVoigtPeakShapeVariables(AbstractVariables):
 
         return result
 
-    # --------        handlers        --------
     @classmethod
     def parse_params(cls, grid: Grid, params: Sequence[float]) -> tuple[VoigtPeakShapeVariables, ScopeVariables]:
         assert len(params) == 6
@@ -197,7 +196,6 @@ class VoigtPeakShape(AbstractPeakShape, InterfaceApprox):
         # shape
         shape = cls(**shape_variables)
 
-        # show
         if show:
             fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -243,7 +241,6 @@ class VoigtPeakShape(AbstractPeakShape, InterfaceApprox):
         #
         return shape
 
-    # --------        private        --------
     @overload
     def __call__(self, x: Number, position: Number, intensity: float, background: float = 0) -> U: ...
     @overload
@@ -257,7 +254,6 @@ class VoigtPeakShape(AbstractPeakShape, InterfaceApprox):
         return f'{cls.__name__}({self.get_content()})'
 
 
-# --------        handlers        --------
 def approx_grid(grid: Grid, shape: VoigtPeakShape, show: bool = False) -> tuple[ScopeVariables, float]:
     """Approximate grid by VoigtPeakShape."""
 
@@ -415,7 +411,6 @@ def restore_shape_from_spectrum(spectrum: EmittedSpectrum, noise: Noise, verbose
             noise_level=10,
 
         ),
-        # show=True,
     )
 
     # calculate shape

@@ -24,7 +24,6 @@ class AbstractGridFilter(abc.ABC):  # noqa: B024
     def f(self) -> Callable[[Array[T]], Array[float]]:
         return self._f
 
-    # --------        handlers        --------
     def show(self, bias: T = 0):
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -57,7 +56,6 @@ class AbstractGridFilter(abc.ABC):  # noqa: B024
 
         plt.show()
 
-    # --------        private        --------
     def __call__(self, x: Array) -> Array:
         return self.f(x)
 
@@ -75,7 +73,6 @@ class LinearInterpolationGridFilter(AbstractGridFilter):
             fill_value=0,
         )
 
-        # show
         if show:
             self.show()
 
@@ -116,6 +113,5 @@ class VoigtGridShapeFilter(AbstractGridFilter):
         # f
         self._f = partial(shape, position=position, intensity=intensity)
 
-        # show
         if show:
             self.show()

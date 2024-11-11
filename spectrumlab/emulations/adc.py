@@ -19,7 +19,6 @@ class ADC:
     resolution: int
     log: bool = field(default=False)
 
-    # --------        handlers        --------
     def quantize(self, y: Array[float], show: bool = False) -> Array[float]:
         if self.log:
             y = np.log2(y)

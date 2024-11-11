@@ -7,7 +7,7 @@ Author: Vaschenko Pavel
 """
 import abc
 
-from spectrumlab.emulations.noises import Noise
+from spectrumlab.emulations.noise import Noise
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.types import Array
 
@@ -24,7 +24,6 @@ class AbstractBackground(abc.ABC):
     def __init__(self, config: AbstractBackgroundConfig):
         self.config = config
 
-    # --------        handlers        --------
     @abc.abstractmethod
     def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Array[float]:
         raise NotImplementedError

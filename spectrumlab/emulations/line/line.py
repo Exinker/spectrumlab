@@ -18,7 +18,6 @@ class GaussLineShape:
     """Gauss (or normal) line profile's shape."""
     width: PicoMeter
 
-    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -48,7 +47,6 @@ class VoigtLineShape:
         """Calculate FWHM of the shape [by formula](https://en.wikipedia.org/wiki/Voigt_profile#The_width_of_the_Voigt_profile)."""
         return self.l/2 + np.sqrt((self.l/2)**2 + self.g**2)
 
-    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -83,7 +81,6 @@ class PVoigtLineShape:
 
         return fwhm
 
-    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -102,7 +99,6 @@ class SelfReversedPVoigtLineShape:
     ratio: float
     absorbance: float
 
-    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -120,7 +116,6 @@ class SigmoidsLineShape:
     width: Tuple[float, float]
     power: float
 
-    # --------        private        --------
     @overload
     def __call__(self, x: PicoMeter, position: PicoMeter, intensity: float) -> Array[float]: ...
     @overload
@@ -157,7 +152,6 @@ class Line:
     def __call__(self, x, position, intensity):
         return self.shape(x, position, intensity)
 
-    # --------        handlers        --------
     def show(self, position: PicoMeter, intensity: float, rx: PicoMeter = 100, dx: PicoMeter = .01) -> None:
         """Show line profile's shape at the range rx with step dx."""
 

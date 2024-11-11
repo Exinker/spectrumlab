@@ -3,20 +3,20 @@ import os
 import numpy as np
 import pytest
 
-from spectrumlab.emulations.emulations import AbsorbedSpectrumEmulationConfig, SpectrumBaseConfig, SpectrumConfig
-from spectrumlab.emulations.emulations import emulate_absorbed_spectrum
-from spectrumlab.emulations.emulations.experiment import AbsorbedExperimentConfig as ExperimentConfig
-from spectrumlab.emulations.noises import AbsorbedSpectrumNoise, EmittedSpectrumNoise
+from spectrumlab.emulations.emulators import AbsorbedSpectrumEmulatorConfig, SpectrumBaseConfig, SpectrumConfig
+from spectrumlab.emulations.emulators import absorbed_spectrum_factory
+from spectrumlab.emulations.emulators.experiment import AbsorbedExperimentConfig as ExperimentConfig
+from spectrumlab.emulations.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 @pytest.fixture(scope='module')
-def config() -> AbsorbedSpectrumEmulationConfig:
+def config() -> AbsorbedSpectrumEmulatorConfig:
     config = ExperimentConfig.from_ini(
         filedir=os.path.join(os.path.dirname(__file__), 'ini'),
         filename='config_absorption_GRAND2_I_Ag338.289.ini',
     )
 
-    return AbsorbedSpectrumEmulationConfig(
+    return AbsorbedSpectrumEmulatorConfig(
         device=config.device,
         detector=config.detector,
 
@@ -46,7 +46,7 @@ def config() -> AbsorbedSpectrumEmulationConfig:
         (5000, 2048),
     ],
 )
-def test_absorbed_noise_vs_value(n_times: int, n_numbers: int, config: AbsorbedSpectrumEmulationConfig) -> None:
+def test_absorbed_noise_vs_value(n_times: int, n_numbers: int, config: AbsorbedSpectrumEmulatorConfig) -> None:
     tolerance = 0.1
     number = np.arange(n_numbers)
     value = np.logspace(-3, np.log10(2), n_numbers)
@@ -63,7 +63,7 @@ def test_absorbed_noise_vs_value(n_times: int, n_numbers: int, config: AbsorbedS
     )(value)
 
     # emulated noise
-    spectrum = emulate_absorbed_spectrum(
+    spectrum = absorbed_spectrum_factory(
         intensity=np.array([config.spectrum_base.level * 10**(-value)]*n_times),
         number=number,
         noise=EmittedSpectrumNoise(

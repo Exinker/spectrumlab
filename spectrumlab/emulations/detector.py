@@ -15,7 +15,6 @@ class DetectorConfig:
     height: MicroMeter
     description: str = field(default='')
 
-    # --------        private        --------
     def __str__(self) -> str:
         cls = self.__class__
         name = self.name
@@ -70,7 +69,6 @@ class Detector(Enum):
         """Pitch structure of the detector."""
         return self.config.width
 
-    # --------        private        --------
     def __str__(self) -> str:
         cls = self.__class__
         name = self.config.name

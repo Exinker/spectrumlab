@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from spectrumlab.types import Electron, Percent
-from spectrumlab.emulations.detectors import Detector   # noqa: I100
-from spectrumlab.emulations.noises import EmittedSpectrumNoise
+from spectrumlab.emulations.detector import Detector   # noqa: I100
+from spectrumlab.emulations.noise import EmittedSpectrumNoise
 
 
 @pytest.mark.parametrize(

@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate, signal
 
-from spectrumlab.emulations.apertures import Aperture
+from spectrumlab.emulations.aperture import Aperture
 from spectrumlab.emulations.apparatus import Apparatus
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.devices import Device
-from spectrumlab.emulations.emulations import AbstractEmulation
-from spectrumlab.emulations.lines import Line
-from spectrumlab.emulations.noises import EmittedSpectrumNoise
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.device import Device
+from spectrumlab.emulations.emulators import AbstractEmulator
+from spectrumlab.emulations.line import Line
+from spectrumlab.emulations.noise import EmittedSpectrumNoise
 from spectrumlab.emulations.spectrum import EmittedSpectrum
 from spectrumlab.picture.color import COLOR
 from spectrumlab.types import Array, MicroMeter, Number, Percent
@@ -42,8 +42,7 @@ class EmittedSpectrumEmulationConfig:
     dx: MicroMeter = field(default=.01)  # шаг сетки интерполяции
 
 
-class EmittedSpectrumEmulation(AbstractEmulation):
-    """Emitted spectrum emulation."""
+class EmittedSpectrumEmulator(AbstractEmulator):
 
     def __init__(self, config: EmittedSpectrumEmulationConfig):
         self.config = config
@@ -66,7 +65,6 @@ class EmittedSpectrumEmulation(AbstractEmulation):
         self._number = None
         self._intensity = None
 
-    # --------        noise        --------
     @property
     def noise(self) -> EmittedSpectrumNoise:
         if self._noise is None:
@@ -74,15 +72,6 @@ class EmittedSpectrumEmulation(AbstractEmulation):
 
         return self._noise
 
-    def _get_noise(self) -> EmittedSpectrumNoise:
-        config = self.config
-
-        return EmittedSpectrumNoise(
-            detector=config.detector,
-            n_frames=config.spectrum.n_frames,
-        )
-
-    # --------        number        --------
     @property
     def number(self) -> Array[Number]:
         if self._number is None:
@@ -90,15 +79,6 @@ class EmittedSpectrumEmulation(AbstractEmulation):
 
         return self._number
 
-    def _get_number(self) -> Array[Number]:
-        config = self.config
-
-        n_numbers = config.spectrum.n_numbers
-        number = np.arange(n_numbers)
-
-        return number
-
-    # --------        intensity        --------
     @property
     def x_grid(self) -> Array[MicroMeter]:
         if self._x_grid is None:
@@ -154,6 +134,96 @@ class EmittedSpectrumEmulation(AbstractEmulation):
 
         return self._y_grid
 
+    @property
+    def intensity(self) -> Array[Percent]:
+        if self._intensity is None:
+            raise Exception('setup the emulation before!')
+
+        return self._intensity
+
+    def setup(
+            self,
+            position: Number | Array[Number],
+            concentration: float | Array[float],
+            environment: Array[Percent] | None = None,
+            show: bool = False,
+            ylim: tuple[float, float] | None = None,
+            ) -> 'AbstractEmulator':
+        """Setup emulation of emitted spectrum."""
+        self.position = position
+        self.concentration = concentration
+
+        # setup intensity
+        self._intensity = self._setup_intensity(
+            position=position,
+            concentration=concentration,
+            show=show,
+            ylim=ylim,
+        )
+
+        # add spectral environment
+        if isinstance(environment, np.ndarray):
+            assert (environment.ndim == 1) and (environment.shape[-1] == self.config.spectrum.n_numbers)
+            self._intensity += environment
+
+        #
+        return self
+
+    def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> EmittedSpectrum:
+        """Run emulation."""
+        config = self.config
+        detector = config.detector
+
+        if random_state is not None:
+            np.random.seed(random_state)
+
+        spectrum = emitted_spectrum_factory(
+            number=self.number,
+            intensity=self.intensity,
+            noise=self.noise,
+            detector=detector,
+            is_noised=is_noised,
+            is_clipped=is_clipped,
+        )
+
+        if show:
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
+
+            if spectrum.intensity.ndim == 1:
+                y2 = spectrum.intensity
+            else:
+                y2 = spectrum.intensity[0]
+
+            plt.fill_between(
+                spectrum.number,
+                y1=config.background_level,
+                y2=y2,
+                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label='paek',
+            )
+
+            plt.xlabel(r'number')
+            plt.ylabel(r'$I$ [$\%$]')
+            plt.grid(color='grey', linestyle=':')
+            plt.show()
+
+        return spectrum
+
+    def _get_number(self) -> Array[Number]:
+        config = self.config
+
+        n_numbers = config.spectrum.n_numbers
+        number = np.arange(n_numbers)
+
+        return number
+
+    def _get_noise(self) -> EmittedSpectrumNoise:
+        config = self.config
+
+        return EmittedSpectrumNoise(
+            detector=config.detector,
+            n_frames=config.spectrum.n_frames,
+        )
+
     def _get_intensity(self, number: Array, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> Array[Percent]:
         config = self.config
         detector = config.detector
@@ -183,7 +253,6 @@ class EmittedSpectrumEmulation(AbstractEmulation):
 
         intensity += background
 
-        # show
         if show:
             plt.figure(figsize=(6, 4))
 
@@ -220,7 +289,6 @@ class EmittedSpectrumEmulation(AbstractEmulation):
 
             plt.show()
 
-        # return intensity
         return intensity
 
     def _setup_intensity(self, position: Number | Array[Number], concentration: float | Array[float],  show: bool = False, ylim: tuple[float, float] | None = None) -> Array[Percent]:
@@ -245,93 +313,14 @@ class EmittedSpectrumEmulation(AbstractEmulation):
 
         return self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
 
-    @property
-    def intensity(self) -> Array[Percent]:
-        if self._intensity is None:
-            raise Exception('setup the emulation before!')
 
-        return self._intensity
-
-    # --------        handlers        --------
-    def setup(
-            self,
-            position: Number | Array[Number],
-            concentration: float | Array[float],
-            environment: Array[Percent] | None = None,
-            show: bool = False,
-            ylim: tuple[float, float] | None = None,
-            ) -> 'AbstractEmulation':
-        """Setup emulation of emitted spectrum."""
-        self.position = position
-        self.concentration = concentration
-
-        # setup intensity
-        self._intensity = self._setup_intensity(
-            position=position,
-            concentration=concentration,
-            show=show,
-            ylim=ylim,
-        )
-
-        # add spectral environment
-        if isinstance(environment, np.ndarray):
-            assert (environment.ndim == 1) and (environment.shape[-1] == self.config.spectrum.n_numbers)
-            self._intensity += environment
-
-        #
-        return self
-
-    def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> EmittedSpectrum:
-        """Run emulation."""
-        config = self.config
-        detector = config.detector
-
-        # set random state
-        if random_state is not None:
-            np.random.seed(random_state)
-
-        # init spectrum
-        spectrum = emulate_emitted_spectrum(
-            number=self.number,
-            intensity=self.intensity,
-            noise=self.noise,
-            detector=detector,
-            is_noised=is_noised,
-            is_clipped=is_clipped,
-        )
-
-        # show spectrum
-        if show:
-            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
-
-            if spectrum.intensity.ndim == 1:
-                y2 = spectrum.intensity
-            else:
-                y2 = spectrum.intensity[0]
-
-            plt.fill_between(
-                spectrum.number,
-                y1=config.background_level,
-                y2=y2,
-                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label='paek',
-            )
-
-            plt.xlabel(r'number')
-            plt.ylabel(r'$I$ [$\%$]')
-            plt.grid(color='grey', linestyle=':')
-            plt.show()
-
-        # return spectrum
-        return spectrum
-
-
-# --------        handlers        --------
 def convolve(
-        x: Array[Number],
-        apparatus: Callable[[Array[MicroMeter]], Array[float]],
-        aperture: Callable[[Array[MicroMeter]], Array[float]],
-        pitch: MicroMeter,
-        ) -> Callable[[Array[Number]], Array[float]]:
+    x: Array[Number],
+    apparatus: Callable[[Array[MicroMeter]], Array[float]],
+    aperture: Callable[[Array[MicroMeter]], Array[float]],
+    pitch: MicroMeter,
+) -> Callable[[Array[Number]], Array[float]]:
+
     return interpolate.interp1d(
         x,
         signal.convolve(pitch*apparatus(x*pitch), pitch*aperture(x*pitch), mode='same') * (x[-1] - x[0])/(len(x) + 1),
@@ -341,29 +330,26 @@ def convolve(
     )
 
 
-def emulate_emitted_spectrum(
-        number: Array[Number],
-        intensity: Array[Percent],
-        noise: EmittedSpectrumNoise,
-        detector: Detector,
-        is_noised: bool = True,
-        is_clipped: bool = True,
-        ) -> EmittedSpectrum:
+def emitted_spectrum_factory(
+    number: Array[Number],
+    intensity: Array[Percent],
+    noise: EmittedSpectrumNoise,
+    detector: Detector,
+    is_noised: bool = True,
+    is_clipped: bool = True,
+) -> EmittedSpectrum:
     """Fabric to emulate emitted spectrum."""
+    clipped = np.full(intensity.shape, False)
 
-    # add noise
     if is_noised:
         values = noise(intensity)*np.random.randn(*intensity.shape)
         intensity = intensity + values
 
-    # add clipping
-    clipped = np.full(intensity.shape, False)
     if is_clipped:
         cond = intensity >= 100
         clipped[cond] = True
         intensity[cond] = 100
 
-    # return spectrum
     return EmittedSpectrum(
         number=number,
         deviation=noise(intensity),
@@ -374,18 +360,18 @@ def emulate_emitted_spectrum(
 
 
 if __name__ == '__main__':
-    from spectrumlab.emulations.apertures import RectangularApertureShape
+    from spectrumlab.emulations.aperture import RectangularApertureShape
     from spectrumlab.emulations.apparatus import VoigtApparatusShape
 
-    # device
+    # select a device
     device = Device.COLIBRI2
     dispersion = device.config.dispersion
 
-    # detector
+    # select a detector
     detector = Detector.BLPP2000
 
-    # emulation
-    emulation = EmittedSpectrumEmulation(
+    # setup emulation
+    emulation = EmittedSpectrumEmulator(
         config=EmittedSpectrumEmulationConfig(
             device=device,
             detector=detector,
@@ -417,7 +403,7 @@ if __name__ == '__main__':
         show=True,
     )
 
-    # spectrum
+    # emulate spectrum
     spectrum = emulation.run(
         random_state=42,
         show=True,

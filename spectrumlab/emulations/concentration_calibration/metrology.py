@@ -3,7 +3,7 @@ from typing import Literal, TypeAlias
 import numpy as np
 
 from spectrumlab.concentration_calibration import DynamicRange, Intercept, LOL, LOQ, Slope
-from spectrumlab.emulations.emulations import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
+from spectrumlab.emulations.emulators import AbsorbedSpectrumEmulator, EmittedSpectrumEmulator, Emulation
 from spectrumlab.emulations.intensity import calculate_intensity
 from spectrumlab.peak.intensity import AbstractIntensityCalculator
 
@@ -64,7 +64,7 @@ def estimate_blank_deviation(emulation: Emulation, calculator: AbstractIntensity
 # --------        dynamic range        --------
 def estimate_dynamic_range(emulation: Emulation, coeff: tuple[Intercept, Slope], loq: LOQ, lol: LOL, k: float = 3) -> DynamicRange:
 
-    if isinstance(emulation, EmittedSpectrumEmulation):
+    if isinstance(emulation, EmittedSpectrumEmulator):
         # n_numbers = emulation.config.spectrum.n_numbers
         # config = emulation.config
         # emulation = emulation.setup(position=n_numbers//2, concentration=1)
@@ -90,7 +90,7 @@ def estimate_dynamic_range(emulation: Emulation, coeff: tuple[Intercept, Slope],
             coeff=coeff,
         )
 
-    if isinstance(emulation, AbsorbedSpectrumEmulation):
+    if isinstance(emulation, AbsorbedSpectrumEmulator):
         lb = loq.intensity
         ub = lol.intensity
 

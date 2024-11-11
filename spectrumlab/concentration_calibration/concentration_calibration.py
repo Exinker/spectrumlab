@@ -22,7 +22,6 @@ class AbstractConcentrationCalibration(abc.ABC):
     def coeff(self) -> tuple[Intercept, Slope]:
         raise NotImplementedError
 
-    # --------        handlers        --------
     @abc.abstractmethod
     def fit(self, intensity: Series, concentration: Series):
         raise NotImplementedError
@@ -56,7 +55,6 @@ class AbstractConcentrationCalibration(abc.ABC):
             columns=data.columns,
         )
 
-    # --------        private        --------
     @abc.abstractmethod
     def _get_filename(self, extension: Literal['png', 'txt']) -> str:
         raise NotImplementedError
@@ -147,7 +145,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
 
         return self._dynamic_range
 
-    # --------        handlers        --------
     def fit(self):
 
         # fit
@@ -211,7 +208,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
             alpha=ALPHA['probe'],
         )
 
-        # show
         fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True)
 
         title = ''
@@ -336,13 +332,11 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         #
         plt.show()
 
-    # --------        private        --------
     def _get_filename(self, content: str, extension: Literal['png', 'txt']):
 
         return f'concentration_calibration ({content}).{extension}'
 
 
-# --------        handlers        --------
 def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool = False) -> ConcentrationCalibration:
 
     # blank

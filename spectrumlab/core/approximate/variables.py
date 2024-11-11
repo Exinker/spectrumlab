@@ -32,7 +32,6 @@ class AbstractVariables(Mapping):
     def value(self) -> tuple[float] | tuple[None]:
         return tuple(self._items[key].value for key in self.keys())
 
-    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
 

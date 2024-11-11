@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 from spectrumlab.concentration_calibration import calibrate  # noqa: I100
 from spectrumlab.emulations.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulations.emulations import EmittedSpectrumEmulation
-from spectrumlab.emulations.noises import EmittedSpectrumNoise
+from spectrumlab.emulations.emulators import EmittedSpectrumEmulator
+from spectrumlab.emulations.noise import EmittedSpectrumNoise
 from spectrumlab.emulations.spectrum import Spectrum
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line import Line
@@ -20,7 +20,7 @@ from spectrumlab.types import Frame
 
 
 @pytest.fixture(scope='module')
-def spectra(config: ExperimentConfig, emulation: EmittedSpectrumEmulation) -> Frame:
+def spectra(config: ExperimentConfig, emulation: EmittedSpectrumEmulator) -> Frame:
 
     spectra = pd.DataFrame(
         data={'spectrum': None, 'concentration': None},

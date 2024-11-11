@@ -21,7 +21,6 @@ class DetectorConfig:
     transmittance: AbstractCharacteristic
     description: str = field(default='')
 
-    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
         name = self.name
@@ -84,7 +83,6 @@ class Detector(Enum):
     def config(self) -> DetectorConfig:
         return self.value
 
-    # --------        handlers        --------
     def responce(self, x: Array[Meter], fill_value: float = np.nan) -> Array[float]:
         config = self.config
 
@@ -132,7 +130,6 @@ class Detector(Enum):
         if not fill:
             plt.show()
 
-    # --------        private        --------
     def __str__(self) -> str:
         cls = self.__class__
         name = self.config.name

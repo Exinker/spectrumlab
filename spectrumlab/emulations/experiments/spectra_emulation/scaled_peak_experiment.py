@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.emulations import convolve
+from spectrumlab.emulations.emulators import convolve
 from spectrumlab.emulations.experiments.spectra_emulation.experiment import AbstractExperiment, AbstractExperimentConfig
 
 

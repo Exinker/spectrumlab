@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 
 from spectrumlab.types import Array, MicroMeter
-from spectrumlab.emulations.apertures import Aperture, ApertureShape, RectangularApertureShape   # noqa: I100
-from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.aperture import Aperture, ApertureShape, RectangularApertureShape   # noqa: I100
+from spectrumlab.emulations.detector import Detector
 
 
 @dataclass

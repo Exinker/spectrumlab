@@ -10,12 +10,12 @@ import warnings
 from configparser import ConfigParser
 from dataclasses import dataclass, field
 
-from spectrumlab.emulations.apertures import Aperture, RectangularApertureShape
+from spectrumlab.emulations.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.devices import Device
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.device import Device
 from spectrumlab.emulations.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator
-from spectrumlab.emulations.lines import Line, PVoigtLineShape
+from spectrumlab.emulations.line import Line, PVoigtLineShape
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.types import DirPath
 
@@ -222,7 +222,6 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
         )
 
 
-# --------        private        --------
 def _parse_device(parser: ConfigParser) -> Device:
     """Get device type."""
     kind = parser.get('device', 'kind')

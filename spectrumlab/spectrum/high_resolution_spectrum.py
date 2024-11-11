@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.detector import Detector
 from spectrumlab.grid import Grid
 from spectrumlab.spectrum import AbstractSpectrum, EmittedSpectrum
 from spectrumlab.types import Array, MicroMeter, NanoMeter, Number
@@ -91,7 +91,6 @@ class HighResolutionSpectrum(AbstractSpectrum):
             detector=spectrum.detector,
         )
 
-    # --------        handlers        --------
     def show(self):
         detector = self.detector
         grid = self.grid
@@ -119,11 +118,11 @@ class HighResolutionSpectrum(AbstractSpectrum):
 
 
 if __name__ == '__main__':
-    from spectrumlab.emulations.apertures import Aperture, RectangularApertureShape
+    from spectrumlab.emulations.aperture import Aperture, RectangularApertureShape
     from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
-    from spectrumlab.emulations.detectors import Detector
-    from spectrumlab.emulations.devices import Device
-    from spectrumlab.emulations.emulations import fetch_emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
+    from spectrumlab.emulations.detector import Detector
+    from spectrumlab.emulations.device import Device
+    from spectrumlab.emulations.emulators import fetch_emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
 
     import warnings
     warnings.filterwarnings('ignore')

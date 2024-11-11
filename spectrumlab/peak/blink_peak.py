@@ -4,7 +4,7 @@ from typing import Iterator, Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.noises import Noise
+from spectrumlab.emulations.noise import Noise
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.types import Number
 
@@ -103,7 +103,6 @@ class BlinkPeak(AbstractPeak):
         self.amplitude = amplitude
         self.deviation = deviation
 
-    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
 

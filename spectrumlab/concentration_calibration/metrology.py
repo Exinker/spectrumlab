@@ -3,7 +3,7 @@ from typing import Mapping, NewType
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.emulations.emulations import AbsorbedSpectrumEmulation, EmittedSpectrumEmulation, Emulation
+from spectrumlab.emulations.emulators import AbsorbedSpectrumEmulator, EmittedSpectrumEmulator, Emulation
 from spectrumlab.types import Frame
 
 
@@ -28,7 +28,6 @@ class AbstractLimit:
 
         return 10**((np.log10(self.intensity) - intercept) / slope)
 
-    # --------        private        --------
     def __repr__(self) -> str:
         cls = self.__class__
         return f'{cls.__name__}({self.concentration})'
@@ -203,7 +202,7 @@ def estimate_dynamic_range(emulation: Emulation, unicorn: Frame, coeff: tuple[fl
     config = emulation.config
 
     #
-    if isinstance(emulation, EmittedSpectrumEmulation):
+    if isinstance(emulation, EmittedSpectrumEmulator):
         emulation = emulation.setup(position=n_numbers//2, concentration=1)
         B = config.background_level  # noqa: N806
         k = 3
@@ -226,7 +225,7 @@ def estimate_dynamic_range(emulation: Emulation, unicorn: Frame, coeff: tuple[fl
             ub=ub,
         )
 
-    if isinstance(emulation, AbsorbedSpectrumEmulation):
+    if isinstance(emulation, AbsorbedSpectrumEmulator):
         lb = loq.to_concentration(coeff=coeff)
         ub = estimate_lol(
             unicorn=unicorn,

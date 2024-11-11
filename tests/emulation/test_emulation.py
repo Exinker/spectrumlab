@@ -3,10 +3,10 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytest
 
-from spectrumlab.emulations.apertures import Aperture, RectangularApertureShape
+from spectrumlab.emulations.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.emulations import convolve
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.emulators import convolve
 from spectrumlab.peak.shape import VoigtPeakShape
 from spectrumlab.types import Array, MicroMeter
 

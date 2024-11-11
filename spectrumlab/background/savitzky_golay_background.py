@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.background import AbstractBackground, AbstractBackgroundConfig
-from spectrumlab.emulations.noises import Noise
+from spectrumlab.emulations.noise import Noise
 from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.spectrum import Spectrum
 from spectrumlab.types import Array, Number
@@ -54,7 +54,6 @@ class SavitzkyGolayBackground(AbstractBackground):
 
         return self._background
 
-    # --------        handlers        --------
     def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Spectrum:
 
         self._fit_mask(
@@ -93,7 +92,6 @@ class SavitzkyGolayBackground(AbstractBackground):
             detector=spectrum.detector,
         )
 
-    # --------        private        --------
     def _fit_mask(self, spectrum: Spectrum, noise: Noise, show: bool) -> None:
 
         # mask
@@ -123,7 +121,6 @@ class SavitzkyGolayBackground(AbstractBackground):
                 if ~mask[t-1, n] and ~mask[t+1, n]:
                     mask[t, n] = False
 
-        # show
         if show:
             fig, ax = plt.subplots(figsize=(18, 4), tight_layout=True)
 
@@ -166,7 +163,6 @@ class SavitzkyGolayBackground(AbstractBackground):
         self._width = width
 
 
-# --------        handlers        --------
 def filter_savitzky_golay(intensity: Array[float], mask: Array[bool], n_counts_min: int, width_max: Number) -> Callable[[Number, float, int], float]:
     """Filter `intensity` by Savitzky-Gloay algorithm."""
     n_numbers = len(intensity)

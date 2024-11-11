@@ -4,7 +4,7 @@ from typing import TypeAlias, overload
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.detector import Detector
 from spectrumlab.picture.colormap import Colormap, fetch_cmap
 from spectrumlab.types import Array, NanoMeter, Number
 
@@ -263,7 +263,6 @@ class AbsorbedSpectrum(AbstractSpectrum):
             ):
         super().__init__(intensity=intensity, wavelength=wavelength, number=number, deviation=deviation, clipped=clipped, detector=detector)
 
-    # --------        handlers        --------
     def show(self, ax: plt.Axes | None = None, figsize: tuple[float, float] = (6, 4), cmap: Colormap | None = None, clim: tuple[float, float] | None = None) -> None:
         is_filling = ax is not None
         cmap = cmap or fetch_cmap(kind='absorption')
@@ -303,6 +302,5 @@ class AssemblySpectrum:
     def __init__(self, items: tuple[Spectrum]):
         self.items = items
 
-    # --------        handlers        --------
     def select(self, index: int) -> Spectrum:
         return self.items[index]

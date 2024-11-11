@@ -9,7 +9,7 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.emulations.curves import pvoigt, rectangular
-from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.detector import Detector
 from spectrumlab.grid import Grid
 from spectrumlab.picture.color import COLOR
 from spectrumlab.types import Array, MicroMeter, Number
@@ -179,7 +179,6 @@ class Aperture:
     def pitch(self) -> MicroMeter:
         return self.detector.pitch
 
-    # --------        handlers        --------
     def show(self, rx: MicroMeter = 100, dx: MicroMeter = .01, units: Number | MicroMeter = Number) -> None:
         scale = {
             Number: self.pitch,
@@ -242,7 +241,6 @@ class Aperture:
 
         plt.show()
 
-    # --------        private        --------
     def __call__(self, x: MicroMeter | Array[MicroMeter], n: Number = 0) -> Array[float]:
         return self.shape(x/self.pitch, n=n)/self.pitch
 

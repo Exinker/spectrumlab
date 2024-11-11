@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from spectrumlab.concentration_calibration import AbstractConcentrationCalibration, Intercept, LOD, LOL, LOQ, Slope, estimate_lol  # noqa: I100
-from spectrumlab.emulations.emulations import Emulation
+from spectrumlab.emulations.emulators import Emulation
 from spectrumlab.emulations.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator, calculate_deviation, calculate_intensity
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.picture.alpha import ALPHA
@@ -111,7 +111,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
 
         return self._dynamic_range
 
-    # --------        handlers        --------
     def setup(self, position: Number, concentrations: tuple[float]):
         """Setup emulation of concentration calibration"""
         self._position = position
@@ -128,7 +127,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         position = self.position
         concentrations = self.concentrations
 
-        # set random state
         if random_state is not None:
             np.random.seed(random_state)
 
@@ -205,7 +203,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
             print(self.lod)
             print(self.dynamic_range)
 
-        # show
         if show:
             self.show()
 
@@ -213,7 +210,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         if write:
             self.write()
 
-        # return self
         return self
 
     def fit(self):
@@ -309,7 +305,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
             alpha=ALPHA['probe'],
         )
 
-        # show
         fig, (ax_left, ax_mid, ax_right) = plt.subplots(ncols=3, figsize=(15, 15/3), sharex=True, tight_layout=True)
 
         title = ''
@@ -485,7 +480,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
             columns=data.columns,
         )
 
-    # --------        private        --------
     def _get_filename(self, emulation: Emulation, extension: Literal['png', 'txt']):
         emulation = self.emulation
 

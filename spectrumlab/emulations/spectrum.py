@@ -11,7 +11,7 @@ from typing import overload
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.detector import Detector
 from spectrumlab.spectrum import AbstractSpectrum
 from spectrumlab.types import Absorbance, Array, Electron, MilliSecond, NanoMeter, Number, Percent
 

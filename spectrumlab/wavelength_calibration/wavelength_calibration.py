@@ -26,7 +26,6 @@ class AbstractWavelengthCalibration(abc.ABC):
 
         return self._coeff
 
-    # --------        handlers        --------
     @abc.abstractmethod
     def fit(self, number: Array[Number], wavelength: Array[NanoMeter]) -> 'AbstractWavelengthCalibration':
         raise NotImplementedError
@@ -40,14 +39,12 @@ class WavelengthCalibration(AbstractWavelengthCalibration):
     def __init__(self, deg: int) -> None:
         super().__init__(deg=deg)
 
-    # --------        handlers        --------
     def fit(self, number: Array[Number], wavelength: Array[NanoMeter]) -> 'WavelengthCalibration':
         self._coeff = np.polyfit(number, wavelength, deg=self.deg)
 
         return self
 
 
-# --------        handlers        --------
 def interpolate(spectrum: Spectrum, deg: int = 2) -> Callable[[Array[Number]], Array[NanoMeter]]:
     p = np.polyfit(spectrum.number, spectrum.wavelength, deg=deg)
 

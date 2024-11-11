@@ -4,15 +4,14 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.emulations import EmittedSpectrumEmulation, EmittedSpectrumEmulationConfig, emulate_emitted_spectrum
-from spectrumlab.emulations.noises import EmittedSpectrumNoise
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.emulators import EmittedSpectrumEmulator, EmittedSpectrumEmulationConfig, emitted_spectrum_factory
+from spectrumlab.emulations.noise import EmittedSpectrumNoise
 from spectrumlab.emulations.spectrum import AbsorbedSpectrum, EmittedSpectrum, HighDynamicRangeEmittedSpectrum
 from spectrumlab.picture.color import COLOR
 from spectrumlab.types import Array, MilliSecond
 
 
-# --------        HDR emission emulation        --------
 @dataclass(frozen=True, slots=True)
 class _HighDynamicRangeMode:
     total: MilliSecond  # total exposure time
@@ -39,51 +38,75 @@ class _HighDynamicRangeMode:
                 yield n_frames, tau
 
 
-@dataclass(frozen=True, slots=True)
-class HighDynamicRangeMode:
-    total: MilliSecond  # total exposure time
-    n_frames: tuple[int, ...]  # tuple of n_frames of the each exposure
-    tau: tuple[MilliSecond, ...]  # tuple of exposures
-    method: Literal['naive', 'weighted'] = 'weighted'
+def mode_factory(
+    total: MilliSecond,
+    n_frames: tuple[int, ...],
+    tau: tuple[MilliSecond, ...],
+    method: Literal['naive', 'weighted'] = 'weighted',
+    tol=1e-9,
+) -> 'HighDynamicRangeMode':
 
-    # --------        handlers        --------
+    expected = sum([n * t for n, t in zip(n_frames, tau)])
+    assert abs(total - expected) <= tol, 'Total time is not equal to expected!'
+
+    return HighDynamicRangeMode(
+        total=total,
+        n_frames=n_frames,
+        tau=tau,
+        method=method,
+    )
+
+
+class HighDynamicRangeMode:
+
+    create = mode_factory
+
+    def __init__(
+        self,
+        total: MilliSecond,  # total exposure time
+        n_frames: tuple[int, ...],  # tuple of n_frames of the each exposure
+        tau: tuple[MilliSecond, ...],  # tuple of exposures
+        method: Literal['naive', 'weighted'] = 'weighted',
+    ) -> None:
+        self.total = total
+        self.n_frames = n_frames
+        self.tau = tau
+        self.method = method
+
     def items(self) -> tuple[int, MilliSecond]:
         """Generate tuples of n_frames and tau."""
 
         for n_frames, tau in zip(self.n_frames, self.tau):
             yield n_frames, tau
 
-    # --------        private        --------
-    def __post_init__(self):
-        assert self._validate(), f'{self} is not valid!'
 
-    def _validate(self, tol=1e-9) -> bool:
-        """Validate mode to equal total exposure time and expected."""
-        total = sum([n_frames * tau for n_frames, tau in self.items()])
-
-        return abs(total - self.total) <= tol
-
-
-class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
+class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulator):
     """High dynamic range (HDR) emitted spectrum emulation."""
 
-    def __init__(self, config: EmittedSpectrumEmulationConfig, mode: HighDynamicRangeMode):
+    def __init__(
+        self,
+        config: EmittedSpectrumEmulationConfig,
+        mode: HighDynamicRangeMode,
+    ) -> None:
         super().__init__(config=config)
 
         self.mode = mode
 
-    # --------        handlers        --------
-    def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> HighDynamicRangeEmittedSpectrum:
+    def run(
+        self,
+        is_noised: bool = True,
+        is_clipped: bool = True,
+        show: bool = False,
+        random_state: int | None = None,
+    ) -> HighDynamicRangeEmittedSpectrum:
         """Run emulation."""
         config = self.config
         detector = config.detector
 
-        # set random state
         if random_state is not None:
             np.random.seed(random_state)
 
-        # init spectrum
-        spectrum = emulate_hdr_emitted_spectrum(
+        spectrum = hdr_emitted_spectrum_factory(
             mode=self.mode,
             number=self.number,
             intensity=self.intensity,
@@ -92,7 +115,6 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
             is_clipped=is_clipped,
         )
 
-        # show spectrum
         if show:
             fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
 
@@ -116,16 +138,21 @@ class HighDynamicRangeEmittedSpectrumEmulation(EmittedSpectrumEmulation):
             plt.grid(color='grey', linestyle=':')
             plt.show()
 
-        # return spectrum
         return spectrum
 
 
-# --------        handlers        --------
-def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, intensity: Array, detector: Detector, is_noised: bool = True, is_clipped: bool = True) -> HighDynamicRangeEmittedSpectrum:
+def hdr_emitted_spectrum_factory(
+    mode: HighDynamicRangeMode,
+    number: Array,
+    intensity: Array,
+    detector: Detector,
+    is_noised: bool = True,
+    is_clipped: bool = True,
+) -> HighDynamicRangeEmittedSpectrum:
 
     shorts = {}
     for n_frames, tau in mode.items():
-        spe = emulate_emitted_spectrum(
+        spe = emitted_spectrum_factory(
             number=number,
             intensity=tau*intensity,
             noise=EmittedSpectrumNoise(
@@ -138,7 +165,6 @@ def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, inte
         )
         shorts[tau] = spe
 
-    #
     spectrum = HighDynamicRangeEmittedSpectrum(
         number=number,
         shorts=shorts,
@@ -146,5 +172,4 @@ def emulate_hdr_emitted_spectrum(mode: HighDynamicRangeMode, number: Array, inte
         detector=detector,
     )
 
-    # return spectrum
     return spectrum

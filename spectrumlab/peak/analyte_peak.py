@@ -5,7 +5,7 @@ import numpy as np
 from scipy import interpolate
 
 from spectrumlab.concentration_calibration import ConcentrationCalibration
-from spectrumlab.emulations.noises import Noise
+from spectrumlab.emulations.noise import Noise
 from spectrumlab.grid import InterpolationKind
 from spectrumlab.line.line import Line
 from spectrumlab.picture.color import COLOR
@@ -98,7 +98,6 @@ class FactoryAnalytePeak:
         if verbose:
             print(peak)
 
-        # show
         if show:
             peak.show(verbose=True)
 
@@ -373,7 +372,6 @@ class AnalytePeak(AbstractPeak):
         if not is_filling:
             plt.show()
 
-# --------        private        --------
     def __repr__(self):
         cls = self.__class__
 

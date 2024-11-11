@@ -8,12 +8,12 @@ Emitted and absorbed spectrum emulation.
 """
 import abc
 
-from spectrumlab.emulations.noises import Noise
+from spectrumlab.emulations.noise import Noise
 from spectrumlab.emulations.spectrum import Spectrum
 from spectrumlab.types import Array, Number, Percent
 
 
-class AbstractEmulation(abc.ABC):
+class AbstractEmulator(abc.ABC):
     """Abstract type to any spectrum emulations."""
 
     @property
@@ -31,9 +31,8 @@ class AbstractEmulation(abc.ABC):
     def intensity(self) -> Array[Percent]:
         raise NotImplementedError
 
-    # --------        handlers        --------
     @abc.abstractmethod
-    def setup(self, number: Array[Number], position: Number, concentration: float) -> 'AbstractEmulation':
+    def setup(self, number: Array[Number], position: Number, concentration: float) -> 'AbstractEmulator':
         """Setup emulation of spectrum."""
         raise NotImplementedError
 

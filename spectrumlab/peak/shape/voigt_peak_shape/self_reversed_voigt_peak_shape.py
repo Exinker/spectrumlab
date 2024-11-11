@@ -83,7 +83,6 @@ class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
             (0, self.re),
         ])
 
-    # --------        private        --------
     @overload
     def __call__(self, x: Number, position: Number, intensity: float, background: float = 0, effect: float = 0) -> U: ...
     @overload
@@ -182,7 +181,6 @@ class SelfReversedVoigtPeakShape(AbstractPeakShape, InterfaceApprox):
             (0, self.MAX_EFFECT),
         ])
 
-    # --------        private        --------
     @overload
     def __call__(self, x: Number, position: Number, intensity: float, background: float = 0, effect: float = 0, **kwargs) -> U: ...
     @overload

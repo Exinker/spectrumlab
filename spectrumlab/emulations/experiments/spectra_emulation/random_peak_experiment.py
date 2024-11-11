@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-from spectrumlab.emulations.emulations import convolve
+from spectrumlab.emulations.emulators import convolve
 from spectrumlab.emulations.experiments.spectra_emulation.experiment import AbstractExperiment, AbstractExperimentConfig
 from spectrumlab.line import Line
 from spectrumlab.picture.color import COLOR

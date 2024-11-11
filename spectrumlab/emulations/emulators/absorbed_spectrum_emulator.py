@@ -4,14 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, interpolate, signal
 
-from spectrumlab.emulations.apertures import Aperture
+from spectrumlab.emulations.aperture import Aperture
 from spectrumlab.emulations.apparatus import Apparatus
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.devices import Device
-from spectrumlab.emulations.emulations import AbstractEmulation, SpectrumConfig, emulate_emitted_spectrum
-from spectrumlab.emulations.lines import Line
-from spectrumlab.emulations.noises import EmittedSpectrumNoise
-from spectrumlab.emulations.noises.absorbed_spectrum_noise import AbsorbedSpectrumNoise, calculate_absorbance_deviation, calculate_squared_relative_standard_deviation
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.device import Device
+from spectrumlab.emulations.emulators import AbstractEmulator, SpectrumConfig, emitted_spectrum_factory
+from spectrumlab.emulations.line import Line
+from spectrumlab.emulations.noise import EmittedSpectrumNoise
+from spectrumlab.emulations.noise.absorbed_spectrum_noise import AbsorbedSpectrumNoise, calculate_absorbance_deviation, calculate_squared_relative_standard_deviation
 from spectrumlab.emulations.spectrum import AbsorbedSpectrum, EmittedSpectrum
 from spectrumlab.picture.color import COLOR
 from spectrumlab.types import Absorbance, Array, MicroMeter, Number, Percent
@@ -24,7 +24,7 @@ class SpectrumBaseConfig:
 
 
 @dataclass
-class AbsorbedSpectrumEmulationConfig:
+class AbsorbedSpectrumEmulatorConfig:
     device: Device
     detector: Detector
 
@@ -44,10 +44,9 @@ class AbsorbedSpectrumEmulationConfig:
     dx: MicroMeter = field(default=.01)  # шаг сетки интерполяции
 
 
-class AbsorbedSpectrumEmulation(AbstractEmulation):
-    """Absorbed spectrum emulation."""
+class AbsorbedSpectrumEmulator(AbstractEmulator):
 
-    def __init__(self, config: AbsorbedSpectrumEmulationConfig):
+    def __init__(self, config: AbsorbedSpectrumEmulatorConfig):
         self.config = config
 
         self.detector = config.detector
@@ -62,13 +61,90 @@ class AbsorbedSpectrumEmulation(AbstractEmulation):
         self._number = None
         self._intensity = None
 
-    # --------        noise        --------
     @property
     def noise(self) -> AbsorbedSpectrumNoise:
         if self._noise is None:
             self._noise = self._get_noise()
 
         return self._noise
+
+    @property
+    def number(self) -> Array:
+        if self._number is None:
+            self._number = self._get_number()
+
+        return self._number
+
+    @property
+    def intensity(self) -> Array:
+        if self._intensity is None:
+            raise Exception('setup the emulation before!')
+
+        return self._intensity
+
+    def setup(
+        self,
+        position: Number,
+        concentration: float,
+        show: bool = False,
+        ylim: tuple[float, float] | None = None,
+    ) -> 'AbsorbedSpectrumEmulator':
+        """Setup emulation of absorbed spectrum."""
+        self.position = position
+        self.concentration = concentration
+
+        self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
+
+        return self
+
+    def run(
+        self,
+        is_noised: bool = True,
+        is_clipped: bool = True,
+        show: bool = False,
+        random_state: int | None = None,
+    ) -> AbsorbedSpectrum:
+        """Run emulation."""
+        config = self.config
+
+        if random_state is not None:
+            np.random.seed(random_state)
+
+        spectrum = absorbed_spectrum_factory(
+            number=self.number,
+            intensity=self.intensity,
+            noise=EmittedSpectrumNoise(
+                detector=config.detector,
+                n_frames=config.spectrum.n_frames,
+            ),
+            base_level=config.spectrum_base.level,
+            base_noise=EmittedSpectrumNoise(
+                detector=config.detector,
+                n_frames=config.spectrum_base.n_frames,
+            ),
+            detector=config.detector,
+            is_noised=is_noised,
+            is_clipped=is_clipped,
+        )
+
+        if show:
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
+
+            plt.fill_between(
+                spectrum.number,
+                y1=config.background_level,
+                y2=spectrum.intensity,
+                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label='paek',
+            )
+            plt.xlabel(r'number')
+            plt.ylabel({
+                EmittedSpectrum: r'$I$ [$\%$]',
+                AbsorbedSpectrum: r'$A$',
+            }.get(type(spectrum)))
+            plt.grid(color='grey', linestyle=':')
+            plt.show()
+
+        return spectrum
 
     def _get_noise(self) -> AbsorbedSpectrumNoise:
         config = self.config
@@ -86,14 +162,6 @@ class AbsorbedSpectrumEmulation(AbstractEmulation):
             base_noise=base_noise,
         )
 
-    # --------        number        --------
-    @property
-    def number(self) -> Array:
-        if self._number is None:
-            self._number = self._get_number()
-
-        return self._number
-
     def _get_number(self) -> Array:
         config = self.config
 
@@ -102,15 +170,14 @@ class AbsorbedSpectrumEmulation(AbstractEmulation):
 
         return number
 
-    # --------        intensity        --------
-    @property
-    def intensity(self) -> Array:
-        if self._intensity is None:
-            raise Exception('setup the emulation before!')
-
-        return self._intensity
-
-    def _get_intensity(self, number: Array, position: Number, concentration: float, show: bool = False, ylim: tuple[float, float] | None = None) -> Array:
+    def _get_intensity(
+        self,
+        number: Array,
+        position: Number,
+        concentration: float,
+        show: bool = False,
+        ylim: tuple[float, float] | None = None,
+    ) -> Array:
         config = self.config
         number = self.number
         line = self.line
@@ -164,11 +231,9 @@ class AbsorbedSpectrumEmulation(AbstractEmulation):
         intensity += S0  # add scattering radiation
         intensity += I0 * (1 - integrate.quad(lambda x: aperture(x, 0), -rx, +rx)[0])  # approximated aperture characteristics correction
 
-        # show
         if show:
             x = np.linspace(min(number)*detector.pitch, max(number)*detector.pitch, 1000)  # in MicroMeter
 
-            #
             plt.figure(figsize=(12, 4))
 
             # title = '\n'.join([
@@ -223,76 +288,9 @@ class AbsorbedSpectrumEmulation(AbstractEmulation):
             plt.tight_layout()
             plt.show()
 
-        # return intensity
         return intensity
 
-    # --------        handlers        --------
-    def setup(
-            self,
-            position: Number,
-            concentration: float,
-            show: bool = False,
-            ylim: tuple[float, float] | None = None,
-            ) -> 'AbstractEmulation':
-        """Setup emulation of absorbed spectrum."""
-        self.position = position
-        self.concentration = concentration
 
-        #
-        self._intensity = self._get_intensity(number=self.number, position=position, concentration=concentration, show=show, ylim=ylim)
-
-        #
-        return self
-
-    def run(self, is_noised: bool = True, is_clipped: bool = True, show: bool = False, random_state: int | None = None) -> AbsorbedSpectrum:
-        """Run emulation."""
-        config = self.config
-
-        # set random state
-        if random_state is not None:
-            np.random.seed(random_state)
-
-        # init spectrum
-        spectrum = emulate_absorbed_spectrum(
-            number=self.number,
-            intensity=self.intensity,
-            noise=EmittedSpectrumNoise(
-                detector=config.detector,
-                n_frames=config.spectrum.n_frames,
-            ),
-            base_level=config.spectrum_base.level,
-            base_noise=EmittedSpectrumNoise(
-                detector=config.detector,
-                n_frames=config.spectrum_base.n_frames,
-            ),
-            detector=config.detector,
-            is_noised=is_noised,
-            is_clipped=is_clipped,
-        )
-
-        # show spectrum
-        if show:
-            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4), tight_layout=True)
-
-            plt.fill_between(
-                spectrum.number,
-                y1=config.background_level,
-                y2=spectrum.intensity,
-                step='mid', alpha=0.2, facecolor=COLOR['pink'], edgecolor='k', label='paek',
-            )
-            plt.xlabel(r'number')
-            plt.ylabel({
-                EmittedSpectrum: r'$I$ [$\%$]',
-                AbsorbedSpectrum: r'$A$',
-            }.get(type(spectrum)))
-            plt.grid(color='grey', linestyle=':')
-            plt.show()
-
-        # return spectrum
-        return spectrum
-
-
-# --------        handlers        --------
 def calculate_absorbance(level, base_level, scattering_ratio=0):
     scattering_level = scattering_ratio * base_level
 
@@ -301,19 +299,18 @@ def calculate_absorbance(level, base_level, scattering_ratio=0):
     )
 
 
-def emulate_absorbed_spectrum(
-        number: Array,
-        intensity: Array,
-        noise: EmittedSpectrumNoise,
-        base_level: float,
-        base_noise: EmittedSpectrumNoise,
-        detector: Detector,
-        is_noised: bool = True,
-        is_clipped: bool = True,
-        ) -> AbsorbedSpectrum:
+def absorbed_spectrum_factory(
+    number: Array,
+    intensity: Array,
+    noise: EmittedSpectrumNoise,
+    base_level: float,
+    base_noise: EmittedSpectrumNoise,
+    detector: Detector,
+    is_noised: bool = True,
+    is_clipped: bool = True,
+) -> AbsorbedSpectrum:
 
-    # init base spectrum
-    spectrum_base = emulate_emitted_spectrum(
+    spectrum_base = emitted_spectrum_factory(
         number=number,
         intensity=np.full(number.shape, base_level),  # массив intensity - одномерный (так как получен путем n_frames накоплений)
         noise=base_noise,
@@ -321,9 +318,7 @@ def emulate_absorbed_spectrum(
         is_noised=is_noised,
         is_clipped=is_clipped,
     )
-
-    # init recorded spectrum
-    spectrum_recorded = emulate_emitted_spectrum(
+    spectrum_recorded = emitted_spectrum_factory(
         number=number,
         intensity=intensity,
         noise=noise,
@@ -332,7 +327,6 @@ def emulate_absorbed_spectrum(
         is_clipped=is_clipped,
     )
 
-    # init spectrum
     spectrum = AbsorbedSpectrum(
         intensity=calculate_absorbance(
             spectrum_recorded.intensity,
@@ -354,5 +348,4 @@ def emulate_absorbed_spectrum(
         clipped=(spectrum_base.clipped | spectrum_recorded.clipped),
     )
 
-    # return spectrum
     return spectrum

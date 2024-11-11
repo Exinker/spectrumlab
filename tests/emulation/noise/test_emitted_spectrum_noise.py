@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.emulations import emulate_emitted_spectrum
-from spectrumlab.emulations.noises import EmittedSpectrumNoise
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.emulators import emitted_spectrum_factory
+from spectrumlab.emulations.noise import EmittedSpectrumNoise
 
 
 @pytest.mark.parametrize(
@@ -23,7 +23,7 @@ def test_emulate_emitted_spectrum_noise(detector: Detector):
         n_frames=1,
     )(intensity)
 
-    spectrum = emulate_emitted_spectrum(
+    spectrum = emitted_spectrum_factory(
         number=number,
         intensity=np.array([intensity]*n_times),
         noise=EmittedSpectrumNoise(

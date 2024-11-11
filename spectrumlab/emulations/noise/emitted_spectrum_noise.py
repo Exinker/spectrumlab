@@ -3,8 +3,8 @@ from typing import overload
 
 import numpy as np
 
-from spectrumlab.emulations.detectors import Detector
-from spectrumlab.emulations.noises import AbstractNoise
+from spectrumlab.emulations.detector import Detector
+from spectrumlab.emulations.noise import AbstractNoise
 from spectrumlab.types import Array, Electron, Percent
 
 

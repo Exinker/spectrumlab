@@ -3,9 +3,9 @@ from functools import partial
 import numpy as np
 import pytest
 
-from spectrumlab.emulations.apertures import Aperture, RectangularApertureShape
+from spectrumlab.emulations.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
-from spectrumlab.emulations.detectors import Detector
+from spectrumlab.emulations.detector import Detector
 from spectrumlab.emulations.experiments.spectra_emulation import ShiftedExperiment, ShiftedExperimentConfig
 from spectrumlab.grid import Grid
 from spectrumlab.peak.shape import VoigtPeakShape, restore_shape_from_grid

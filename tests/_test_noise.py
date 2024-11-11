@@ -2,8 +2,8 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.emulations import AbsorbedSpectrumEmulationConfig, EmittedSpectrumEmulationConfig, EmulationConfig, emulate_absorbed_spectrum, emulate_emitted_spectrum
-from spectrumlab.emulations.noises import AbsorbedSpectrumNoise, EmittedSpectrumNoise
+from spectrumlab.emulations.emulators import AbsorbedSpectrumEmulatorConfig, EmittedSpectrumEmulationConfig, EmulationConfig, absorbed_spectrum_factory, emitted_spectrum_factory
+from spectrumlab.emulations.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 N_NUMBERS, N_TIMES = 100, 50
@@ -20,7 +20,7 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
     )(values)
 
     # emulated noise
-    spectrum = emulate_emitted_spectrum(
+    spectrum = emitted_spectrum_factory(
         intensity=np.array([values]*N_TIMES),
         number=number,
         noise=EmittedSpectrumNoise(
@@ -100,7 +100,7 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
     plt.show()
 
 
-def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims: tuple[float, float] = (-3, np.log10(2)), ylim: Optional[tuple[float, float]] = None) -> None:  # noqa: B008
+def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulatorConfig, lims: tuple[float, float] = (-3, np.log10(2)), ylim: Optional[tuple[float, float]] = None) -> None:  # noqa: B008
     number = np.arange(N_NUMBERS)
     values = np.logspace(*lims, N_NUMBERS)
 
@@ -118,7 +118,7 @@ def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims: 
     # emulated noise
     # scattering_level = config.scattering_ratio * config.spectrum_base.level
 
-    spectrum = emulate_absorbed_spectrum(
+    spectrum = absorbed_spectrum_factory(
         intensity=np.array([config.spectrum_base.level * 10**(-values)]*N_TIMES),
         number=number,
         noise=EmittedSpectrumNoise(
@@ -173,7 +173,7 @@ def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulationConfig, lims: 
     plt.show()
 
 
-def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, ylim: Optional[tuple[float, float]] = None) -> None:
+def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulatorConfig, ylim: Optional[tuple[float, float]] = None) -> None:
     number = np.arange(N_NUMBERS)
     base_levels = np.logspace(np.log10(config.scattering_ratio + 1), np.log10(100), N_NUMBERS)
 
@@ -203,7 +203,7 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
         I0 = base_level  # noqa: N806
         S0 = config.scattering_ratio  # noqa: N806
 
-        spectrum = emulate_absorbed_spectrum(
+        spectrum = absorbed_spectrum_factory(
             intensity=(I0 - S0) * 10**(-np.full((N_NUMBERS,), 0)),
             number=number,
             noise=EmittedSpectrumNoise(
@@ -263,12 +263,11 @@ def test_absorbed_noise_vs_base_value(config: AbsorbedSpectrumEmulationConfig, y
     plt.show()
 
 
-# --------        handlers        --------
 def test_noise_vs_value(config: EmulationConfig, *args, **kwargs):
 
     if isinstance(config, EmittedSpectrumEmulationConfig):
         return test_emitted_noise_vs_value(*args, config=config, **kwargs)
-    if isinstance(config, AbsorbedSpectrumEmulationConfig):
+    if isinstance(config, AbsorbedSpectrumEmulatorConfig):
         return test_absorbed_noise_vs_value(*args, config=config, **kwargs)
 
     raise TypeError()
@@ -278,7 +277,7 @@ def test_noise_vs_base_value(config: EmulationConfig, *args, **kwargs):
 
     if isinstance(config, EmittedSpectrumEmulationConfig):
         raise TypeError()
-    if isinstance(config, AbsorbedSpectrumEmulationConfig):
+    if isinstance(config, AbsorbedSpectrumEmulatorConfig):
         return test_absorbed_noise_vs_base_value(*args, config=config, **kwargs)
 
     raise TypeError()
