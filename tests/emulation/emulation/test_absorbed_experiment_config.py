@@ -24,4 +24,5 @@ class TestConfig:
     def test_config_max_background_level(self, config: ExperimentConfig):
         if config.scattering_ratio > 0:
             max_background_level = calculate_absorbance(config.scattering_ratio, 1)
-            assert config.background_level < max_background_level, f'maximum background level have to be less then {max_background_level:.4f}A at the given scattering level!'
+            message = f'maximum background level have to be less then {max_background_level:.4f} A at the given scattering level!'
+            assert config.background_level < max_background_level, message

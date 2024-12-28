@@ -3,7 +3,11 @@ import os
 import pytest
 
 from spectrumlab.emulations.concentration_calibration import EmittedExperimentConfigNaive as ExperimentConfig
-from spectrumlab.emulations.emulators import EmittedSpectrumEmulator, EmittedSpectrumEmulationConfig, SpectrumConfig
+from spectrumlab.emulations.emulators import (
+    EmittedSpectrumEmulationConfig,
+    EmittedSpectrumEmulator,
+    SpectrumConfig,
+)
 from spectrumlab.emulations.emulators import fetch_emulation
 
 

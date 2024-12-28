@@ -2,11 +2,18 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.emulators import AbsorbedSpectrumEmulatorConfig, EmittedSpectrumEmulationConfig, EmulationConfig, absorbed_spectrum_factory, emitted_spectrum_factory
+from spectrumlab.emulations.emulators import (
+    AbsorbedSpectrumEmulatorConfig,
+    EmittedSpectrumEmulationConfig,
+    EmulationConfig,
+    absorbed_spectrum_factory,
+    emitted_spectrum_factory,
+)
 from spectrumlab.emulations.noise import AbsorbedSpectrumNoise, EmittedSpectrumNoise
 
 
 N_NUMBERS, N_TIMES = 100, 50
+LOG2 = np.log10(2)
 
 
 def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3, 2), ylim: Optional[tuple[float, float]] = None) -> None:
@@ -100,7 +107,11 @@ def test_emitted_noise_vs_value(config: EmittedSpectrumEmulationConfig, lims=(-3
     plt.show()
 
 
-def test_absorbed_noise_vs_value(config: AbsorbedSpectrumEmulatorConfig, lims: tuple[float, float] = (-3, np.log10(2)), ylim: Optional[tuple[float, float]] = None) -> None:  # noqa: B008
+def test_absorbed_noise_vs_value(
+    config: AbsorbedSpectrumEmulatorConfig,
+    lims: tuple[float, float] = (-3, LOG2),
+    ylim: Optional[tuple[float, float]] = None,
+) -> None:  # noqa: B008
     number = np.arange(N_NUMBERS)
     values = np.logspace(*lims, N_NUMBERS)
 

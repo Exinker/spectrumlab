@@ -1,20 +1,16 @@
-.coverage
-.coverage.*
-.DS_Store
-.git/
+
 .mypy_cache/
 .pytest_cache/
-.vscode/
-.VSCodeCounter/
-__pycache__/
-*.egg-info/
-
-env/
+.venv/
 build/
 data/
+dist/
 htmlcov/
+*.egg-info/
+__pycache__/
 
-*.in
+.coverage
+.coverage.*
 
 .*.py
 .*.ipynb

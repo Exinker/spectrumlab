@@ -1,0 +1,47 @@
+
+import time
+
+import numpy as np
+
+from spectrumlab.types import Array
+
+
+def timeit(func):
+    """Timeit decorator."""
+    def wraper(*args, **kwargs):
+        start_at = time.perf_counter()
+        results = func(*args, **kwargs)
+        print(f'{func.__name__} time: {time.perf_counter() - start_at}, sec')
+
+        return results
+
+    return wraper
+
+
+def find(values: Array[float]) -> Array[float]:
+    """Find index of non-zero values."""
+
+    return np.array([i for i, value in enumerate(values) if value])
+
+
+# --------        errors        --------
+def se(y: float | Array[float], y_hat: Array[float]) -> Array[float]:
+    """Calculate squared error (SE) between true values $y$ and predicted values $\hat{y}$."""  # noqa: W605
+
+    return np.square(y - y_hat)
+
+
+def mse(y: float | Array[float], y_hat: Array[float]) -> float:
+    """Calculate mean squared error (MSE) between true values $y$ and predicted values $\hat{y}$."""  # noqa: W605
+    n = len(y_hat)
+
+    xi = se(y, y_hat)
+    return np.sqrt(np.sum(xi) / n**2)
+
+
+def rmse(y: float | Array[float], y_hat: Array[float]) -> float:
+    """Calculate relative mean squared error (RMSE) between true values $y$ and predicted values $\hat{y}$."""  # noqa: W605, E501
+    n = len(y_hat)
+
+    xi = se(y, y_hat) / np.abs(y)
+    return np.sqrt(np.sum(xi) / n**2)
