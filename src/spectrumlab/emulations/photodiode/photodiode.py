@@ -45,11 +45,11 @@ class Detector(Enum):
     )
     G12180 = DetectorConfig(
         name='G12180 series',
-        sensitivity=DatasheetCharacteristic(
+        sensitivity=DatasheetCharacteristic.create(
             path=os.path.join(DATASHEET_DIRECTORY, 'G12180', 'photo-sensitivity.csv'),
             xscale=1e+6,
         ),
-        transmittance=DatasheetCharacteristic(
+        transmittance=DatasheetCharacteristic.create(
             path=os.path.join(DATASHEET_DIRECTORY, 'G12180', 'window-spectral-transmittance.csv'),
             xscale=1e+6,
             yscale=100,
@@ -58,11 +58,11 @@ class Detector(Enum):
     )
     G12183 = DetectorConfig(
         name='G12183 series*',  # exclude G12183-219KA-03 Detector
-        sensitivity=DatasheetCharacteristic(
+        sensitivity=DatasheetCharacteristic.create(
             path=os.path.join(DATASHEET_DIRECTORY, 'G12183', 'photo-sensitivity.csv'),
             xscale=1e+6,
         ),
-        transmittance=DatasheetCharacteristic(
+        transmittance=DatasheetCharacteristic.create(
             path=os.path.join(DATASHEET_DIRECTORY, 'G12183', 'window-spectral-transmittance.csv'),
             xscale=1e+6,
             yscale=100,
@@ -71,11 +71,11 @@ class Detector(Enum):
     )
     G12183_219KA_03 = DetectorConfig(
         name='G12183-219KA-03',
-        sensitivity=DatasheetCharacteristic(
+        sensitivity=DatasheetCharacteristic.create(
             path=os.path.join(DATASHEET_DIRECTORY, 'G12183-219KA-03', 'photo-sensitivity.csv'),
             xscale=1e+6,
         ),
-        transmittance=DatasheetCharacteristic(
+        transmittance=DatasheetCharacteristic.create(
             path=os.path.join(DATASHEET_DIRECTORY, 'G12183-219KA-03', 'window-spectral-transmittance.csv'),
             xscale=1e+6,
             yscale=100,

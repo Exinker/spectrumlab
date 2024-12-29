@@ -20,5 +20,8 @@ repos:
   - id: testing
     name: Run Tests (pytest)
     entry: pytest
+    pass_filenames: false
+    always_run: true
     language: system
     types: [python]
+    stages: [pre-merge-commit, pre-push]
