@@ -9,6 +9,13 @@ repos:
     -   id: check-added-large-files
     -   id: debug-statements
 
+- repo: https://github.com/astral-sh/uv-pre-commit
+  rev: 0.5.8
+  hooks:
+  - id: uv-lock
+  - id: uv-export
+    args: [--no-editable, --no-group, dev, --no-hashes, --output-file, requirements.txt]
+
 - repo: local
   hooks:
   - id: linting
