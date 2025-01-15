@@ -201,16 +201,16 @@ def estimate_dynamic_range(
     emulation: Emulation,
     unicorn: Frame,
     coeff: tuple[float, float],
-    loq: LOQ,
+    lb: LOD | LOQ,
     k: float = 3,
     threshold: float = 0.05,
 ) -> DynamicRange:
-    n_numbers = emulation.config.spectrum.n_numbers
-    config = emulation.config
 
-    #
     if isinstance(emulation, EmittedSpectrumEmulator):
+        config = emulation.config
+        n_numbers = emulation.config.spectrum.n_numbers
         emulation = emulation.setup(position=n_numbers//2, concentration=1)
+
         B = config.background_level  # noqa: N806
         k = 3
         lb = k * (emulation.noise(B) / np.max(emulation.intensity))
@@ -219,7 +219,7 @@ def estimate_dynamic_range(
         try:
             if B > 0:
                 message = '\n{red}\t{text}{black}\n'.format(
-                    text='ошибка в расчете диапазона концентраций, если есть спектральный фон!',
+                    text='Ошибка в расчете диапазона концентраций, если есть спектральный фон!',
                     red='\033[91m',
                     black='\x1b[0m',
                 )
@@ -234,7 +234,7 @@ def estimate_dynamic_range(
         )
 
     if isinstance(emulation, AbsorbedSpectrumEmulator):
-        lb = loq.to_concentration(coeff=coeff)
+        lb = lb.to_concentration(coeff=coeff)
         ub = estimate_lol(
             unicorn=unicorn,
             coeff=coeff,
