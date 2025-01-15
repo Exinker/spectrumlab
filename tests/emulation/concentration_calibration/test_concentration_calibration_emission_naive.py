@@ -8,7 +8,7 @@ from spectrumlab.emulations.concentration_calibration import (
 )
 from spectrumlab.emulations.detector import Detector
 from spectrumlab.emulations.emulators import Emulation
-from spectrumlab.emulations.intensity import AbstractIntensityCalculator, AmplitudeIntensityCalculator, IntegralIntensityCalculator
+from spectrumlab.peak.intensity import AbstractIntensityCalculator, AmplitudeIntensityCalculator, IntegralIntensityCalculator
 
 
 @pytest.fixture(scope='module')

@@ -14,9 +14,9 @@ from spectrumlab.emulations.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
 from spectrumlab.emulations.detector import Detector
 from spectrumlab.emulations.device import Device
-from spectrumlab.emulations.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator
 from spectrumlab.emulations.line import Line, PVoigtLineShape
 from spectrumlab.grid import InterpolationKind
+from spectrumlab.peak.intensity import AbstractIntensityCalculator, IntegralIntensityCalculator
 from spectrumlab.types import DirPath
 
 

@@ -18,12 +18,14 @@ from spectrumlab.concentration_calibration import (
 )  # noqa: I100
 from spectrumlab.emulations.emulators import Emulation
 from spectrumlab.emulations.intensity import (
-    AbstractIntensityCalculator,
-    IntegralIntensityCalculator,
     calculate_deviation,
     calculate_intensity,
 )
 from spectrumlab.grid import InterpolationKind
+from spectrumlab.peak.intensity import (
+    AbstractIntensityCalculator,
+    IntegralIntensityCalculator,
+)
 from spectrumlab.picture.alpha import ALPHA
 from spectrumlab.picture.color import COLOR
 from spectrumlab.types import Frame, Number, Series

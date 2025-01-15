@@ -1,0 +1,2 @@
+include spectrumlab/picture/colormaps/*.txt
+recursive-include spectrumlab/emulation/detector/single_detector/datasheets *
