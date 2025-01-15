@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spectrumlab"
-version = "0.6.0a1"
+version = "0.6.0a2"
 description = "`spectrumlab` is a library designed to emulate and process spectra."
 readme = "README.md"
 keywords = [
@@ -57,4 +57,4 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-mypkg = ["*.csv", "*.md", "*.txt", "*.xml"]
+"*" = ["*.csv", "*.md", "*.txt", "*.xml"]
