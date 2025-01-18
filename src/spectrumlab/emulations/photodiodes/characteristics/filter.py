@@ -5,7 +5,7 @@ from typing import Literal
 
 import matplotlib.pyplot as plt
 
-from spectrumlab.emulations.photodiode.characteristic import DatasheetCharacteristic, WindowCharacteristic
+from spectrumlab.emulations.photodiodes.characteristics import DatasheetCharacteristic, WindowCharacteristic
 from spectrumlab.types import FilePath, NanoMeter
 
 

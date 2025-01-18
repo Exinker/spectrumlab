@@ -6,7 +6,7 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.photodiode.characteristic.characteristic import (
+from spectrumlab.emulations.photodiodes.characteristics.characteristic import (
     AbstractCharacteristic,
     ConstantCharacteristic,
     DatasheetCharacteristic,

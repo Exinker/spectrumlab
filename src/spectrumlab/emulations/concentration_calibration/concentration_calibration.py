@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Literal, Self
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,6 +41,7 @@ from .metrology import (
 
 @dataclass
 class ConcentrationCalibrationConfig:
+
     intensity_calculator: AbstractIntensityCalculator = field(
         default=IntegralIntensityCalculator(interval=3, kind=InterpolationKind.LINEAR),
     )
@@ -51,6 +52,8 @@ class ConcentrationCalibrationConfig:
 
     n_probes: int = field(default=20)
     n_parallels: int = field(default=5)
+
+    lower_bound: Literal['LOD', 'LOQ'] = field(default='LOQ')
 
 
 class ConcentrationCalibration(AbstractConcentrationCalibration):
@@ -137,15 +140,25 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
 
         return self._dynamic_range
 
-    def setup(self, position: Number, concentrations: tuple[float]):
+    def setup(
+        self,
+        position: Number,
+        concentrations: tuple[float],
+    ) -> Self:
         """Setup emulation of concentration calibration"""
+
         self._position = position
         self._concentrations = concentrations
 
-        #
         return self
 
-    def run(self, random_state: int | None = None, verbose: bool = True, show: bool = False, write: bool = False):
+    def run(
+        self,
+        random_state: int | None = None,
+        verbose: bool = True,
+        show: bool = False,
+        write: bool = False,
+    ) -> Self:
         """Run emulation."""
         emulation = self.emulation
         config = self.config
@@ -238,7 +251,9 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
 
         return self
 
-    def fit(self):
+    def fit(
+        self,
+    ) -> None:
         emulation = self.emulation
         config = self.config
         data = self._data
@@ -296,10 +311,15 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         )
 
         # calculate curve's dynamic range
+        lower_blound = {
+            'LOD': self.lod,
+            'LOQ': self.loq,
+        }[config.lower_bound]
+
         self._dynamic_range = estimate_dynamic_range(
             emulation=emulation,
             coeff=self.coeff,
-            lb=self.loq.intensity,
+            lb=lower_blound.intensity,
             ub=self.lol.intensity,
         )
 
