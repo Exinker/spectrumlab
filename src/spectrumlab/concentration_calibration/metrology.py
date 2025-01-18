@@ -13,7 +13,12 @@ Slope = NewType('Slope', float)
 
 class AbstractLimit:
 
-    def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str):
+    def __init__(
+        self,
+        intensity: float,
+        coeff: tuple[Intercept, Slope],
+        info: str,
+    ) -> None:
         self._intensity = intensity
         self._coeff = coeff
         self._info = info
@@ -45,17 +50,21 @@ class AbstractLimit:
 # --------        LOD and LOQ        --------
 class LOD(AbstractLimit):
     """Limit of Detection (LOD) in emission or absorption."""
+
     k_default = 3
 
-    def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
+    def __init__(
+        self,
+        intensity: float,
+        coeff: tuple[Intercept, Slope],
+        info: str = '',
+    ) -> None:
         super().__init__(intensity, coeff=coeff, info=info)
 
-    # --------        handle        --------
     @staticmethod
     def calculate(mean: float, deviation: float, k: float) -> float:
         return mean + k*deviation
 
-    # --------        fabric        --------
     @classmethod
     def from_json(cls, data: Mapping[str, float], coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOD':
         k = k or cls.k_default
@@ -81,19 +90,32 @@ class LOD(AbstractLimit):
 
 class LOQ(AbstractLimit):
     """Limit of Quantity (LOQ) in emission or absorption."""
+
     k_default = 10
 
-    def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
+    def __init__(
+        self,
+        intensity: float,
+        coeff: tuple[Intercept, Slope],
+        info: str = '',
+    ) -> None:
         super().__init__(intensity, coeff=coeff, info=info)
 
-    # --------        handle        --------
     @staticmethod
-    def calculate(mean: float, deviation: float, k: float) -> float:
+    def calculate(
+        mean: float,
+        deviation: float,
+        k: float,
+    ) -> float:
         return mean + k*deviation
 
-    # --------        fabric        --------
     @classmethod
-    def from_json(cls, data: Mapping[str, float], coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOQ':
+    def from_json(
+        cls,
+        data: Mapping[str, float],
+        coeff: tuple[Intercept, Slope],
+        k: float | None = None,
+    ) -> 'LOQ':
         k = k or cls.k_default
 
         return cls(
@@ -103,7 +125,12 @@ class LOQ(AbstractLimit):
         )
 
     @classmethod
-    def from_blank(cls, data: Frame, coeff: tuple[Intercept, Slope], k: float | None = None) -> 'LOQ':
+    def from_blank(
+        cls,
+        data: Frame,
+        coeff: tuple[Intercept, Slope],
+        k: float | None = None,
+    ) -> 'LOQ':
         k = k or cls.k_default
         mean = data['intensity'].mean()
         deviation = data['intensity'].std(ddof=1)
@@ -119,11 +146,19 @@ class LOQ(AbstractLimit):
 class LOL(AbstractLimit):
     """Limit of Linearity (LOL) in emission or absorption."""
 
-    def __init__(self, intensity: float, coeff: tuple[Intercept, Slope], info: str = ''):
+    def __init__(
+        self,
+        intensity: float,
+        coeff: tuple[Intercept, Slope],
+        info: str = '',
+    ) -> None:
         super().__init__(intensity, coeff=coeff, info=info)
 
-
-def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.05) -> 'LOL':
+def estimate_lol(
+    data: Frame,
+    coeff: tuple[float, float],
+    threshold: float = 0.05,
+) -> 'LOL':
     intercept, slope = coeff
 
     # concentration calibration
@@ -154,7 +189,12 @@ def estimate_lol(data: Frame, coeff: tuple[float, float], threshold: float = 0.0
 # --------        dynamic range        --------
 class DynamicRange:
 
-    def __init__(self, intensity: tuple[float, float], coeff: tuple[Intercept, Slope], info: str = ''):
+    def __init__(
+        self,
+        intensity: tuple[float, float],
+        coeff: tuple[Intercept, Slope],
+        info: str = '',
+    ) -> None:
         self._intensity = intensity
         self._coeff = coeff
         self._info = info
@@ -201,10 +241,12 @@ def estimate_dynamic_range(
     emulation: Emulation,
     unicorn: Frame,
     coeff: tuple[float, float],
-    lb: LOD | LOQ,
+    lb_limit: LOD | LOQ,
     k: float = 3,
     threshold: float = 0.05,
 ) -> DynamicRange:
+
+    raise NotImplementedError
 
     if isinstance(emulation, EmittedSpectrumEmulator):
         config = emulation.config
@@ -213,7 +255,7 @@ def estimate_dynamic_range(
 
         B = config.background_level  # noqa: N806
         k = 3
-        lb = k * (emulation.noise(B) / np.max(emulation.intensity))
+        lb_limit = k * (emulation.noise(B) / np.max(emulation.intensity))
         ub = 100 / (B + np.max(emulation.intensity))
 
         try:
@@ -229,12 +271,12 @@ def estimate_dynamic_range(
 
         return DynamicRange(
             emulation=emulation,
-            lb=lb,
+            lb=lb_limit,
             ub=ub,
         )
 
     if isinstance(emulation, AbsorbedSpectrumEmulator):
-        lb = lb.to_concentration(coeff=coeff)
+        lb = lb_limit.to_concentration(coeff=coeff)
         ub = estimate_lol(
             unicorn=unicorn,
             coeff=coeff,

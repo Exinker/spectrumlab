@@ -31,12 +31,19 @@ from spectrumlab.picture.color import COLOR
 from spectrumlab.types import Frame, Number, Series
 
 from .exceptions import EmulationError
-from .metrology import DynamicRange, estimate_blank_deviation, estimate_blank_mean, estimate_dynamic_range
+from .metrology import (
+    DynamicRange,
+    estimate_blank_deviation,
+    estimate_blank_mean,
+    estimate_dynamic_range,
+)
 
 
 @dataclass
 class ConcentrationCalibrationConfig:
-    intensity_calculator: AbstractIntensityCalculator = field(default=IntegralIntensityCalculator(interval=3, kind=InterpolationKind.LINEAR))
+    intensity_calculator: AbstractIntensityCalculator = field(
+        default=IntegralIntensityCalculator(interval=3, kind=InterpolationKind.LINEAR),
+    )
 
     concentration_blank: float = field(default=0)
     threshold: float = field(default=0.05)
@@ -48,7 +55,11 @@ class ConcentrationCalibrationConfig:
 
 class ConcentrationCalibration(AbstractConcentrationCalibration):
 
-    def __init__(self, emulation: Emulation, config: ConcentrationCalibrationConfig):
+    def __init__(
+        self,
+        emulation: Emulation,
+        config: ConcentrationCalibrationConfig,
+    ):
         self.emulation = emulation
         self.config = config
 
@@ -288,8 +299,8 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         self._dynamic_range = estimate_dynamic_range(
             emulation=emulation,
             coeff=self.coeff,
-            loq=self.loq,
-            lol=self.lol,
+            lb=self.loq.intensity,
+            ub=self.lol.intensity,
         )
 
     def predict(self, intensity: Series) -> Series:
