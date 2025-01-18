@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 
-class AbstractIntensityCorrector(ABC):
+class AbstractIntensityTransformer(ABC):
 
     @abstractmethod
     def __call__(self, *args, **kwargs):
@@ -10,7 +10,7 @@ class AbstractIntensityCorrector(ABC):
 
 
 @dataclass
-class IntensityNormalization(AbstractIntensityCorrector):
+class IntensityNormalization(AbstractIntensityTransformer):
     """Normalization by value."""
 
     coeff: float
@@ -20,8 +20,8 @@ class IntensityNormalization(AbstractIntensityCorrector):
 
 
 @dataclass
-class KatskovIntensityLinearization(AbstractIntensityCorrector):
-    """Katskov linearization.
+class KatskovIntensityTransformer(AbstractIntensityTransformer):
+    """Katskov linearization by coefficients.
 
     Аn introduction to multi-element atomic-absorption analysis
     Katskov D.
@@ -41,17 +41,17 @@ class KatskovIntensityLinearization(AbstractIntensityCorrector):
         return value
 
 
-def _correct_intensity(
+def transform_intensity(
     __value: float,
-    corrector: AbstractIntensityCorrector,
+    transformer: AbstractIntensityTransformer,
 ) -> float:
 
-    if corrector is None:
+    if transformer is None:
         return __value
-    if isinstance(corrector, (
-        KatskovIntensityLinearization,
+    if isinstance(transformer, (
+        KatskovIntensityTransformer,
         IntensityNormalization,
     )):
-        return corrector(__value)
+        return transformer(__value)
 
-    raise ValueError(f'Correction method {corrector.__name__} is not supported!')
+    raise ValueError(f'Correction method {transformer.__name__} is not supported!')

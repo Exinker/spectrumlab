@@ -21,6 +21,7 @@ from .units import R
 
 @dataclass
 class FactoryAnalytePeak:
+
     noise_level: float = field(default=5)
     position_calculator: AbstractPositionCalculator = field(default_factory=InterpolationPositionCalculator)
     intensity_calculator: AbstractIntensityCalculator = field(default_factory=IntegralIntensityCalculator)
@@ -122,6 +123,7 @@ class AnalytePeakConfig:
 
 
 class AnalytePeak(AbstractPeak):
+
     factory = FactoryAnalytePeak
 
     def __init__(

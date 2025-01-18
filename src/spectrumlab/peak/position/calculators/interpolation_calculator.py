@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING
 
 from scipy import interpolate
 
+from spectrumlab.peak.position.abstract_calculator import AbstractPositionCalculator
 from spectrumlab.types import Number
 
-from .calculator import AbstractPositionCalculator
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -26,9 +26,7 @@ class InterpolationPositionCalculator(AbstractPositionCalculator):
             fill_value=0,
         )(line.wavelength).item()
 
-        #
         if self.verbose:
             print(f'position: {value}')
 
-        #
         return value

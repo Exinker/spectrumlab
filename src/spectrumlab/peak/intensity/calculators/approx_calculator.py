@@ -1,11 +1,11 @@
 from typing import Mapping, TYPE_CHECKING
 
+from spectrumlab.peak.intensity.abstract_calculator import AbstractIntensityCalculator
 from spectrumlab.peak.shape.utils import approx_peak
 from spectrumlab.peak.units import R
 from spectrumlab.picture.color import COLOR_INTENSITY, Color
 from spectrumlab.types import Number
 
-from .calculator import AbstractIntensityCalculator
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -55,9 +55,7 @@ class ApproxIntensityCalculator(AbstractIntensityCalculator):
 
         value = self.params['intensity']
 
-        # verbose
         if self.verbose:
             print(f'Peak\'s intensity: {value}')
 
-        #
         return value

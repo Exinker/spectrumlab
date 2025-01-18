@@ -9,6 +9,7 @@ import os
 import warnings
 from configparser import ConfigParser
 from dataclasses import dataclass, field
+from typing import Self
 
 from spectrumlab.emulations.aperture import Aperture, RectangularApertureShape
 from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
@@ -50,21 +51,17 @@ class EmittedExperimentConfigNaive(AbstractExperimentConfig):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: DirPath, filename: str) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: DirPath, filename: str) -> Self:
 
-        # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
         parser.read(os.path.join(filedir, filename))
-
         assert parser.get('emulation', 'kind') == 'emission'
 
-        #
         device = _parse_device(parser)
         detector = _parse_detector(parser)
 
-        return EmittedExperimentConfigNaive(
+        return cls(
             device=device,
             detector=detector,
             apparatus=Apparatus(
@@ -102,21 +99,17 @@ class EmittedExperimentConfig(AbstractExperimentConfig):
 
         self.line = line
 
-    # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: DirPath, filename: str) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: DirPath, filename: str) -> Self:
 
-        # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
         parser.read(os.path.join(filedir, filename))
-
         assert parser.get('emulation', 'kind') == 'emission'
 
-        #
         device = _parse_device(parser)
         detector = _parse_detector(parser)
 
-        return EmittedExperimentConfig(
+        return cls(
             device=device,
             detector=detector,
             line=PVoigtLineShape(
@@ -172,25 +165,20 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
 
         self.scattering_ratio = scattering_ratio
 
-    # --------        fabric        --------
     @classmethod
-    def from_ini(cls, filedir: DirPath, filename: str) -> 'EmittedExperimentConfigNaive':
+    def from_ini(cls, filedir: DirPath, filename: str) -> Self:
 
-        # ini parser
         parser = ConfigParser(inline_comment_prefixes='#')
         parser.read(os.path.join(filedir, filename))
-
         assert parser.get('emulation', 'kind') == 'absorption'
 
-        #
         device = _parse_device(parser)
         detector = _parse_detector(parser)
 
         base_level = float(parser.get('base spectrum', 'level'))
         base_n_frames = int(parser.get('base spectrum', 'n_frames'))
 
-        #
-        return AbsorbedExperimentConfig(
+        return cls(
             device=device,
             detector=detector,
             line=Line(

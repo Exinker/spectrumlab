@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from spectrumlab.peak.position.abstract_calculator import AbstractPositionCalculator
 from spectrumlab.types import Number
 
-from .calculator import AbstractPositionCalculator
 
 if TYPE_CHECKING:
     from spectrumlab.peak.analyte_peak import AnalytePeak
@@ -49,15 +49,12 @@ class ParabolaPositionCalculator(AbstractPositionCalculator):
         if self.corr_coeff is not None:
             value = correct_position(value, coeff=self.corr_coeff)
 
-        # verbose
         if self.verbose:
             print(f'Peak\'s position: {value}')
 
-        #
         return value
 
 
-# --------        utils        --------
 def correct_position(value: Number, coeff: Sequence[float]) -> Number:
     """Correct position value by table values.
 
@@ -77,5 +74,4 @@ def correct_position(value: Number, coeff: Sequence[float]) -> Number:
     else:
         correction = -np.polyval(coeff, +deviation)
 
-    #
     return float(value + correction)

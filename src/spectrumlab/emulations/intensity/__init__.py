@@ -1,7 +1,7 @@
-from .correct_intensity import (
-    AbstractIntensityCorrector,
+from .transform_intensity import (
+    AbstractIntensityTransformer,
     IntensityNormalization,
-    KatskovIntensityLinearization,
+    KatskovIntensityTransformer,
 )
 from .calculate_intensity import (
     calculate_intensity,
@@ -9,9 +9,9 @@ from .calculate_intensity import (
 )
 
 __all__ = [
-    AbstractIntensityCorrector,
+    AbstractIntensityTransformer,
     IntensityNormalization,
-    KatskovIntensityLinearization,
+    KatskovIntensityTransformer,
     calculate_intensity,
     calculate_deviation,
 ]

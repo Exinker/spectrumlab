@@ -1,5 +1,13 @@
-from .calculator import AbstractIntensityCalculator
+from .abstract_calculator import AbstractIntensityCalculator
+from .calculators import (
+    AmplitudeIntensityCalculator,
+    IntegralIntensityCalculator,
+    ApproxIntensityCalculator,
+)
 
-from .amplitude_calculator import AmplitudeIntensityCalculator
-from .integral_calculator import IntegralIntensityCalculator
-from .approx_calculator import ApproxIntensityCalculator
+__all__ = [
+    AbstractIntensityCalculator,
+    AmplitudeIntensityCalculator,
+    ApproxIntensityCalculator,
+    IntegralIntensityCalculator,
+]

@@ -9,9 +9,25 @@ Emitted and absorbed spectrum emulation.
 from typing import TypeAlias, overload
 
 from .base_emulator import AbstractEmulator
-from .emitted_spectrum_emulator import EmittedSpectrumEmulator, EmittedSpectrumEmulationConfig, emitted_spectrum_factory, SpectrumConfig, convolve
-from .high_dynamic_spectrum_emulation import HighDynamicRangeEmittedSpectrumEmulation, HighDynamicRangeMode, hdr_emitted_spectrum_factory
-from .absorbed_spectrum_emulator import AbsorbedSpectrumEmulator, AbsorbedSpectrumEmulatorConfig, absorbed_spectrum_factory, SpectrumBaseConfig, calculate_absorbance
+from .emitted_spectrum_emulator import (
+    EmittedSpectrumEmulator,
+    EmittedSpectrumEmulationConfig,
+    SpectrumConfig,
+    convolve,
+    emitted_spectrum_factory,
+)
+from .high_dynamic_spectrum_emulation import (
+    HighDynamicRangeEmittedSpectrumEmulation,
+    HighDynamicRangeMode,
+    hdr_emitted_spectrum_factory,
+)
+from .absorbed_spectrum_emulator import (
+    AbsorbedSpectrumEmulator,
+    AbsorbedSpectrumEmulatorConfig,
+    SpectrumBaseConfig,
+    absorbed_spectrum_factory,
+    calculate_absorbance,
+)
 
 
 EmulationConfig: TypeAlias = EmittedSpectrumEmulationConfig | AbsorbedSpectrumEmulatorConfig

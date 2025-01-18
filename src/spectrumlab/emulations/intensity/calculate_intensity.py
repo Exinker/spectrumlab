@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.emulations.intensity import AbstractIntensityCorrector
-from spectrumlab.emulations.intensity.correct_intensity import _correct_intensity
-from spectrumlab.emulations.intensity.estimate_intensity import _estimate_intensity
+from spectrumlab.emulations.intensity import AbstractIntensityTransformer
+from spectrumlab.emulations.intensity.patch_calculator import (
+    EmulatedMixin,
+    patch_calculator,
+)
+from spectrumlab.emulations.intensity.transform_intensity import transform_intensity
 from spectrumlab.emulations.spectrum import (
     AbsorbedSpectrum,
     EmittedSpectrum,
@@ -16,6 +19,7 @@ from spectrumlab.peak.intensity import (
     ApproxIntensityCalculator,
     IntegralIntensityCalculator,
 )
+from spectrumlab.peak.units import R
 from spectrumlab.types import Number
 
 
@@ -24,12 +28,15 @@ def calculate_intensity(
     background: float,
     position: Number,
     calculator: AbstractIntensityCalculator,
-    corrector: AbstractIntensityCorrector | None = None,
+    transformer: AbstractIntensityTransformer | None = None,
     ylim: tuple[float, float] | None = None,
     verbose: bool = False,
     show: bool = False,
-) -> float:
+) -> R:
     """Calculate a peak's intensity with selected calculator."""
+    if not isinstance(calculator, EmulatedMixin):
+        calculator = patch_calculator(calculator)
+
     grid = Grid(
         x=spectrum.number,
         y=(spectrum.intensity - background).flatten(),
@@ -37,27 +44,22 @@ def calculate_intensity(
     )
     mask = spectrum.clipped.flatten()
 
-    # estimate intensity
-    value = _estimate_intensity(
+    value = calculator.calculate(
         grid=grid,
         mask=mask,
         position=position,
-        calculator=calculator,
     )
 
-    # correct intensity
-    value = _correct_intensity(
+    value = transform_intensity(
         value,
-        corrector=corrector,
+        transformer=transformer,
     )
 
-    # verbose
     if verbose:
         print(f'intensity={value:.4f}, A')
 
-    # show
     if show:
-        noise = _estimate_intensity(
+        noise = calculator.calculate(
             grid=Grid(
                 x=spectrum.number,
                 y=(spectrum.deviation ** 2).flatten(),
@@ -65,7 +67,6 @@ def calculate_intensity(
             ),
             mask=mask,
             position=position,
-            calculator=calculator,
         ) ** (1/2)
 
         #
@@ -170,12 +171,19 @@ def calculate_intensity(
 
         plt.show()
 
-    #
     return value
 
 
-def calculate_deviation(spectrum: Spectrum, background: float, position: Number, calculator: AbstractIntensityCalculator) -> float:
+def calculate_deviation(
+    spectrum: Spectrum,
+    background: float,
+    position: Number,
+    calculator: AbstractIntensityCalculator,
+) -> R:
     """Calculate a standart deviation of peak's intensity with selected calculator."""
+    if not isinstance(calculator, EmulatedMixin):
+        calculator = patch_calculator(calculator)
+
     grid = Grid(
         x=spectrum.number,
         y=(spectrum.deviation ** 2).flatten(),
@@ -184,11 +192,10 @@ def calculate_deviation(spectrum: Spectrum, background: float, position: Number,
     mask = spectrum.clipped.flatten()
 
     if isinstance(calculator, IntegralIntensityCalculator):
-        value = _estimate_intensity(
+        value = calculator.calculate(
             grid=grid,
             mask=mask,
             position=position,
-            calculator=calculator,
         ) ** (1/2)
 
         return value

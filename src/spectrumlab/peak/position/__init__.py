@@ -1,4 +1,13 @@
-from .calculator import AbstractPositionCalculator
+from .abstract_calculator import AbstractPositionCalculator
+from .calculators import (
+    InterpolationPositionCalculator,
+    ParabolaPositionCalculator,
+    CORR_COEFF,
+)
 
-from .parabola_calculator import ParabolaPositionCalculator, CORR_COEFF
-from .interpolation_calculator import InterpolationPositionCalculator
+__all__ = [
+    AbstractPositionCalculator,
+    InterpolationPositionCalculator,
+    ParabolaPositionCalculator,
+    CORR_COEFF,
+]
