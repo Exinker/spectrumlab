@@ -1,7 +1,7 @@
 from typing import Mapping, TYPE_CHECKING
 
 from spectrumlab.peak.shape.utils import approx_peak
-from spectrumlab.peak.units import U
+from spectrumlab.peak.units import R
 from spectrumlab.picture.color import COLOR_INTENSITY, Color
 from spectrumlab.types import Number
 
@@ -43,7 +43,7 @@ class ApproxIntensityCalculator(AbstractIntensityCalculator):
 
         return self._params
 
-    def calculate(self, peak: 'AnalytePeak') -> U:
+    def calculate(self, peak: 'AnalytePeak') -> R:
 
         self._params = approx_peak(
             peak=peak,

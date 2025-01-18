@@ -9,7 +9,7 @@ from spectrumlab.emulations.curves import pvoigt, rectangular
 from spectrumlab.peak.shape.approx import InterfaceApprox
 from spectrumlab.peak.shape.shape import AbstractPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail
-from spectrumlab.peak.units import U
+from spectrumlab.peak.units import R
 from spectrumlab.types import Array, Number
 
 from .voigt_peak_shape import VoigtPeakShape
@@ -47,7 +47,7 @@ class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
         self._f = None
 
     @property
-    def f(self) -> Callable[[Array[Number]], Array[U]]:
+    def f(self) -> Callable[[Array[Number]], Array[R]]:
         if self._f is None:
             effect = np.linspace(0, self.re, int(self.re/self.de) + 1)
 
@@ -100,7 +100,7 @@ class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
         intensity: float,
         background: float = 0,
         effect: float = 0,
-    ) -> U: ...
+    ) -> R: ...
     @overload
     def __call__(
         self,
@@ -109,7 +109,7 @@ class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
         intensity: float,
         background: float = 0,
         effect: float = 0,
-    ) -> Array[U]: ...
+    ) -> Array[R]: ...
     def __call__(self, x, position, intensity, background=0, effect=0):
         """Interpolate by grip."""
         return background + intensity*self.f(x - position, effect)
@@ -119,7 +119,7 @@ class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
 
         return f'{cls.__name__}(w={self.width:.4f}; a={self.asymmetry:.4f}; r={self.ratio:.4f})'
 
-    def _apply_effect(self, x: Array[Number], effect: float) -> Array[U]:
+    def _apply_effect(self, x: Array[Number], effect: float) -> Array[R]:
         width = self.width
         asymmetry = self.asymmetry
         ratio = self.ratio
@@ -219,7 +219,7 @@ class SelfReversedVoigtPeakShape(AbstractPeakShape, InterfaceApprox):
         background: float = 0,
         effect: float = 0,
         **kwargs,
-    ) -> U: ...
+    ) -> R: ...
     @overload
     def __call__(
         self,
@@ -229,7 +229,7 @@ class SelfReversedVoigtPeakShape(AbstractPeakShape, InterfaceApprox):
         background: float = 0,
         effect: float = 0,
         **kwargs,
-    ) -> Array[U]: ...
+    ) -> Array[R]: ...
     def __call__(self, x, position, intensity, background=0, effect=0, **kwargs):
         """Interpolate by grip."""
         absorption_shape = self.absorption_shape or VoigtPeakShape(

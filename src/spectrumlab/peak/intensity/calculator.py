@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from spectrumlab.peak.units import U
+from spectrumlab.peak.units import R
 from spectrumlab.picture.color import Color
 
 if TYPE_CHECKING:
@@ -19,5 +19,5 @@ class AbstractIntensityCalculator(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def calculate(self, peak: 'AnalytePeak') -> U:
+    def calculate(self, peak: 'AnalytePeak') -> R:
         raise NotImplementedError

@@ -19,7 +19,7 @@ from spectrumlab.peak.blink_peak import DraftBlinkPeakConfig, draft_blinks
 from spectrumlab.peak.shape.approx import InterfaceApprox
 from spectrumlab.peak.shape.shape import AbstractPeakShape
 from spectrumlab.peak.shape.utils import approx_peak_by_tail
-from spectrumlab.peak.units import U
+from spectrumlab.peak.units import R
 from spectrumlab.types import Array, MicroMeter, Number
 from spectrumlab.utils import mse
 
@@ -131,7 +131,7 @@ class VoigtPeakShape(AbstractPeakShape, InterfaceApprox):
         )
 
     @property
-    def f(self) -> Callable[[Array[Number]], Array[U]]:
+    def f(self) -> Callable[[Array[Number]], Array[R]]:
         return self._f
 
     def get_content(self, sep: Literal[r'\n', '; '] = '; ', is_signed: bool = True) -> str:
@@ -242,9 +242,9 @@ class VoigtPeakShape(AbstractPeakShape, InterfaceApprox):
         return shape
 
     @overload
-    def __call__(self, x: Number, position: Number, intensity: float, background: float = 0) -> U: ...
+    def __call__(self, x: Number, position: Number, intensity: float, background: float = 0) -> R: ...
     @overload
-    def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0) -> Array[U]: ...
+    def __call__(self, x: Array[Number], position: Number, intensity: float, background: float = 0) -> Array[R]: ...
     def __call__(self, x, position, intensity, background=0):
         return background + intensity*self.f(x - position)
 

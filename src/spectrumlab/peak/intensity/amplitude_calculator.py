@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peak.units import U
+from spectrumlab.peak.units import R
 from spectrumlab.picture.color import COLOR_INTENSITY, Color
 
 from .calculator import AbstractIntensityCalculator
@@ -20,7 +20,7 @@ class AmplitudeIntensityCalculator(AbstractIntensityCalculator):
     def color(self) -> Color:
         return COLOR_INTENSITY['amplitude']
 
-    def calculate(self, peak: 'AnalytePeak') -> U:
+    def calculate(self, peak: 'AnalytePeak') -> R:
 
         value = np.max(peak.value)
 

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from spectrumlab.peak.blink_peak import BlinkPeak
 
 
-U = TypeVar('U', Digit, Electron, Percent, Absorbance)
+R = TypeVar('R', Digit, Electron, Percent, Absorbance)
 T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
@@ -70,7 +70,7 @@ class _FactoryBatch:
 class _Batch:
     factory = _FactoryBatch
 
-    def __init__(self, x: Array[T], y: Array[U]):
+    def __init__(self, x: Array[T], y: Array[R]):
         self.x = x
         self.y = y
 
@@ -130,7 +130,7 @@ class FactoryGrid:
         batches: Sequence[_Batch],
         offset: Array[T] | None = None,
         scale: Array[float] | None = None,
-        background: Array[U] | None = None,
+        background: Array[R] | None = None,
     ) -> 'Grid':
         """Get a grid from sequence of batches."""
         n_batches = len(batches)

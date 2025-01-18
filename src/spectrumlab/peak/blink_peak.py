@@ -9,11 +9,11 @@ from spectrumlab.spectrum import Spectrum
 from spectrumlab.types import Number
 
 from .peak import AbstractPeak
-from .units import U
+from .units import R
 
 
 # --------        utils        --------
-def find_minima(values: Sequence[U]) -> tuple[Number]:
+def find_minima(values: Sequence[R]) -> tuple[Number]:
     """Find local minima index in a sequence of values."""
     n_values = len(values)
     extrema = []
@@ -38,7 +38,7 @@ def find_minima(values: Sequence[U]) -> tuple[Number]:
     return tuple(extrema)
 
 
-def find_maxima(values: Sequence[U]) -> tuple[Number]:
+def find_maxima(values: Sequence[R]) -> tuple[Number]:
     """Find local maxima index in a sequence of values."""
     n_values = len(values)
     extrema = []
@@ -101,8 +101,8 @@ class BlinkPeak(AbstractPeak):
         self,
         minima: tuple[Number, Number],
         maxima: tuple[Number] | tuple[Number, Number] | tuple[Number, ...],
-        amplitude: U,
-        deviation: U,
+        amplitude: R,
+        deviation: R,
         except_edges: bool = False,
     ) -> None:
         super().__init__(minima=minima, maxima=maxima, except_edges=except_edges)

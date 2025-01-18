@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from spectrumlab.grid import Grid, InterpolationKind, integrate_grid
-from spectrumlab.peak.units import U
+from spectrumlab.peak.units import R
 from spectrumlab.picture.color import COLOR_INTENSITY, Color
 from spectrumlab.types import Number
 
@@ -39,7 +39,7 @@ class IntegralIntensityCalculator(AbstractIntensityCalculator):
 
         raise ValueError(f'color: {self.kind} is not supported!')
 
-    def calculate(self, peak: 'AnalytePeak') -> U:
+    def calculate(self, peak: 'AnalytePeak') -> R:
 
         value = integrate_grid(
             grid=Grid(x=peak.number, y=peak.value, units=Number),

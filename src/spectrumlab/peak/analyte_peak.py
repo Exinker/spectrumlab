@@ -16,7 +16,7 @@ from .blink_peak import DraftBlinkPeakConfig, draft_blinks
 from .intensity import AbstractIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator
 from .peak import AbstractPeak
 from .position import AbstractPositionCalculator, InterpolationPositionCalculator
-from .units import U
+from .units import R
 
 
 @dataclass
@@ -184,13 +184,13 @@ class AnalytePeak(AbstractPeak):
 
     # --------            intensity            --------
     @property
-    def intensity(self) -> U:
+    def intensity(self) -> R:
         if self._intensity is None:
             self._intensity = self.calculate_intensity()
 
         return self._intensity
 
-    def calculate_intensity(self, calculator: AbstractIntensityCalculator | None = None) -> U:
+    def calculate_intensity(self, calculator: AbstractIntensityCalculator | None = None) -> R:
         """Calculate peak's intensity."""
         calculator = calculator or self.config.intensity_calculator
 
