@@ -8,6 +8,7 @@ Author: Vaschenko Pavel
 import os
 import warnings
 from configparser import ConfigParser
+from pathlib import Path
 
 import pandas as pd
 
@@ -67,7 +68,9 @@ class EmittedExperimentConfigNaive(AbstractExperimentConfig):
         device = _parse_device(parser)
         detector = _parse_detector(parser)
 
-        filepath = os.path.join(filedir, 'concentration_calibration.csv')
+        filepath = os.path.join(filedir, 'ref', '{name}.csv'.format(
+            name=Path(filename).stem,
+        ))
         ref = _load_ref(filepath)
 
         return EmittedExperimentConfigNaive(
@@ -149,15 +152,14 @@ class EmittedExperimentConfig(AbstractExperimentConfig):
 
         assert parser.get('emulation', 'kind') == 'emission'
 
-        filepath = os.path.join(filedir, 'concentration_calibration.csv')
-        if os.path.exists(filepath):
-            ref = _load_ref(filepath)
-        else:
-            ref = None
-
         #
         device = _parse_device(parser)
         detector = _parse_detector(parser)
+
+        filepath = os.path.join(filedir, 'ref', '{name}.csv'.format(
+            name=Path(filename).stem,
+        ))
+        ref = _load_ref(filepath)
 
         return EmittedExperimentConfig(
             device=device,
@@ -256,11 +258,10 @@ class AbsorbedExperimentConfig(AbstractExperimentConfig):
         base_level = float(parser.get('base spectrum', 'level'))
         base_n_frames = int(parser.get('base spectrum', 'n_frames'))
 
-        filepath = os.path.join(filedir, 'concentration_calibration.csv')
-        if os.path.exists(filepath):
-            ref = _load_ref(filepath)
-        else:
-            ref = None
+        filepath = os.path.join(filedir, 'ref', '{name}.csv'.format(
+            name=Path(filename).stem,
+        ))
+        ref = _load_ref(filepath)
 
         #
         return AbsorbedExperimentConfig(
@@ -319,6 +320,6 @@ def _load_ref(filepath: FilePath) -> Frame | None:
             decimal=',',
             sep=';',
             encoding='utf-8',
-        )
+        ).set_index(['probe', 'parallel'])
 
     return None

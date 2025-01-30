@@ -197,7 +197,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
             data = self.data.copy()
         else:
             data = ref.copy()
-            data = data.set_index(['probe', 'parallel'])
 
         color = self._get_color(
             mask=data['mask'].groupby(level=0, sort=False).max().astype(bool),
