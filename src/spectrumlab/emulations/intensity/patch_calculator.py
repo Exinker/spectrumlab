@@ -71,7 +71,10 @@ class WrappedIntegralIntensityCalculator(IntegralIntensityCalculator, EmulatedMi
 
 def patch_calculator(
     __calculator: AbstractIntensityCalculator,
-) -> AbstractIntensityCalculator:  # TODO: rename
+) -> EmulatedMixin:
+
+    if isinstance(__calculator, EmulatedMixin):
+        return __calculator
 
     if isinstance(__calculator, AmplitudeIntensityCalculator):
         instance = WrappedAmplitudeIntensityCalculator()

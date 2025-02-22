@@ -1,71 +1,35 @@
-from enum import Enum, auto
 from functools import partial
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import integrate, interpolate, optimize
+from scipy import optimize
 
-from spectrumlab.grid import Grid, T
 from spectrumlab.grid.filter import AbstractGridFilter, LinearInterpolationGridFilter
-from spectrumlab.types import Array
+from spectrumlab.grid.types import T
+
+if TYPE_CHECKING:
+    from spectrumlab.grid import Grid
 
 
-class InterpolationKind(Enum):
-    NEAREST = auto()
-    LINEAR = auto()
-
-
-def interpolate_grid(grid: Grid, kind: InterpolationKind) -> Callable[[Array[T]], Array[float]]:
-    """Interpolate the grid."""
-
-    return interpolate.interp1d(
-        grid.x, grid.y,
-        kind={
-            InterpolationKind.NEAREST: 'nearest',
-            InterpolationKind.LINEAR: 'linear',
-        }.get(kind),
-        bounds_error=False,
-        fill_value=0,
-    )
-
-
-def integrate_grid(
-    grid: Grid,
-    position: float,
-    interval: float,
-    kind: InterpolationKind = InterpolationKind.LINEAR,
-) -> float:
-    """Integrate the grid in given `position` and `interval`."""
-
-    return integrate.quad(
-        interpolate_grid(grid, kind=kind),
-        a=position - interval/2,
-        b=position + interval/2,
-    )[0]
-
-
-# --------        estimators        --------
 def estimate_bias(
-    grid: Grid,
+    grid: 'Grid',
     pitch: T,
-    handler: AbstractGridFilter | None = None,
+    filter: AbstractGridFilter | None = None,
     verbose: bool = False,
     show: bool = False,
 ) -> T:
     """Estimate a bias of the `grid`."""
-    handler = handler or LinearInterpolationGridFilter(grid=grid)
+    filter = filter or LinearInterpolationGridFilter(grid=grid)
 
-    # bias
-    def calculate_loss(x: T, handler: Callable[[T], float], pitch: T) -> float:
-        return (handler(x - pitch/2) - handler(x + pitch/2))**2
+    def calculate_loss(x: T, filter: Callable[[T], float], pitch: T) -> float:
+        return (filter(x - pitch/2) - filter(x + pitch/2))**2
 
     bias = optimize.minimize(
-        partial(calculate_loss, handler=handler, pitch=pitch),
-        x0=grid.x[np.argmax(grid.y)],  # FIXME: change to maximum of `handler`!
+        partial(calculate_loss, filter=filter, pitch=pitch),
+        x0=grid.x[np.argmax(grid.y)],  # FIXME: change to maximum of `filter`!
     )['x'][0]
 
-    # verbose
     if verbose:
         content = '\n'.join([
             'bias: {value:.4f} {units}'.format(
@@ -75,7 +39,6 @@ def estimate_bias(
         ])
         print(content)
 
-    # show
     if show:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -94,7 +57,7 @@ def estimate_bias(
         )
 
         x = grid.space()
-        f_hat = handler(x)
+        f_hat = filter(x)
         plt.plot(
             x, f_hat,
             color='black', linestyle='-', linewidth=1,
@@ -120,28 +83,26 @@ def estimate_bias(
 
         plt.show()
 
-    #
     return bias
 
 
 def estimate_fwhm(
-    grid: Grid,
-    pitch: T,
+    grid: 'Grid',
+    pitch: T,  # minimum `hwhm`
     position: T = 0,
-    handler: AbstractGridFilter | None = None,
+    filter: AbstractGridFilter | None = None,
     verbose: bool = False,
     show: bool = False,
 ) -> T:
     """Estimate a full width at half maximum (FWHM) of the `grid`."""
-    handler = handler or LinearInterpolationGridFilter(grid=grid)
+    filter = filter or LinearInterpolationGridFilter(grid=grid)
 
-    # fwhm
-    def calculate_loss(x: T, handler: Callable[[T], float], y: float) -> float:
-        y_hat = handler(x)
+    def calculate_loss(x: T, filter: Callable[[T], float], y: float) -> float:
+        y_hat = filter(x)
         return (y_hat - y)**2
 
     res = optimize.minimize(
-        partial(calculate_loss, handler=handler, y=handler(position)/2),
+        partial(calculate_loss, filter=filter, y=filter(position)/2),
         position - pitch/2,
         bounds=[
             (-np.inf, position - pitch/2),
@@ -152,7 +113,7 @@ def estimate_fwhm(
     lb = res['x'].item()
 
     res = optimize.minimize(
-        partial(calculate_loss, handler=handler, y=handler(position)/2),
+        partial(calculate_loss, filter=filter, y=filter(position)/2),
         position + pitch/2,
         bounds=[
             (position + pitch/2, +np.inf),
@@ -164,7 +125,6 @@ def estimate_fwhm(
 
     fwhm = rb - lb
 
-    # verbose
     if verbose:
         content = '\n'.join([
             'FWHM: {value:.4f} {units}'.format(
@@ -174,7 +134,6 @@ def estimate_fwhm(
         ])
         print(content)
 
-    # show
     if show:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -189,7 +148,7 @@ def estimate_fwhm(
             alpha=1,
         )
         plt.axhline(
-            handler(position)/2,
+            filter(position)/2,
             color='grey', linestyle='--', linewidth=1,
             alpha=1,
         )
@@ -202,7 +161,7 @@ def estimate_fwhm(
         )
 
         x = grid.space()
-        f_hat = handler(x)
+        f_hat = filter(x)
         plt.plot(
             x, f_hat,
             color='black', linestyle='-', linewidth=1,
@@ -210,7 +169,7 @@ def estimate_fwhm(
         )
 
         x = np.array([lb, rb])
-        y = handler(x)
+        y = filter(x)
         plt.plot(
             x, y,
             color='red', linestyle='--', linewidth=1,
@@ -236,19 +195,20 @@ def estimate_fwhm(
 
         plt.show()
 
-    #
     return fwhm
 
 
 if __name__ == '__main__':
-    from spectrumlab.types import Array, MicroMeter, Number
     from spectrumlab.emulations.aperture import MeasuredApertureShape
     from spectrumlab.emulations.detector import Detector
+    from spectrumlab.grid import Grid  # noqa: F811
+    from spectrumlab.grid.types import T
+    from spectrumlab.types import MicroMeter, Number
 
     for detector in [Detector.BLPP369M1, Detector.BLPP2000, Detector.BLPP4000]:
         rx = 5
         dx = 1e-2
-        x: Array[float] = np.linspace(-rx, +rx, 2*int(rx/dx))
+        x = np.linspace(-rx, +rx, 2*int(rx/dx))
         f = MeasuredApertureShape.from_datasheet(detector)
 
         grid = Grid(

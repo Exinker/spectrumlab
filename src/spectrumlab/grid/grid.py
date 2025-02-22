@@ -1,20 +1,17 @@
 from collections.abc import Iterator, Sequence
-from typing import Callable, TYPE_CHECKING, TypeVar
+from typing import Callable, TYPE_CHECKING
 from warnings import warn
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, interpolate
 
+from spectrumlab.grid.types import R, T
 from spectrumlab.spectrum import Spectrum
-from spectrumlab.types import Absorbance, Array, Digit, Electron, MicroMeter, NanoMeter, Number, Percent, PicoMeter
+from spectrumlab.types import Array, MicroMeter, Number, PicoMeter
 
 if TYPE_CHECKING:
     from spectrumlab.peak.blink_peak import BlinkPeak
-
-
-R = TypeVar('R', Digit, Electron, Percent, Absorbance)
-T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
 
 
 class IteratorGrid:

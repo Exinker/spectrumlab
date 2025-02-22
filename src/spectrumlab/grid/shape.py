@@ -5,7 +5,7 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.emulations.curves import pvoigt, rectangular
-from spectrumlab.grid import T
+from spectrumlab.grid.types import T
 from spectrumlab.types import Array
 
 
