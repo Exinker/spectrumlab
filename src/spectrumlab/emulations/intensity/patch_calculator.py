@@ -71,17 +71,26 @@ class WrappedIntegralIntensityCalculator(IntegralIntensityCalculator, EmulatedMi
 
 def patch_calculator(
     __calculator: AbstractIntensityCalculator,
-) -> EmulatedMixin:
-
-    if isinstance(__calculator, EmulatedMixin):
-        return __calculator
+) -> AbstractIntensityCalculator:  # TODO: rename
 
     if isinstance(__calculator, AmplitudeIntensityCalculator):
-        instance = WrappedAmplitudeIntensityCalculator()
+        instance = WrappedAmplitudeIntensityCalculator(
+            verbose=__calculator.verbose,
+        )
     if isinstance(__calculator, ApproxIntensityCalculator):
-        instance = WrappedApproxIntensityCalculator()
+        instance = WrappedApproxIntensityCalculator(
+            shape=__calculator.shape,
+            delta=__calculator.delta,
+            by_tail=__calculator.by_tail,
+            verbose=__calculator.verbose,
+            show=__calculator.show,
+        )
     if isinstance(__calculator, IntegralIntensityCalculator):
-        instance = WrappedIntegralIntensityCalculator()
+        instance = WrappedIntegralIntensityCalculator(
+            interval=__calculator.interval,
+            kind=__calculator.kind,
+            verbose=__calculator.verbose,
+        )
 
     __calculator.calculate = instance.calculate
     return __calculator
