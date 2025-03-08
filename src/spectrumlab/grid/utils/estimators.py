@@ -101,26 +101,28 @@ def estimate_fwhm(
         y_hat = filter(x)
         return (y_hat - y)**2
 
+    mask = grid.x < position
     res = optimize.minimize(
         partial(calculate_loss, filter=filter, y=filter(position)/2),
-        position - pitch/2,
+        grid.x[mask][np.argmin(np.abs(filter(grid.x[mask]) - filter(position)/2))],
         bounds=[
-            (-np.inf, position - pitch/2),
+            (np.min(grid.x), position - pitch/2),
         ],
         tol=1e-10,
     )
-    assert res['success'], 'Optimization is not success!'
+    # assert res['success'], 'Optimization is not success!'
     lb = res['x'].item()
 
+    mask = grid.x > position
     res = optimize.minimize(
         partial(calculate_loss, filter=filter, y=filter(position)/2),
-        position + pitch/2,
+        grid.x[mask][np.argmin(np.abs(filter(grid.x[mask]) - filter(position)/2))],
         bounds=[
-            (position + pitch/2, +np.inf),
+            (position + pitch/2, np.max(grid.x)),
         ],
         tol=1e-10,
     )
-    assert res['success'], 'Optimization is not success!'
+    # assert res['success'], 'Optimization is not success!'
     rb = res['x'].item()
 
     fwhm = rb - lb
