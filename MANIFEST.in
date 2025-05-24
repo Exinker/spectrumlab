@@ -1,3 +1,2 @@
-include spectrumlab/element/database/*.txt
-include spectrumlab/picture/colormaps/*.txt
-recursive-include spectrumlab/emulations/photodiodes/datasheets/ *.csv
+include spectrumlab/elements/database/*.txt
+include spectrumlab/pictures/colormaps/*.txt

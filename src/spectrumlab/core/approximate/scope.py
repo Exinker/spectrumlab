@@ -1,7 +1,7 @@
 import numpy as np
 
 from spectrumlab.core.approximate.variables import AbstractVariables, Variable
-from spectrumlab.grid import Grid
+from spectrumlab.grids import Grid
 from spectrumlab.types import Number
 
 
