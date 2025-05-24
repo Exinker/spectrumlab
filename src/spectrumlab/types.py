@@ -5,7 +5,7 @@ from typing import NewType, TypeAlias
 import pandas as pd
 from numpy.typing import NDArray  # noqa: I100
 
-from spectrumlab.picture.color import COLOR_DATASET, Color
+from spectrumlab.pictures.color import COLOR_DATASET, Color
 
 
 # --------        paths        --------
