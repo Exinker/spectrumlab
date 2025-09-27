@@ -1,14 +1,8 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from spectrumlab.types import R
 
-
-class AbstractIntensityTransformer(ABC):
-
-    @abstractmethod
-    def __call__(self, __value: R, *args, **kwargs) -> R:
-        raise NotImplementedError
+from .transformer import AbstractIntensityTransformer
 
 
 @dataclass
