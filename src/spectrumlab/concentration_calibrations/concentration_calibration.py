@@ -9,7 +9,7 @@ import pandas as pd
 from spectrumlab.pictures.alpha import ALPHA, Alpha
 from spectrumlab.pictures.color import COLOR, Color
 from spectrumlab.spectra import Spectrum
-from spectrumlab.types import Frame, Series
+from spectrumlab.types import Frame, R, Series
 
 from .exceptions import FitError
 from .metrology import DynamicRange, Intercept, LOD, LOL, LOQ, Slope, estimate_lol
@@ -79,6 +79,7 @@ class AbstractConcentrationCalibration(ABC):
 class ConcentrationCalibration(AbstractConcentrationCalibration):
 
     def __init__(self, data: Frame, blank: Frame | None = None):
+
         self._data = data
         self._blank = blank
 
@@ -147,33 +148,26 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
 
     def fit(self):
 
-        # fit
         mask = self.data['mask'].groupby(level=0, sort=False).max()
-
         data = self.data.copy()
         data = data[['concentration', 'intensity']]
         data = data.groupby(level=0, sort=False).mean()
         data = data[~mask]
         data = data.map(lambda x: np.log10(x))
-
         slope, intercept = np.polyfit(
             x=data['concentration'].values,
             y=data['intensity'].values,
             deg=1,
         )
 
-        # coeff
         self._coeff = intercept, slope
 
-        # limits
-        blank = self.blank
-
         self._lod = LOD.from_blank(
-            data=blank,
+            data=self.blank,
             coeff=self.coeff,
         )
         self._loq = LOQ.from_blank(
-            data=blank,
+            data=self.blank,
             coeff=self.coeff,
         )
         self._lol = estimate_lol(
@@ -336,7 +330,7 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         return f'concentration_calibration ({content}).{extension}'
 
 
-def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool = False) -> ConcentrationCalibration:
+def calibrate(spectra: Frame, handler: Callable[[Spectrum], R], show: bool = False) -> ConcentrationCalibration:
 
     # blank
     index = spectra[spectra.index.get_level_values(0) == 'blank'].index
@@ -349,9 +343,9 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool =
     for i, j in index:
         spectrum = spectra.loc[(i, j), 'spectrum']
         concentration = spectra.loc[(i, j), 'concentration']
+
         intensity = handler(spectrum=spectrum)
 
-        #
         blank.loc[(i, j), 'concentration'] = concentration
         blank.loc[(i, j), 'intensity'] = intensity
         blank.loc[(i, j), 'mask'] = any(spectrum.clipped)
@@ -373,9 +367,9 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool =
     for i, j in index:
         spectrum = spectra.loc[(i, j), 'spectrum']
         concentration = spectra.loc[(i, j), 'concentration']
+
         intensity = handler(spectrum=spectrum)
 
-        #
         data.loc[(i, j), 'concentration'] = concentration
         data.loc[(i, j), 'intensity'] = intensity
 
@@ -389,8 +383,7 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], float], show: bool =
         blank=blank,
     )
 
-    #
     if show:
         concentration_calibration.show()
-    #
+
     return concentration_calibration
