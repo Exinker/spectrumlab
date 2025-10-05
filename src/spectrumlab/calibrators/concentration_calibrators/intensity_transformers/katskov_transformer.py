@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
+from spectrumlab.calibrators.concentration_calibrators.intensity_transformers.intensity_transformer import (
+    AbstractIntensityTransformer,
+)
 from spectrumlab.types import R
-
-from .transformer import AbstractIntensityTransformer
 
 
 @dataclass

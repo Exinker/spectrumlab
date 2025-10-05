@@ -1,13 +1,9 @@
-from typing import Mapping, NewType
+from typing import Mapping
 
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.types import Frame
-
-
-Intercept = NewType('Intercept', float)
-Slope = NewType('Slope', float)
+from spectrumlab.types import Frame, Intercept, Slope
 
 
 class AbstractLimit:

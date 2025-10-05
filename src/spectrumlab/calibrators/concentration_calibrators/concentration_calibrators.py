@@ -1,21 +1,20 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Callable, Literal
+from typing import Callable, Literal, Self
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from spectrumlab.calibrators.concentration_calibrators.exceptions import ConcentrationCalibratorError
+from spectrumlab.calibrators.concentration_calibrators.metrology import DynamicRange, LOD, LOL, LOQ, estimate_lol
 from spectrumlab.pictures.alpha import ALPHA, Alpha
 from spectrumlab.pictures.color import COLOR, Color
 from spectrumlab.spectra import Spectrum
-from spectrumlab.types import Frame, R, Series
-
-from .exceptions import FitError
-from .metrology import DynamicRange, Intercept, LOD, LOL, LOQ, Slope, estimate_lol
+from spectrumlab.types import Frame, Intercept, R, Series, Slope
 
 
-class AbstractConcentrationCalibration(ABC):
+class AbstractConcentrationCalibrator(ABC):
 
     @property
     @abstractmethod
@@ -23,7 +22,7 @@ class AbstractConcentrationCalibration(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def fit(self, intensity: Series, concentration: Series):
+    def fit(self, intensity: Series, concentration: Series) -> Self:
         raise NotImplementedError
 
     @abstractmethod
@@ -76,21 +75,17 @@ class AbstractConcentrationCalibration(ABC):
         return list(map(lambda x: mapping[x], mask))
 
 
-class ConcentrationCalibration(AbstractConcentrationCalibration):
+class RegressionConcentrationCalibrator(AbstractConcentrationCalibrator):
 
-    def __init__(self, data: Frame, blank: Frame | None = None):
+    def __init__(self) -> None:
 
-        self._data = data
-        self._blank = blank
-
+        self._data = None
+        self._blank = None
         self._coeff = None
         self._lod = None
         self._loq = None
         self._lol = None
         self._dynamic_range = None
-
-        # fit
-        self.fit()
 
     @property
     def data(self) -> Frame:
@@ -114,42 +109,46 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
     @property
     def coeff(self) -> tuple[Intercept, Slope]:
         if self._coeff is None:
-            raise FitError('fit the concentration calibration before!')
+            raise ConcentrationCalibratorError('Fit the concentration concentrator calibration before')
 
         return self._coeff
 
     @property
     def lod(self) -> LOD:
         if self._lod is None:
-            raise FitError('fit the concentration calibration before!')
+            raise ConcentrationCalibratorError('Fit the concentration concentrator calibration before!')
 
         return self._lod
 
     @property
     def loq(self) -> LOQ:
         if self._loq is None:
-            raise FitError('fit the concentration calibration before!')
+            raise ConcentrationCalibratorError('Fit the concentration concentrator calibration before!')
 
         return self._loq
 
     @property
     def lol(self) -> LOL:
         if self._lol is None:
-            raise FitError('fit the concentration calibration before!')
+            raise ConcentrationCalibratorError('Fit the concentration concentrator calibration before!')
 
         return self._lol
 
     @property
     def dynamic_range(self) -> DynamicRange:
         if self._dynamic_range is None:
-            raise FitError('fit the concentration calibration before!')
+            raise ConcentrationCalibratorError('Fit the concentration concentrator calibration before!')
 
         return self._dynamic_range
 
-    def fit(self):
+    def fit(self, data: Frame, blank: Frame | None = None) -> Self:
 
-        mask = self.data['mask'].groupby(level=0, sort=False).max()
-        data = self.data.copy()
+        self._data = data
+        self._blank = blank
+
+        #
+        data = data.copy()
+        mask = data['mask'].groupby(level=0, sort=False).max()
         data = data[['concentration', 'intensity']]
         data = data.groupby(level=0, sort=False).mean()
         data = data[~mask]
@@ -161,7 +160,6 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         )
 
         self._coeff = intercept, slope
-
         self._lod = LOD.from_blank(
             data=self.blank,
             coeff=self.coeff,
@@ -178,6 +176,8 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
             intensity=(self.loq.intensity, self.lol.intensity),
             coeff=self.coeff,
         )
+
+        return self
 
     def predict(self, intensity: Series) -> Series:
         interpect, slope = self.coeff
@@ -330,7 +330,12 @@ class ConcentrationCalibration(AbstractConcentrationCalibration):
         return f'concentration_calibration ({content}).{extension}'
 
 
-def calibrate(spectra: Frame, handler: Callable[[Spectrum], R], show: bool = False) -> ConcentrationCalibration:
+def calibrate(
+    spectra: Frame,
+    handler: Callable[[Spectrum], R],
+    show: bool = False,
+    calibrator: AbstractConcentrationCalibrator | None = None,
+) -> AbstractConcentrationCalibrator:
 
     # blank
     index = spectra[spectra.index.get_level_values(0) == 'blank'].index
@@ -339,7 +344,6 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], R], show: bool = Fal
         columns=['concentration', 'intensity', 'mask'],
         index=index,
     )
-
     for i, j in index:
         spectrum = spectra.loc[(i, j), 'spectrum']
         concentration = spectra.loc[(i, j), 'concentration']
@@ -349,7 +353,6 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], R], show: bool = Fal
         blank.loc[(i, j), 'concentration'] = concentration
         blank.loc[(i, j), 'intensity'] = intensity
         blank.loc[(i, j), 'mask'] = any(spectrum.clipped)
-
     values = blank['intensity'].values.astype(float)
     loq = LOQ.calculate(
         mean=np.nanmean(values),
@@ -377,13 +380,14 @@ def calibrate(spectra: Frame, handler: Callable[[Spectrum], R], show: bool = Fal
         is_clipped = any(spectrum.clipped)
         data.loc[(i, j), 'mask'] = is_traced or is_clipped
 
-    # concentration calibration
-    concentration_calibration = ConcentrationCalibration(
+    # calibrator
+    calibrator = calibrator or RegressionConcentrationCalibrator()
+    calibrator = calibrator.fit(
         data=data,
         blank=blank,
     )
 
     if show:
-        concentration_calibration.show()
+        calibrator.show()
 
-    return concentration_calibration
+    return calibrator

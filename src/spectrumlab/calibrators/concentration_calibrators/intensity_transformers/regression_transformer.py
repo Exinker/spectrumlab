@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 from scipy import interpolate
 
+from spectrumlab.calibrators.concentration_calibrators.intensity_transformers.intensity_transformer import (
+    AbstractIntensityTransformer,
+)
 from spectrumlab.types import C, Frame, R
-
-from .transformer import AbstractIntensityTransformer
 
 
 def calculate_blank(
