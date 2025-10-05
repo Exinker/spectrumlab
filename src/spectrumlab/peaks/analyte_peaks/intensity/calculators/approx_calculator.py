@@ -1,15 +1,14 @@
 from typing import Mapping, TYPE_CHECKING
 
-from spectrumlab.peaks.intensity.abstract_calculator import AbstractIntensityCalculator
-from spectrumlab.peaks.shape.utils import approx_peak
-from spectrumlab.peaks.units import R
+from spectrumlab.peaks.analyte_peaks.intensity.abstract_calculator import AbstractIntensityCalculator
+from spectrumlab.peaks.analyte_peaks.shapes.utils import approx_peak
 from spectrumlab.pictures.color import COLOR_INTENSITY, Color
-from spectrumlab.types import Number
+from spectrumlab.types import Number, R
 
 
 if TYPE_CHECKING:
-    from spectrumlab.peaks.analyte_peak import AnalytePeak
-    from spectrumlab.peaks.shape import PeakShape
+    from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
+    from spectrumlab.peaks.analyte_peaks.shapes import PeakShape
 
 
 class ApproxIntensityCalculator(AbstractIntensityCalculator):

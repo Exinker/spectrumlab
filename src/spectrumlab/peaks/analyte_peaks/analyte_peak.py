@@ -4,19 +4,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.calibrators.concentration_calibrators import RegressionConcentrationCalibrator
-from spectrumlab.noises import Noise
+from spectrumlab.calibrators.concentration_calibrators.concentration_calibrators import AbstractConcentrationCalibrator
 from spectrumlab.grids import InterpolationKind
 from spectrumlab.lines.line import Line
+from spectrumlab.noises import Noise
+from spectrumlab.peaks.analyte_peaks.intensity import (
+    AbstractIntensityCalculator,
+    ApproxIntensityCalculator,
+    IntegralIntensityCalculator,
+)
+from spectrumlab.peaks.analyte_peaks.position import AbstractPositionCalculator, InterpolationPositionCalculator
+from spectrumlab.peaks.blink_peaks.draft_blinks import DraftBlinksConfig, draft_blinks
+from spectrumlab.peaks.peak import AbstractPeak
 from spectrumlab.pictures.color import COLOR
 from spectrumlab.spectra.spectrum import Spectrum
-from spectrumlab.types import Array, Inch, NanoMeter, Number
-
-from .blink_peak import DraftBlinkPeakConfig, draft_blinks
-from .intensity import AbstractIntensityCalculator, ApproxIntensityCalculator, IntegralIntensityCalculator
-from .peak import AbstractPeak
-from .position import AbstractPositionCalculator, InterpolationPositionCalculator
-from .units import R
+from spectrumlab.types import Array, Inch, NanoMeter, Number, R
 
 
 @dataclass
@@ -34,7 +36,6 @@ class FactoryAnalytePeak:
         self,
         line: Line,
         spectrum: Spectrum,
-        noise: Noise,
         verbose: bool = False,
         show: bool = False,
     ) -> 'AnalytePeak':
@@ -47,8 +48,7 @@ class FactoryAnalytePeak:
         # mask
         blinks = draft_blinks(
             spectrum=spectrum,
-            noise=noise,
-            config=DraftBlinkPeakConfig(
+            config=DraftBlinksConfig(
                 except_clipped_peak=False,
                 except_sloped_peak=False,
                 except_edges=False,
@@ -117,7 +117,7 @@ class AnalytePeakConfig:
 
     position_calculator: AbstractPositionCalculator
     intensity_calculator: AbstractIntensityCalculator
-    concentration_calculator: RegressionConcentrationCalibrator | None = field(default=None)
+    concentration_calibrator: AbstractConcentrationCalibrator | None = field(default=None)
 
 
 class AnalytePeak(AbstractPeak):
@@ -204,14 +204,14 @@ class AnalytePeak(AbstractPeak):
 
         return self._concentration
 
-    def calculate_concentration(self, calculator: RegressionConcentrationCalibrator | None = None) -> float:
+    def calculate_concentration(self, calibrator: AbstractConcentrationCalibrator | None = None) -> float:
         """Calculate peak's concentration."""
-        calculator = calculator or self.config.concentration_calculator
+        calibrator = calibrator or self.config.concentration_calibrator
 
-        if calculator is None:
+        if calibrator is None:
             return np.nan
 
-        return calculator.predict(self.intensity)
+        return calibrator.predict(self.intensity)
 
     # --------            cursor            --------
     @property

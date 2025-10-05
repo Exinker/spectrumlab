@@ -2,12 +2,12 @@ from typing import TYPE_CHECKING
 
 from scipy import interpolate
 
-from spectrumlab.peaks.position.abstract_calculator import AbstractPositionCalculator
+from spectrumlab.peaks.analyte_peaks.position.abstract_calculator import AbstractPositionCalculator
 from spectrumlab.types import Number
 
 
 if TYPE_CHECKING:
-    from spectrumlab.peaks.analyte_peak import AnalytePeak
+    from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
 class InterpolationPositionCalculator(AbstractPositionCalculator):

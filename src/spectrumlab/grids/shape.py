@@ -5,12 +5,12 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.curves import pvoigt, rectangular
-from spectrumlab.grids.types import T
-from spectrumlab.types import Array
+from spectrumlab.types import Array, T
 
 
-@dataclass
+@dataclass(slots=True)
 class VoigtGridShape:
+
     width: T
     asymmetry: float
     ratio: float

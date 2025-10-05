@@ -6,22 +6,18 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.curves import pvoigt, rectangular
-from spectrumlab.peaks.shape.approx import InterfaceApprox
-from spectrumlab.peaks.shape.shape import AbstractPeakShape
-from spectrumlab.peaks.shape.utils import approx_peak_by_tail
-from spectrumlab.peaks.units import R
-from spectrumlab.types import Array, Number
-
-from .voigt_peak_shape import VoigtPeakShape
+from spectrumlab.peaks.analyte_peaks.shapes import PeakShape
+from spectrumlab.peaks.analyte_peaks.shapes.utils import approx_peak_by_tail
+from spectrumlab.types import Array, Number, R
 
 if TYPE_CHECKING:
-    from spectrumlab.peaks.analyte_peak import AnalytePeak
+    from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
 warnings.filterwarnings('ignore')
 
 
-class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
+class SelfReversedVoigtPeakShapeNaive(PeakShape):
     """Self reversed voigt peak's shape type."""
 
     def __init__(
@@ -34,13 +30,14 @@ class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
         re: float = 4,
         de: float = 1e-1,
     ) -> None:
-        super().__init__()
+        super().__init__(
+            width=width,
+            asymmetry=asymmetry,
+            ratio=ratio,
+            rx=rx,
+            dx=dx,
+        )
 
-        self.width = width
-        self.asymmetry = asymmetry
-        self.ratio = ratio
-        self.rx = rx
-        self.dx = dx
         self.re = re
         self.de = de
 
@@ -133,18 +130,17 @@ class SelfReversedVoigtPeakShapeNaive(AbstractPeakShape, InterfaceApprox):
         return f
 
 
-class SelfReversedVoigtPeakShape(AbstractPeakShape, InterfaceApprox):
+class SelfReversedVoigtPeakShape(PeakShape):
     """Self reversed voigt peak's shape type."""
     MAX_EFFECT = 50
 
     def __init__(
         self,
-        emission_shape: VoigtPeakShape,
-        absorption_shape: VoigtPeakShape | None,
+        emission_shape: PeakShape,
+        absorption_shape: PeakShape | None,
         rx: Number = 10,
         dx: Number = 1e-2,
     ) -> None:
-        super().__init__()
 
         self.emission_shape = emission_shape
         self.absorption_shape = absorption_shape
@@ -232,7 +228,7 @@ class SelfReversedVoigtPeakShape(AbstractPeakShape, InterfaceApprox):
     ) -> Array[R]: ...
     def __call__(self, x, position, intensity, background=0, effect=0, **kwargs):
         """Interpolate by grip."""
-        absorption_shape = self.absorption_shape or VoigtPeakShape(
+        absorption_shape = self.absorption_shape or PeakShape(
             kwargs['effect_width'],
             0,
             kwargs['effect_ratio'],

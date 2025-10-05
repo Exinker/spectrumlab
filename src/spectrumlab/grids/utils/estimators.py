@@ -6,7 +6,7 @@ import numpy as np
 from scipy import optimize
 
 from spectrumlab.grids.filter import AbstractGridFilter, LinearInterpolationGridFilter
-from spectrumlab.grids.types import T
+from spectrumlab.types import T
 
 if TYPE_CHECKING:
     from spectrumlab.grids import Grid
@@ -200,31 +200,29 @@ def estimate_fwhm(
     return fwhm
 
 
-if __name__ == '__main__':
-    raise NotImplementedError
+# if __name__ == '__main__':
 
-    from spectrumlab.emulations.aperture import MeasuredApertureShape
-    from spectrumlab.detectors import Detector
-    from spectrumlab.grid import Grid  # noqa: F811
-    from spectrumlab.grid.types import T
-    from spectrumlab.types import MicroMeter, Number
+#     from spectrumlab.detectors import Detector
+#     from spectrumlab.grids import Grid
+#     from spectrumlab.types import MicroMeter, Number, T
+#     from spectrumlab_emulations.aperture import MeasuredApertureShape
 
-    for detector in [Detector.BLPP369M1, Detector.BLPP2000, Detector.BLPP4000]:
-        rx = 5
-        dx = 1e-2
-        x = np.linspace(-rx, +rx, 2*int(rx/dx))
-        f = MeasuredApertureShape.from_datasheet(detector)
+#     for detector in [Detector.BLPP369M1, Detector.BLPP2000, Detector.BLPP4000]:
+#         rx = 5
+#         dx = 1e-2
+#         x = np.linspace(-rx, +rx, 2*int(rx/dx))
+#         f = MeasuredApertureShape.from_datasheet(detector)
 
-        grid = Grid(
-            x=x, y=f(x, 0),
-            units=Number,
-        ).rescale(
-            1/detector.pitch, units=MicroMeter,
-        )
+#         grid = Grid(
+#             x=x, y=f(x, 0),
+#             units=Number,
+#         ).rescale(
+#             1/detector.pitch, units=MicroMeter,
+#         )
 
-        fwhm = estimate_fwhm(
-            grid=grid,
-            pitch=detector.pitch,
-            verbose=True,
-            show=True,
-        )
+#         fwhm = estimate_fwhm(
+#             grid=grid,
+#             pitch=detector.pitch,
+#             verbose=True,
+#             show=True,
+#         )

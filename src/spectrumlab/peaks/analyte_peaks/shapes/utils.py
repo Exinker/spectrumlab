@@ -9,8 +9,8 @@ from scipy import optimize
 from spectrumlab.utils import mse
 
 if TYPE_CHECKING:
-    from spectrumlab.peaks.analyte_peak import AnalytePeak
-    from spectrumlab.peaks.shape import PeakShape
+    from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
+    from spectrumlab.peaks.analyte_peaks.shapes import PeakShape
 
 
 # --------        approx        --------

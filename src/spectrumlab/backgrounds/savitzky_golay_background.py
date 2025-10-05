@@ -6,7 +6,7 @@ import numpy as np
 
 from spectrumlab.backgrounds import AbstractBackground, AbstractBackgroundConfig
 from spectrumlab.noises import Noise
-from spectrumlab.peaks.blink_peak import DraftBlinkPeakConfig, draft_blinks
+from spectrumlab.peaks.blink_peaks.draft_blinks import DraftBlinksConfig, draft_blinks
 from spectrumlab.spectra import Spectrum
 from spectrumlab.types import Array, Number
 
@@ -54,11 +54,10 @@ class SavitzkyGolayBackground(AbstractBackground):
 
         return self._background
 
-    def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Spectrum:
+    def fit(self, spectrum: Spectrum, show: bool = False) -> Spectrum:
 
         self._fit_mask(
             spectrum=spectrum,
-            noise=noise,
             show=show,
         )
         self._fit_width(
@@ -92,15 +91,14 @@ class SavitzkyGolayBackground(AbstractBackground):
             detector=spectrum.detector,
         )
 
-    def _fit_mask(self, spectrum: Spectrum, noise: Noise, show: bool) -> None:
+    def _fit_mask(self, spectrum: Spectrum, show: bool) -> None:
 
         # mask
         mask = np.full(spectrum.shape, False)
         for t in range(spectrum.n_times):
             blinks = draft_blinks(
                 spectrum=spectrum[t],
-                noise=noise,
-                config=DraftBlinkPeakConfig(
+                config=DraftBlinksConfig(
                     n_counts_min=1,
                     n_counts_max=500,
                     slope_max=5,

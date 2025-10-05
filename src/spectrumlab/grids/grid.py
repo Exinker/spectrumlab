@@ -1,17 +1,17 @@
 from collections.abc import Iterator, Sequence
-from typing import Callable, TYPE_CHECKING
+from typing import Callable, Self, TYPE_CHECKING
 from warnings import warn
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, interpolate
 
-from spectrumlab.grids.types import R, T
+from spectrumlab.grids.chunks import Chunk
 from spectrumlab.spectra import Spectrum
-from spectrumlab.types import Array, MicroMeter, Number, PicoMeter
+from spectrumlab.types import Array, MicroMeter, Number, PicoMeter, R, T
 
 if TYPE_CHECKING:
-    from spectrumlab.peaks.blink_peak import BlinkPeak
+    from spectrumlab.peaks.blink_peaks import BlinkPeak
 
 
 class IteratorGrid:
@@ -35,51 +35,14 @@ class IteratorGrid:
             raise StopIteration
 
 
-# --------        grid        --------
-class _FactoryBatch:
-
-    def __init__(self, spectrum: Spectrum):
-        self.spectrum = spectrum
-
-    def create_from_blink(self, blink: 'BlinkPeak', threshold: float) -> '_Batch':
-        lb, ub = blink.minima
-
-        is_clipped = self.spectrum.clipped[lb:ub]
-        is_snr_low = np.abs(self.spectrum.intensity[lb:ub]) / self.spectrum.deviation[lb:ub] < threshold
-        mask = ~is_clipped & ~is_snr_low
-
-        x = self.spectrum.number[lb:ub][mask]
-        y = self.spectrum.intensity[lb:ub][mask]
-
-        return _Batch(x, y)
-
-    def create_from_frame(self, t: int, threshold: float) -> '_Batch':
-        is_clipped = self.spectrum.clipped[t]
-        is_snr_low = np.abs(self.spectrum.intensity[t]) / self.spectrum.deviation[t] < threshold
-        mask = ~is_clipped & ~is_snr_low
-
-        x = self.spectrum.number[mask]
-        y = self.spectrum.intensity[mask] if self.spectrum.n_times == 1 else self.spectrum.intensity[t, mask]
-
-        return _Batch(x, y)
-
-
-class _Batch:
-    factory = _FactoryBatch
-
-    def __init__(self, x: Array[T], y: Array[R]):
-        self.x = x
-        self.y = y
-
-
 class FactoryGrid:
 
     def __init__(self, spectrum: Spectrum):
         self.spectrum = spectrum
 
-    def create_from_blinks(
+    def create_from_peaks(
         self,
-        blinks: Sequence['BlinkPeak'],
+        peaks: Sequence['BlinkPeak'],
         offset: Array[T] | None = None,
         scale: Array[float] | None = None,
         background: Array[float] | None = None,
@@ -88,13 +51,13 @@ class FactoryGrid:
         """Get a grid from sequence of blinks from spectrum."""
         assert self.spectrum.n_times == 1, 'time resolved spectra are not supported!'
 
-        batches = tuple(
-            _Batch.factory(spectrum=self.spectrum).create_from_blink(blink=blink, threshold=threshold)
-            for blink in blinks
+        chunks = tuple(
+            Chunk.factory(spectrum=self.spectrum).create_from_peak(peak=peak, threshold=threshold)
+            for peak in peaks
         )
 
         return self._create(
-            batches=batches,
+            chunks=chunks,
             offset=offset,
             scale=scale,
             background=background,
@@ -110,13 +73,13 @@ class FactoryGrid:
         """Get a grid from frames of spectra (for example, series of shifted on wavelength)."""
         # assert spectrum.n_times > 1, 'only time resolved spectra are supported!'
 
-        batches = tuple(
-            _Batch.factory(spectrum=self.spectrum).create_from_frame(t=t, threshold=threshold)
+        chunks = tuple(
+            Chunk.factory(spectrum=self.spectrum).create_from_frame(t=t, threshold=threshold)
             for t in range(self.spectrum.n_times)
         )
 
         return self._create(
-            batches=batches,
+            chunks=chunks,
             offset=offset,
             scale=scale,
             background=background,
@@ -124,37 +87,34 @@ class FactoryGrid:
 
     def _create(
         self,
-        batches: Sequence[_Batch],
+        chunks: Sequence[Chunk],
         offset: Array[T] | None = None,
         scale: Array[float] | None = None,
         background: Array[R] | None = None,
     ) -> 'Grid':
-        """Get a grid from sequence of batches."""
-        n_batches = len(batches)
+        """Get a grid from sequence of chunks."""
+        n_chunks = len(chunks)
 
         if offset is None:
-            offset = np.full(n_batches, 0)
-        assert len(offset) == n_batches, f'len of `offset` have to be equal of `n_batches`: {n_batches}'
+            offset = np.full(n_chunks, 0)
+        assert len(offset) == n_chunks, f'len of `offset` have to be equal of `n_chunks`: {n_chunks}'
 
         if scale is None:
-            scale = np.full(n_batches, 1)
-        assert len(scale) == n_batches, f'len of `scale` have to be equal of `n_batches`: {n_batches}'
+            scale = np.full(n_chunks, 1)
+        assert len(scale) == n_chunks, f'len of `scale` have to be equal of `n_chunks`: {n_chunks}'
 
         if background is None:
-            background = np.full(n_batches, 0)
-        assert len(background) == n_batches, f'len of `background` have to be equal of `n_batches`: {n_batches}'
+            background = np.full(n_chunks, 0)
+        assert len(background) == n_chunks, f'len of `background` have to be equal of `n_chunks`: {n_chunks}'
 
-        #
         x, y = [], []
-        for t, batch in enumerate(batches):
-            x.extend(batch.x - offset[t])
-            y.extend((batch.y - background[t]) / scale[t])
+        for t, chunk in enumerate(chunks):
+            x.extend(chunk.x - offset[t])
+            y.extend((chunk.y - background[t]) / scale[t])
 
         x, y = np.array(x).squeeze(), np.array(y).squeeze()
 
         index = np.argsort(x)
-
-        #
         return Grid(
             x=x[index],
             y=y[index],
@@ -162,12 +122,12 @@ class FactoryGrid:
 
 
 class Grid:
+
     factory = FactoryGrid
 
     def __init__(self, x: Array[T], y: Array[float] | None = None, units: T | None = None):
         assert len(x) == len(y)
 
-        #
         self._x = x
         self._y = y
         self._units = units
@@ -221,7 +181,7 @@ class Grid:
     def space(self, n_points: int = 1000) -> Array[T]:
         return np.linspace(min(self.x), max(self.x), n_points)
 
-    def shift(self, value: T) -> 'Grid':
+    def shift(self, value: T) -> Self:
         """Shift `grid` by the `value`."""
 
         return Grid(
@@ -230,7 +190,7 @@ class Grid:
             units=self.units,
         )
 
-    def rescale(self, value: float, units: T) -> 'Grid':
+    def rescale(self, value: float, units: T) -> Self:
         """Rescale `grid` by the `value`. It is used to change `units`!"""
 
         return Grid(
@@ -239,7 +199,7 @@ class Grid:
             units=units,
         )
 
-    def normalize(self, value: float | None = None) -> 'Grid':
+    def normalize(self, value: float | None = None) -> Self:
         """Normalize `grid`."""
         value = value or 1/integrate.quad(self.interpolate, a=min(self.x), b=max(self.x))[0]
 
@@ -285,7 +245,7 @@ class Grid:
 
         return f'{cls.__name__}({self.units})'
 
-    def __add__(self, other: float | Array[float]) -> 'Grid':
+    def __add__(self, other: float | Array[float]) -> Self:
         cls = self.__class__
 
         return cls(
@@ -294,13 +254,13 @@ class Grid:
             units=self.units,
         )
 
-    def __iadd__(self, other: float | Array[float]) -> 'Grid':
+    def __iadd__(self, other: float | Array[float]) -> Self:
         return self + other
 
-    def __radd__(self, other: float | Array[float]) -> 'Grid':
+    def __radd__(self, other: float | Array[float]) -> Self:
         return self + other
 
-    def __sub__(self, other: float | Array[float]) -> 'Grid':
+    def __sub__(self, other: float | Array[float]) -> Self:
         cls = self.__class__
 
         return cls(
@@ -309,8 +269,8 @@ class Grid:
             units=self.units,
         )
 
-    def __isub__(self, other: float | Array[float]) -> 'Grid':
+    def __isub__(self, other: float | Array[float]) -> Self:
         return self - other
 
-    def __rsub__(self, other: float | Array[float]) -> 'Grid':
+    def __rsub__(self, other: float | Array[float]) -> Self:
         return self - other

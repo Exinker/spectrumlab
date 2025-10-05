@@ -2,13 +2,13 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peaks.intensity.abstract_calculator import AbstractIntensityCalculator
-from spectrumlab.peaks.units import R
+from spectrumlab.peaks.analyte_peaks.intensity.abstract_calculator import AbstractIntensityCalculator
 from spectrumlab.pictures.color import COLOR_INTENSITY, Color
+from spectrumlab.types import R
 
 
 if TYPE_CHECKING:
-    from spectrumlab.peaks.analyte_peak import AnalytePeak
+    from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
 class AmplitudeIntensityCalculator(AbstractIntensityCalculator):

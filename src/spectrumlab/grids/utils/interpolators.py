@@ -4,8 +4,7 @@ from typing import Callable
 from scipy import interpolate
 
 from spectrumlab.grids import Grid
-from spectrumlab.grids.types import T
-from spectrumlab.types import Array
+from spectrumlab.types import Array, T
 
 
 class InterpolationKind(Enum):
