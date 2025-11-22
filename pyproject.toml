@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spectrumlab"
-version = "0.8.0a24"
+version = "0.8.1a"
 description = "`spectrumlab` is a base library designed to emulate and process spectra."
 readme = "README.md"
 keywords = [
