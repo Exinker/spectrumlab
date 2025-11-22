@@ -149,6 +149,7 @@ class LOL(AbstractLimit):
     ) -> None:
         super().__init__(intensity, coeff=coeff, info=info)
 
+
 def estimate_lol(
     data: Frame,
     coeff: tuple[float, float],

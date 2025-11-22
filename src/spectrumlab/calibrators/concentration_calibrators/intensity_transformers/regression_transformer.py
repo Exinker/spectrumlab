@@ -11,25 +11,9 @@ from spectrumlab.calibrators.concentration_calibrators.intensity_transformers.in
 from spectrumlab.types import C, Frame, R
 
 
-def calculate_blank(
-    data: Frame,
-    kernel: Callable[[R], R],
-) -> R:
-    if 'blank' not in data.index:
-        return 0
-
-    values = []
-    for i in data.loc['blank'].index:
-        values.append(kernel(data.loc[('blank', i), 'intensity']))
-
-    blank = np.mean(values).item()
-    return blank
-
-
 def prepare_data(
     __data: Frame,
 ) -> Frame:
-    blank = calculate_blank(__data, kernel=np.max)
 
     data = pd.DataFrame(
         [
@@ -37,13 +21,15 @@ def prepare_data(
                 'probe': i,
                 'parallel': j,
                 'concentration': __data.loc[(i, j), 'concentration'],
-                'intensity': np.max(__data.loc[(i, j), 'intensity'] - blank),
+                'intensity': np.max(__data.loc[(i, j), 'intensity']),
             }
-            for i, j in __data.drop(index='blank', errors='ignore').index
+            for i, j in __data.index
         ],
         columns=['probe', 'parallel', 'concentration', 'intensity'],
     ).set_index(['probe', 'parallel'])
-    data = data.groupby('probe').mean().sort_values(by='concentration')
+
+    data = data.dropna()
+    data = data.groupby(level=0, sort=False).mean()
 
     return data
 
