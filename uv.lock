@@ -1732,7 +1732,7 @@ wheels = [
 
 [[package]]
 name = "spectrumlab"
-version = "0.8.0a2"
+version = "0.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
