@@ -1,9 +1,12 @@
 
 [report]
-exclude_lines =
+exclude_also =
     import *
     from * import *
-    if __name__ == '__main__':
-    raise NotImplementedError
+    @abstractmethod
     def __init__
     def __repr__
+    def __str__
+    raise NotImplementedError
+    if __name__ == '__main__':
+    if verbose:
