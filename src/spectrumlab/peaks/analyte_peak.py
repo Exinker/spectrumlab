@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
 
-from spectrumlab.concentration_calibrations import ConcentrationCalibration
+from spectrumlab.calibrators.concentration_calibrators import RegressionConcentrationCalibrator
 from spectrumlab.noises import Noise
 from spectrumlab.grids import InterpolationKind
 from spectrumlab.lines.line import Line
@@ -117,7 +117,7 @@ class AnalytePeakConfig:
 
     position_calculator: AbstractPositionCalculator
     intensity_calculator: AbstractIntensityCalculator
-    concentration_calculator: ConcentrationCalibration | None = field(default=None)
+    concentration_calculator: RegressionConcentrationCalibrator | None = field(default=None)
 
 
 class AnalytePeak(AbstractPeak):
@@ -204,7 +204,7 @@ class AnalytePeak(AbstractPeak):
 
         return self._concentration
 
-    def calculate_concentration(self, calculator: ConcentrationCalibration | None = None) -> float:
+    def calculate_concentration(self, calculator: RegressionConcentrationCalibrator | None = None) -> float:
         """Calculate peak's concentration."""
         calculator = calculator or self.config.concentration_calculator
 

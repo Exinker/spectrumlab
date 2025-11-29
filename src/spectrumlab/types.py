@@ -63,5 +63,11 @@ Percent = NewType('Percent', float)
 
 Absorbance = NewType('Absorbance', float)
 
+R = NewType('R', float)
+C = NewType('C', float)
+
 # --------        other units        --------
+Intercept = NewType('Intercept', float)
+Slope = NewType('Slope', float)
+
 Symbol = NewType('Symbol', str)
