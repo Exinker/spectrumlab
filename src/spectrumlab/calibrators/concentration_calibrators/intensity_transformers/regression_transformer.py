@@ -21,7 +21,7 @@ def prepare_data(
                 'probe': i,
                 'parallel': j,
                 'concentration': __data.loc[(i, j), 'concentration'],
-                'intensity': np.max(__data.loc[(i, j), 'intensity']),
+                'intensity': np.nanmax(__data.loc[(i, j), 'intensity']),
             }
             for i, j in __data.index
         ],
@@ -39,7 +39,7 @@ class RegressionIntensityTransformer(AbstractIntensityTransformer):
     @classmethod
     def create(
         cls,
-        data: Frame,  # DataFrame with 'probe', 'parallel', 'concentration' and 'intensity' columns
+        data: Frame,
         bounds: tuple[R, R],
         show: bool = False,
     ) -> Self:
@@ -49,16 +49,16 @@ class RegressionIntensityTransformer(AbstractIntensityTransformer):
         a = 1
         b = np.log10(np.array(data['intensity'][mask], dtype=float)).mean() - np.log10(np.array(data['concentration'][mask], dtype=float)).mean()
         p = np.array([a, b])
-        predict_intensity = lambda x: 10**(np.polyval(p, np.log10(x)))
+        intensity_predictor = lambda x: 10**(np.polyval(p, np.log10(x)))
 
-        data['intensity_true'] = np.array(list(map(predict_intensity, data['concentration'])))
+        data['intensity_true'] = np.array(list(map(intensity_predictor, data['concentration'])))
 
         _data = data.copy()
         x = _data['concentration'].map(np.log10)
         y = _data['intensity'].map(np.log10)
         # mask = y >= x + b
         # y[mask] = x[mask] + b
-        predict_concentration = interpolate.interp1d(
+        concentration_predictor = interpolate.interp1d(
             y, x,
             kind='linear',
             bounds_error=False,
@@ -134,28 +134,28 @@ class RegressionIntensityTransformer(AbstractIntensityTransformer):
             plt.show()
 
         return cls(
-            predict_concentration=predict_concentration,
-            predict_intensity=predict_intensity,
+            concentration_predictor=concentration_predictor,
+            intensity_predictor=intensity_predictor,
             bounds=(lb, ub),
         )
 
     def __init__(
         self,
-        predict_concentration: Callable[[R], C],
-        predict_intensity: Callable[[C], R],
+        concentration_predictor: Callable[[R], C],
+        intensity_predictor: Callable[[C], R],
         bounds: tuple[R, R],
     ) -> None:
 
-        self.predict_concentration = predict_concentration
-        self.predict_intensity = predict_intensity
+        self.concentration_predictor = concentration_predictor
+        self.intensity_predictor = intensity_predictor
         self.bounds = bounds
 
     def __call__(self, __value: R) -> R:
 
-        if __value < self.bounds[1]:
+        if __value <= self.bounds[1]:
             return __value
 
-        value = self.predict_intensity(
-            x=10**(self.predict_concentration(np.log10(__value))),
+        value = self.intensity_predictor(
+            x=10**(self.concentration_predictor(np.log10(__value))),
         )
         return value
