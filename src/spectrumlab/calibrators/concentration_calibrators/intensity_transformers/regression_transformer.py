@@ -8,30 +8,7 @@ from scipy import interpolate
 from spectrumlab.calibrators.concentration_calibrators.intensity_transformers.intensity_transformer import (
     AbstractIntensityTransformer,
 )
-from spectrumlab.types import C, Frame, R
-
-
-def prepare_data(
-    __data: Frame,
-) -> Frame:
-
-    data = pd.DataFrame(
-        [
-            {
-                'probe': i,
-                'parallel': j,
-                'concentration': __data.loc[(i, j), 'concentration'],
-                'intensity': np.max(__data.loc[(i, j), 'intensity']),
-            }
-            for i, j in __data.index
-        ],
-        columns=['probe', 'parallel', 'concentration', 'intensity'],
-    ).set_index(['probe', 'parallel'])
-
-    data = data.dropna()
-    data = data.groupby(level=0, sort=False).mean()
-
-    return data
+from spectrumlab.types import Array, C, Frame, R
 
 
 class RegressionIntensityTransformer(AbstractIntensityTransformer):
@@ -39,30 +16,49 @@ class RegressionIntensityTransformer(AbstractIntensityTransformer):
     @classmethod
     def create(
         cls,
-        data: Frame,  # DataFrame with 'probe', 'parallel', 'concentration' and 'intensity' columns
+        frame: Frame,
         bounds: tuple[R, R],
         show: bool = False,
     ) -> Self:
-        lb, ub = bounds
+        
+        print(frame)
 
+        if isinstance(frame.index, pd.MultiIndex):
+            data = cls.process_frame(frame)
+        else:
+            data = frame.copy()
+
+        print(data)
+
+        # calculate params
+        lb, ub = bounds
         mask = (lb <= data['intensity']) & (data['intensity'] <= ub)
         a = 1
         b = np.log10(np.array(data['intensity'][mask], dtype=float)).mean() - np.log10(np.array(data['concentration'][mask], dtype=float)).mean()
-        p = (a, b)
+        params = (a, b)
 
-        predict_intensity = lambda x: 10**(np.polyval(p, np.log10(x)))
-        data['intensity_true'] = np.array(list(map(predict_intensity, data['concentration'])))
-
+        # transformer kernel
         x = np.log10(data['concentration'])
         y = np.log10(data['intensity'])
-        predict_concentration = interpolate.interp1d(
+        print(x)
+        print(y)
+        kernel = interpolate.interp1d(
             y, x,
             kind='linear',
             bounds_error=False,
             fill_value=np.nan,
         )
 
+        # create transformer
+        transformer = cls(
+            kernel=kernel,
+            bounds=(lb, ub),
+            params=params,
+        )
+
         if show:
+            data['intensity_true'] = transformer.estimate_intensity(data['concentration'])
+
             fig, (ax_left, ax_right) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
 
             plt.sca(ax_left)
@@ -124,38 +120,66 @@ class RegressionIntensityTransformer(AbstractIntensityTransformer):
             plt.ylabel(r'$(R - \hat{R})/\hat{R}$, %')
 
             plt.xscale('log')
-            # plt.yscale('log')
 
             plt.grid(color='grey', linestyle=':')
 
             plt.show()
 
-        return cls(
-            predict_concentration=predict_concentration,
-            predict_intensity=predict_intensity,
-            bounds=(lb, ub),
-            p=p,
-        )
+        return transformer
 
     def __init__(
         self,
-        predict_concentration: Callable[[R], C],
-        predict_intensity: Callable[[C], R],
         bounds: tuple[R, R],
-        p: tuple[float, float],
+        params: tuple[float, float],
+        kernel: Callable[[R], C],
     ) -> None:
 
-        self.predict_concentration = predict_concentration
-        self.predict_intensity = predict_intensity
         self.bounds = bounds
-        self.p = p
+        self.params = params
+        self.kernel = kernel
+
+    def estimate_intensity(
+        self,
+        __value: C,
+    ) -> R:
+        return 10**(np.polyval(self.params, np.log10(__value)))
+
+    def apply(
+        self,
+        __value: Array[R],
+    ) -> Array[R]:
+        return np.array(list(map(self, __value)), dtype=float)
 
     def __call__(self, __value: R) -> R:
 
         if __value < self.bounds[1]:
             return __value
 
-        value = self.predict_intensity(
-            x=10**(self.predict_concentration(np.log10(__value))),
+        value = self.estimate_intensity(
+            10**(self.kernel(np.log10(__value))),
         )
+        print(__value, self.kernel(np.log10(__value)), value)
         return value
+
+    @staticmethod
+    def process_frame(
+        frame: Frame,
+    ) -> Frame:
+
+        data = pd.DataFrame(
+            [
+                {
+                    'probe': i,
+                    'parallel': j,
+                    'concentration': frame.loc[(i, j), 'concentration'],
+                    'intensity': np.nanmax(frame.loc[(i, j), 'intensity']),
+                }
+                for i, j in frame.index
+            ],
+            columns=['probe', 'parallel', 'concentration', 'intensity'],
+        ).set_index(['probe', 'parallel'])
+
+        data = data.dropna(subset=['concentration'])
+        data = data.groupby(level=0, sort=False).mean()
+
+        return data
