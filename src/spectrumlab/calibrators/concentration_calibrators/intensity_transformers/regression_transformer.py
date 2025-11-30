@@ -185,7 +185,7 @@ class RegressionIntensityTransformer(AbstractIntensityTransformer):
 
     def __call__(self, __value: R) -> R:
 
-        if __value < self.bounds[1]:
+        if __value <= self.bounds[1]:
             return __value
 
         value = self.estimate_intensity(
