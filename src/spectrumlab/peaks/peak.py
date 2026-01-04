@@ -5,7 +5,7 @@ import numpy as np
 from spectrumlab.types import Array, Number
 
 
-@dataclass(frozen=False, slots=False)
+@dataclass(frozen=True, slots=True)
 class AbstractPeak:
     """Abstract peak type."""
     minima: tuple[Number, Number]  # spectrum's internal index of the minima

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from spectrumlab.types import Number
 
 if TYPE_CHECKING:
-    from spectrumlab.peaks.analyte_peak import AnalytePeak
+    from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
 class AbstractPositionCalculator(ABC):

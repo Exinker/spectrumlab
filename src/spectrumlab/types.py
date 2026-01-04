@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import NewType, TypeAlias
+from typing import NewType, TypeAlias, TypeVar
 
 import pandas as pd
 from numpy.typing import NDArray  # noqa: I100
@@ -56,6 +56,8 @@ PicoMeter = NewType('Pico', float)
 
 Number = NewType('Number', float)
 
+T = TypeVar('T', Number, MicroMeter, NanoMeter, PicoMeter)
+
 # --------        value units        --------
 Digit = NewType('Digit', float)
 Electron = NewType('Electron', float)
@@ -63,7 +65,7 @@ Percent = NewType('Percent', float)
 
 Absorbance = NewType('Absorbance', float)
 
-R = NewType('R', float)
+R = TypeVar('R', Digit, Electron, Percent, Absorbance)
 C = NewType('C', float)
 
 # --------        other units        --------

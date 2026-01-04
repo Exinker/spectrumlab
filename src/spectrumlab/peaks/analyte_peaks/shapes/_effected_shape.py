@@ -5,7 +5,7 @@ import numpy as np
 from scipy import interpolate, signal
 
 from spectrumlab.curves import pvoigt, rectangular  # noqa: I100
-from spectrumlab.peaks.shape import VoigtPeakShape
+from spectrumlab.peaks.analyte_peaks.shapes import PeakShape
 from spectrumlab.types import Array, Number
 
 
@@ -40,7 +40,7 @@ class Effect:
 
 
 @dataclass
-class EffectedVoigtPeakShape(VoigtPeakShape):
+class EffectedVoigtPeakShape(PeakShape):
     width: Number
     asymmetry: float
     ratio: float
