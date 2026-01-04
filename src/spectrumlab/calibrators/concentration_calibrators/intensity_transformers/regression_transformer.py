@@ -14,13 +14,14 @@ from spectrumlab.types import C, Frame, R
 def calculate_blank(
     data: Frame,
     kernel: Callable[[R], R],
+    blank_name: str,
 ) -> R:
-    if 'blank' not in data.index:
+    if blank_name not in data.index:
         return 0
 
     values = []
-    for i in data.loc['blank'].index:
-        values.append(kernel(data.loc[('blank', i), 'intensity']))
+    for i in data.loc[blank_name].index:
+        values.append(kernel(data.loc[(blank_name, i), 'intensity']))
 
     blank = np.mean(values).item()
     return blank
@@ -28,8 +29,13 @@ def calculate_blank(
 
 def prepare_data(
     __data: Frame,
+    blank_name: str = 'blank',
 ) -> Frame:
-    blank = calculate_blank(__data, kernel=np.max)
+    blank = calculate_blank(
+        __data,
+        kernel=np.max,
+        blank_name=blank_name,
+    )
 
     data = pd.DataFrame(
         [
@@ -39,11 +45,13 @@ def prepare_data(
                 'concentration': __data.loc[(i, j), 'concentration'],
                 'intensity': np.max(__data.loc[(i, j), 'intensity'] - blank),
             }
-            for i, j in __data.drop(index='blank', errors='ignore').index
+            for i, j in __data.index
         ],
         columns=['probe', 'parallel', 'concentration', 'intensity'],
     ).set_index(['probe', 'parallel'])
-    data = data.groupby('probe').mean().sort_values(by='concentration')
+
+    data = data.dropna()
+    data = data.groupby(level=0, sort=False).mean()
 
     return data
 
