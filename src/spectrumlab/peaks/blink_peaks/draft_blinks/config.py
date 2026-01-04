@@ -18,7 +18,7 @@ class DraftBlinksConfig(BaseSettings):
     width_max: float = Field(3.5, ge=1, le=10, alias='DRAFT_BLINKS_WIDTH_MAX')
     slope_max: float = Field(.25, ge=0, le=1, alias='DRAFT_BLINKS_SLOPE_MAX')
 
-    noise_level: int = Field(10, ge=1, le=100, alias='DRAFT_BLINKS_NOISE_LEVEL')
+    noise_level: int = Field(10, ge=1, le=1_000_000, alias='DRAFT_BLINKS_NOISE_LEVEL')
 
     model_config = SettingsConfigDict(
         env_file='.env',

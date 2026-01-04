@@ -6,11 +6,14 @@ from scipy import optimize
 from spectrumlab.grids import Grid
 from spectrumlab.peaks.analyte_peaks.shapes import PeakShape
 from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils import FullParams
+from spectrumlab.types import MicroMeter
 from spectrumlab.utils import mse
 
 
 def retrieve_shape_from_grid(
     grid: Grid,
+    rx: MicroMeter = 20,
+    dx: MicroMeter = 1e-2,
 ) -> PeakShape:
 
     def _loss(grid: Grid, params: Sequence[float]) -> float:
@@ -19,7 +22,7 @@ def retrieve_shape_from_grid(
             grid=grid,
             params=params,
         )
-        shape = PeakShape(**shape_params, rx=20, dx=.5)
+        shape = PeakShape(**shape_params, rx=rx, dx=dx)
 
         return mse(
             y=grid.y,
@@ -40,5 +43,5 @@ def retrieve_shape_from_grid(
         params=res['x'],
     )
 
-    shape = PeakShape(**shape_params, rx=20, dx=.5)
+    shape = PeakShape(**shape_params, rx=rx, dx=dx)
     return shape

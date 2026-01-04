@@ -5,7 +5,6 @@ import numpy as np
 from spectrumlab.spectra import Spectrum
 from spectrumlab.types import Array, R, T
 
-
 if TYPE_CHECKING:
     from spectrumlab.peaks.blink_peaks import BlinkPeak
 
