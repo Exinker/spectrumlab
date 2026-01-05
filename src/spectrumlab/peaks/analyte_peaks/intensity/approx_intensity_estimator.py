@@ -1,6 +1,6 @@
 from typing import Mapping, TYPE_CHECKING
 
-from spectrumlab.peaks.analyte_peaks.intensity.abstract_calculator import AbstractIntensityCalculator
+from spectrumlab.peaks.analyte_peaks.intensity.base_intensity_estimator import IntensityEstimatorABC
 from spectrumlab.peaks.analyte_peaks.shapes.utils import approx_peak
 from spectrumlab.pictures.color import COLOR_INTENSITY, Color
 from spectrumlab.types import Number, R
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from spectrumlab.peaks.analyte_peaks.shapes import PeakShape
 
 
-class ApproxIntensityCalculator(AbstractIntensityCalculator):
+class ApproxIntensityEstimator(IntensityEstimatorABC):
     """Estimate analyte peak's intensity by approximation."""
 
     def __init__(

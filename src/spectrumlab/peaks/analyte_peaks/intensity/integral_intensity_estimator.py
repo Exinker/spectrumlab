@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from spectrumlab.grids import Grid, InterpolationKind, integrate_grid
-from spectrumlab.peaks.analyte_peaks.intensity.abstract_calculator import AbstractIntensityCalculator
+from spectrumlab.peaks.analyte_peaks.intensity.base_intensity_estimator import IntensityEstimatorABC
 from spectrumlab.pictures.color import COLOR_INTENSITY, Color
 from spectrumlab.types import Number, R
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
-class IntegralIntensityCalculator(AbstractIntensityCalculator):
+class IntegralIntensityEstimator(IntensityEstimatorABC):
     """Estimate analyte peak's intensity by integration.
 
     TODO: to check clipped values?

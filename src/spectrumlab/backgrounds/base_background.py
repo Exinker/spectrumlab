@@ -12,16 +12,14 @@ from spectrumlab.spectra import Spectrum
 from spectrumlab.types import Array
 
 
-class AbstractBackgroundConfig(ABC):
-    """Abstract type for any background's config."""
+class BackgroundConfigABC(ABC):
 
     pass
 
 
-class AbstractBackground(ABC):
-    """Abstract type for any spectrum's background."""
+class BackgroundABC(ABC):
 
-    def __init__(self, config: AbstractBackgroundConfig):
+    def __init__(self, config: BackgroundConfigABC):
         self.config = config
 
     @abstractmethod

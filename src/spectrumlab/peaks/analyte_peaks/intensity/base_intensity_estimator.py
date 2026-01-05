@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
-class AbstractIntensityCalculator(ABC):
+class IntensityEstimatorABC(ABC):
 
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose

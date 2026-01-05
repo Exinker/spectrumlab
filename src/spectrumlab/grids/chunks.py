@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from spectrumlab.peaks.blink_peaks import BlinkPeak
 
 
-class FactoryChunk:
+class ChunkFactory:
 
     def __init__(self, spectrum: Spectrum):
         self.spectrum = spectrum
@@ -39,7 +39,7 @@ class FactoryChunk:
 
 class Chunk:
 
-    factory = FactoryChunk
+    factory = ChunkFactory
 
     def __init__(self, x: Array[T], y: Array[R]):
 

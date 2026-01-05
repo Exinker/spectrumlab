@@ -1,18 +1,25 @@
+"""
+Abstract type for any spectrum's background.
+
+Author: Vaschenko Pavel
+ Email: vaschenko@vmk.ru
+  Date: 2024.01.31
+"""
 from dataclasses import dataclass, field
 from typing import Callable
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spectrumlab.backgrounds import AbstractBackground, AbstractBackgroundConfig
-from spectrumlab.noises import Noise
+from spectrumlab.backgrounds.base_background import BackgroundABC, BackgroundConfigABC
 from spectrumlab.peaks.blink_peaks.draft_blinks import DraftBlinksConfig, draft_blinks
 from spectrumlab.spectra import Spectrum
 from spectrumlab.types import Array, Number
 
 
 @dataclass
-class SavitzkyGolayBackgroundConfig(AbstractBackgroundConfig):
+class SavitzkyGolayBackgroundConfig(BackgroundConfigABC):
+
     width: Number
     degree: int
 
@@ -24,7 +31,7 @@ class SavitzkyGolayBackgroundConfig(AbstractBackgroundConfig):
         return self.width_min
 
 
-class SavitzkyGolayBackground(AbstractBackground):
+class SavitzkyGolayBackground(BackgroundABC):
 
     def __init__(self, config: SavitzkyGolayBackgroundConfig):
         super().__init__(config)
@@ -80,10 +87,7 @@ class SavitzkyGolayBackground(AbstractBackground):
             for n in range(spectrum.n_numbers):
                 background[t, n] = filter(n, width=self.width[t, n], degree=self.config.degree)
 
-        #
-        cls = spectrum.__class__
-
-        return cls(
+        return spectrum.__class__(
             intensity=background,
             wavelength=spectrum.wavelength,
             number=spectrum.number,
@@ -154,10 +158,9 @@ class SavitzkyGolayBackground(AbstractBackground):
                             break
                         rb += 1
 
-                    #
+                    # width
                     width[t, n] += (rb - lb) - 1
 
-        #
         self._width = width
 
 
@@ -186,7 +189,7 @@ def filter_savitzky_golay(
 
             span *= 2
 
-        #
+        # value
         if index.size >= n_counts_min:
             p = np.polyfit(index, intensity[index], degree)
             return np.polyval(p, n)

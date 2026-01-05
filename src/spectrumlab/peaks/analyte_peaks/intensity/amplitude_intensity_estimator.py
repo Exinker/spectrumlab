@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peaks.analyte_peaks.intensity.abstract_calculator import AbstractIntensityCalculator
+from spectrumlab.peaks.analyte_peaks.intensity.base_intensity_estimator import IntensityEstimatorABC
 from spectrumlab.pictures.color import COLOR_INTENSITY, Color
 from spectrumlab.types import R
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
-class AmplitudeIntensityCalculator(AbstractIntensityCalculator):
+class AmplitudeIntensityEstimator(IntensityEstimatorABC):
 
     def __init__(self, verbose: bool = False) -> None:
         super().__init__(verbose)

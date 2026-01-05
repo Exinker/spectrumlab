@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 
-from spectrumlab.peaks.peak import AbstractPeak
+from spectrumlab.peaks.base_peak import PeakABC
 from spectrumlab.types import Number
 
 
-@dataclass(frozen=True, slots=True)
-class BlinkPeak(AbstractPeak):
+@dataclass(slots=True)
+class BlinkPeak(PeakABC):
     """Peak for any secondary application: masking of peaks for background algorithms, masking of overlapping peaks for intensity calculation and etc..."""  # noqa: 501
 
     minima: tuple[Number, Number]

@@ -96,7 +96,6 @@ class EffectedVoigtPeakShape(PeakShape):
 
         return f'{cls.__name__}(w={self.width:.4f}; a={self.asymmetry:.4f}; r={self.ratio:.4f})'
 
-    # # --------        fabric        --------
     # @classmethod
     # def from_emulation(
     #     cls,

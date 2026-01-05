@@ -1,13 +1,15 @@
-from .abstract_calculator import AbstractIntensityCalculator
-from .calculators import (
-    AmplitudeIntensityCalculator,
-    IntegralIntensityCalculator,
-    ApproxIntensityCalculator,
-)
+from typing import TypeAlias
+
+from .amplitude_intensity_estimator import AmplitudeIntensityEstimator
+from .approx_intensity_estimator import ApproxIntensityEstimator
+from .integral_intensity_estimator import IntegralIntensityEstimator
+
+
+IntensityEstimator : TypeAlias = AmplitudeIntensityEstimator | ApproxIntensityEstimator | IntegralIntensityEstimator
 
 __all__ = [
-    AbstractIntensityCalculator,
-    AmplitudeIntensityCalculator,
-    ApproxIntensityCalculator,
-    IntegralIntensityCalculator,
+    AmplitudeIntensityEstimator,
+    ApproxIntensityEstimator,
+    IntegralIntensityEstimator,
+    IntensityEstimator,
 ]

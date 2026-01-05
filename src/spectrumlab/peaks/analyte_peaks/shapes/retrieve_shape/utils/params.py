@@ -13,7 +13,6 @@ class Param:
 
 
 class AbstractParams(Mapping):
-    """Abstract variables type."""
 
     def __init__(self, __items: Sequence[Param]) -> None:
         self._items = {

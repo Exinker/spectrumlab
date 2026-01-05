@@ -5,9 +5,9 @@ import numpy as np
 from spectrumlab.types import Array, Number
 
 
-@dataclass(frozen=True, slots=True)
-class AbstractPeak:
-    """Abstract peak type."""
+@dataclass(slots=True)
+class PeakABC:
+
     minima: tuple[Number, Number]  # spectrum's internal index of the minima
     maxima: tuple[Number] | tuple[Number, Number] | tuple[Number, ...]  # spectrum's internal index of the maximum (or indices, if line has a self-absorption)  # noqa: E501
 

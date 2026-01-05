@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peaks.analyte_peaks.position.abstract_calculator import AbstractPositionCalculator
+from spectrumlab.peaks.analyte_peaks.position.base_position_estimator import PositionEstimatorABC
 from spectrumlab.types import Number
 
 
@@ -17,7 +17,7 @@ CORR_COEFF = {
 }
 
 
-class ParabolaPositionCalculator(AbstractPositionCalculator):
+class ParabolaPositionEstimator(PositionEstimatorABC):
     """Estimate analyte peak's position by parabola approximation."""
 
     def __init__(self, corr_coeff: Sequence[float] | None = None, verbose: bool = False) -> None:

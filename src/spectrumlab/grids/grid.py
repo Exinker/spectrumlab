@@ -35,7 +35,7 @@ class IteratorGrid:
             raise StopIteration
 
 
-class FactoryGrid:
+class GridFactory:
 
     def __init__(self, spectrum: Spectrum):
         self.spectrum = spectrum
@@ -123,7 +123,7 @@ class FactoryGrid:
 
 class Grid:
 
-    factory = FactoryGrid
+    factory = GridFactory
 
     def __init__(self, x: Array[T], y: Array[float] | None = None, units: T | None = None):
         assert len(x) == len(y)

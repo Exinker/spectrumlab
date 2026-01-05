@@ -17,8 +17,7 @@ if TYPE_CHECKING:
 warnings.filterwarnings('ignore')
 
 
-class SelfReversedVoigtPeakShapeNaive(PeakShape):
-    """Self reversed voigt peak's shape type."""
+class ReversedPeakShapeNaive(PeakShape):
 
     def __init__(
         self,
@@ -130,9 +129,9 @@ class SelfReversedVoigtPeakShapeNaive(PeakShape):
         return f
 
 
-class SelfReversedVoigtPeakShape(PeakShape):
-    """Self reversed voigt peak's shape type."""
-    MAX_EFFECT = 50
+class ReversedPeakShape(PeakShape):
+
+    max_effect = 50
 
     def __init__(
         self,
@@ -194,7 +193,7 @@ class SelfReversedVoigtPeakShape(PeakShape):
                 (-1e-10, +1e-10),  # FIXME: нужно разобраться с пределами у фона!
                 (peak.position - delta, peak.position + delta),
                 (0, np.inf),
-                (0, self.MAX_EFFECT),
+                (0, self.max_effect),
                 (2, 10),
                 (0.1, 1),
             ])
@@ -203,7 +202,7 @@ class SelfReversedVoigtPeakShape(PeakShape):
             (-1e-10, +1e-10),  # FIXME: нужно разобраться с пределами у фона!
             (peak.position - delta, peak.position + delta),
             (0, np.inf),
-            (0, self.MAX_EFFECT),
+            (0, self.max_effect),
         ])
 
     @overload

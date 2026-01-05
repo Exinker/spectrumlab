@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
-class AbstractPositionCalculator(ABC):
+class PositionEstimatorABC(ABC):
 
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose

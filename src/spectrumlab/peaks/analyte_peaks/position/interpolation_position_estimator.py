@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from scipy import interpolate
 
-from spectrumlab.peaks.analyte_peaks.position.abstract_calculator import AbstractPositionCalculator
+from spectrumlab.peaks.analyte_peaks.position.base_position_estimator import PositionEstimatorABC
 from spectrumlab.types import Number
 
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from spectrumlab.peaks.analyte_peaks.analyte_peak import AnalytePeak
 
 
-class InterpolationPositionCalculator(AbstractPositionCalculator):
+class InterpolationPositionEstimator(PositionEstimatorABC):
     """Estimate analyte peak's position by interpolation."""
 
     def __init__(self, verbose: bool = False) -> None:

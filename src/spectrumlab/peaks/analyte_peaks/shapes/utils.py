@@ -51,7 +51,7 @@ def approx_peak(
 
         return mse(
             y=y,
-            y_hat=shape(x=x, **shape.approx_parse(params)),
+            y_hat=shape(x=x, **shape.parse_params(params)),
         )
 
     result = optimize.minimize(
@@ -60,12 +60,12 @@ def approx_peak(
         method='SLSQP',
         bounds=shape.approx_bounds(peak=peak, delta=delta),
     )
-    params = shape.approx_parse(result.x)
+    params = shape.parse_params(result.x)
 
     if verbose:
-        print('Initial:', shape.approx_parse(shape.approx_initial(peak=peak)))
-        print('Bounds:', shape.approx_parse(shape.approx_bounds(peak=peak, delta=delta)))
-        print('Result:', shape.approx_parse(result.x))
+        print('Initial:', shape.parse_params(shape.approx_initial(peak=peak)))
+        print('Bounds:', shape.parse_params(shape.approx_bounds(peak=peak, delta=delta)))
+        print('Result:', shape.parse_params(result.x))
 
     if show:
 

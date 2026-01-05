@@ -23,6 +23,7 @@ Frame: TypeAlias = pd.DataFrame
 
 # --------        datasets        --------
 class Dataset(Enum):
+
     train = 'train'
     valid = 'valid'
     test = 'test'

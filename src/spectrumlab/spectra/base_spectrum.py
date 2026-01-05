@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import TypeAlias, overload
+from typing import Self, overload
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from spectrumlab.detectors import Detector
-from spectrumlab.pictures.colormap import Colormap, fetch_cmap
 from spectrumlab.types import Array, NanoMeter, Number
 
 
@@ -24,8 +22,7 @@ def reshape(values):
     return values
 
 
-class AbstractSpectrum(ABC):
-    """Abstract type for any emitted or absorbed spectrum."""
+class SpectrumABC(ABC):
 
     def __init__(
         self,
@@ -115,10 +112,10 @@ class AbstractSpectrum(ABC):
         return f'{cls.__name__}(n_times: {n_times}, n_numbers: {n_numbers})'
 
     @overload
-    def __getitem__(self, index: int | slice) -> 'AbstractSpectrum': ...
+    def __getitem__(self, index: int | slice) -> Self: ...
     """Get spectrum at selected time or times."""
     @overload
-    def __getitem__(self, index: tuple[slice | Array[int], slice | Array[int]]) -> 'AbstractSpectrum': ...
+    def __getitem__(self, index: tuple[slice | Array[int], slice | Array[int]]) -> Self: ...
     """Get spectrum at selected times and numbers."""
     def __getitem__(self, index):
         cls = self.__class__
@@ -173,7 +170,7 @@ class AbstractSpectrum(ABC):
                 detector=self.detector,
             )
 
-    def __add__(self, other: float | Array[float]) -> 'AbstractSpectrum':
+    def __add__(self, other: float | Array[float]) -> Self:
         cls = self.__class__
 
         return cls(
@@ -185,13 +182,13 @@ class AbstractSpectrum(ABC):
             detector=self.detector,
         )
 
-    def __iadd__(self, other: float | Array[float]) -> 'AbstractSpectrum':
+    def __iadd__(self, other: float | Array[float]) -> Self:
         return self + other
 
-    def __radd__(self, other: float | Array[float]) -> 'AbstractSpectrum':
+    def __radd__(self, other: float | Array[float]) -> Self:
         return self + other
 
-    def __sub__(self, other: float | Array[float]) -> 'AbstractSpectrum':
+    def __sub__(self, other: float | Array[float]) -> Self:
         cls = self.__class__
 
         return cls(
@@ -203,131 +200,8 @@ class AbstractSpectrum(ABC):
             detector=self.detector,
         )
 
-    def __isub__(self, other: float | Array[float]) -> 'AbstractSpectrum':
+    def __isub__(self, other: float | Array[float]) -> Self:
         return self - other
 
-    def __rsub__(self, other: float | Array[float]) -> 'AbstractSpectrum':
+    def __rsub__(self, other: float | Array[float]) -> Self:
         return self - other
-
-
-class EmittedSpectrum(AbstractSpectrum):
-    """Type for any emitted (or ordinary) spectrum."""
-    def __init__(
-        self,
-        intensity: Array[float],
-        wavelength: Array[NanoMeter] | None = None,
-        number: Array[Number] | None = None,
-        deviation: Array[float] | None = None,
-        clipped: Array[bool] | None = None,
-        detector: Detector | None = None,
-    ) -> None:
-        super().__init__(
-            intensity=intensity,
-            wavelength=wavelength,
-            number=number,
-            clipped=clipped,
-            deviation=deviation,
-            detector=detector,
-        )
-
-    def show(
-        self,
-        ax: plt.Axes | None = None,
-        figsize: tuple[float, float] = (6, 4),
-        cmap: Colormap | None = None,
-        clim: tuple[float, float] | None = None,
-        grid: bool = False,
-    ) -> None:
-        is_filling = ax is not None
-
-        if not is_filling:
-            fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
-
-        if self.n_times > 1:
-            raise NotImplementedError
-
-        else:
-            x, y = self.wavelength, self.intensity
-            ax.step(
-                x, y,
-                where='mid',
-                color='black',
-            )
-
-            ax.set_xlabel(r'$\lambda, nm$')
-            ax.set_ylabel(r'$I, \%$')
-
-            if grid:
-                ax.grid(color='grey', linestyle=':')
-
-        if not is_filling:
-            plt.show()
-
-
-class AbsorbedSpectrum(AbstractSpectrum):
-    """Type for any absorbed spectrum."""
-    def __init__(
-        self,
-        intensity: Array[float],
-        wavelength: Array[NanoMeter] | None = None,
-        number: Array[Number] | None = None,
-        deviation: Array[float] | None = None,
-        clipped: Array[bool] | None = None,
-        detector: Detector | None = None,
-    ) -> None:
-        super().__init__(
-            intensity=intensity,
-            wavelength=wavelength,
-            number=number,
-            deviation=deviation,
-            clipped=clipped,
-            detector=detector,
-        )
-
-    def show(
-        self,
-        ax: plt.Axes | None = None,
-        figsize: tuple[float, float] = (6, 4),
-        cmap: Colormap | None = None,
-        clim: tuple[float, float] | None = None,
-    ) -> None:
-        is_filling = ax is not None
-        cmap = cmap or fetch_cmap(kind='absorption')
-        clim = clim or (-.01, .5)
-
-        #
-        if not is_filling:
-            fig, ax = plt.subplots(figsize=figsize, tight_layout=True)
-
-        img = ax.imshow(
-            self.intensity,
-            origin='lower',
-            cmap=cmap, clim=clim,
-            aspect='auto',
-        )
-
-        ax.set_xticks(self.index[self.n_numbers//8::self.n_numbers//4])
-        ax.set_xticklabels([f'{w:.3f}' for w in self.wavelength[self.n_numbers//8::self.n_numbers//4]])
-        ax.set_yticks(self.time[::self.n_times//8])
-        ax.set_yticklabels([f'{t}' for t in self.time[::self.n_times//8]])
-
-        ax.set_xlabel(r'$\lambda$ [$nm$]')
-        ax.set_ylabel(r'time')
-
-        plt.colorbar(img, cmap=cmap)
-
-        if not is_filling:
-            plt.show()
-
-
-Spectrum: TypeAlias = EmittedSpectrum | AbsorbedSpectrum
-
-
-# --------        assembly spectrum        --------
-class AssemblySpectrum:
-    """Type of spectrum from assemply device."""
-    def __init__(self, items: tuple[Spectrum]):
-        self.items = items
-
-    def select(self, index: int) -> Spectrum:
-        return self.items[index]

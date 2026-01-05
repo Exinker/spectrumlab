@@ -12,7 +12,6 @@ class Variable:
 
 
 class AbstractVariables(Mapping):
-    """Abstract variables type."""
 
     def __init__(self, __items: Sequence[Variable]) -> None:
         self._items = {

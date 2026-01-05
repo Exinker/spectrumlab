@@ -6,7 +6,7 @@ from scipy import interpolate
 from spectrumlab.types import Frame, Intercept, Slope
 
 
-class AbstractLimit:
+class LimitABC:
 
     def __init__(
         self,
@@ -14,6 +14,7 @@ class AbstractLimit:
         coeff: tuple[Intercept, Slope],
         info: str,
     ) -> None:
+
         self._intensity = intensity
         self._coeff = coeff
         self._info = info
@@ -43,7 +44,7 @@ class AbstractLimit:
 
 
 # --------        LOD and LOQ        --------
-class LOD(AbstractLimit):
+class LOD(LimitABC):
     """Limit of Detection (LOD) in emission or absorption."""
 
     k_default = 3
@@ -83,7 +84,7 @@ class LOD(AbstractLimit):
         )
 
 
-class LOQ(AbstractLimit):
+class LOQ(LimitABC):
     """Limit of Quantity (LOQ) in emission or absorption."""
 
     k_default = 10
@@ -138,7 +139,7 @@ class LOQ(AbstractLimit):
 
 
 # --------        limit of linearity        --------
-class LOL(AbstractLimit):
+class LOL(LimitABC):
     """Limit of Linearity (LOL) in emission or absorption."""
 
     def __init__(

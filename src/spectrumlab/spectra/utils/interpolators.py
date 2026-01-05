@@ -9,6 +9,7 @@ from spectrumlab.types import Array
 
 
 class InterpolationKind(Enum):
+
     NONE = auto()
     NEAREST = auto()
     LINEAR = auto()

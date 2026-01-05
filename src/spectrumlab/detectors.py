@@ -6,11 +6,11 @@ from spectrumlab.types import Electron, MicroMeter
 
 @dataclass(frozen=True)
 class DetectorConfig:
-    """Detector's confg."""
+
     name: str
     capacity: Electron
     read_noise: Electron
-    n_pixels: int
+    shape: tuple[int, int]
     width: MicroMeter
     height: MicroMeter
     description: str = field(default='')
@@ -23,13 +23,12 @@ class DetectorConfig:
 
 
 class Detector(Enum):
-    """Enums with detectors."""
 
     BLPP369M1 = DetectorConfig(
         name='БЛПП-369М1',
         capacity=2_000_000,
         read_noise=120,
-        n_pixels=2612,
+        shape=(1, 2612),
         width=12.5,
         height=1000,
     )
@@ -37,7 +36,7 @@ class Detector(Enum):
         name='БЛПП-2000',
         capacity=200_000,
         read_noise=25,
-        n_pixels=2048,
+        shape=(1, 2048),
         width=14,
         height=1000,
     )
@@ -45,7 +44,7 @@ class Detector(Enum):
         name='БЛПП-4000',
         capacity=80_000,
         read_noise=16,
-        n_pixels=4096,
+        shape=(1, 4096),
         width=7,
         height=200,
     )
@@ -53,7 +52,7 @@ class Detector(Enum):
         name='S8377-256Q',
         capacity=80_000_000,
         read_noise=4000,
-        n_pixels=256,
+        shape=(1, 256),
         width=50,
         height=500,
         description=r"""See more info at [hamamatsu](https://www.hamamatsu.com/content/dam/hamamatsu-photonics/sites/documents/99_SALES_LIBRARY/ssd/s8377-128q_etc_kmpd1066e.pdf).""",  # noqa: E501
@@ -61,12 +60,10 @@ class Detector(Enum):
 
     @property
     def config(self) -> DetectorConfig:
-        """Config of the detector."""
         return self.value
 
     @property
     def pitch(self) -> MicroMeter:
-        """Pitch structure of the detector."""
         return self.config.width
 
     def __str__(self) -> str:

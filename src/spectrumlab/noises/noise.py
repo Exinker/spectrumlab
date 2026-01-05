@@ -4,7 +4,6 @@ from spectrumlab.types import Array, Electron, Percent
 
 
 class AbstractNoise(ABC):
-    """Abstract noise dependence type."""
 
     @abstractmethod
     def __call__(

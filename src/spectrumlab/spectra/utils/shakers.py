@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import minimize
 
-from spectrumlab.spectra.interpolate import InterpolationKind, interpolate, interpolate_lanczos
-from spectrumlab.spectra.spectrum import EmittedSpectrum
+from spectrumlab.spectra.emitted_spectrum import EmittedSpectrum
+from spectrumlab.spectra.utils.interpolators import InterpolationKind, interpolate, interpolate_lanczos
 from spectrumlab.types import Array
 
 

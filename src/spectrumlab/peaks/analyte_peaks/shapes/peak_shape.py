@@ -101,6 +101,14 @@ class PeakShape:
             (0, np.inf),
         ])
 
+    def parse_params(self, params: Array[float]) -> Mapping[str, float]:
+        assert len(self.approx_keys()) == len(params)
+
+        return {
+            key: param
+            for key, param in zip(self.approx_keys(), params)
+        }
+
     @overload
     def __call__(self, x: Number, position: Number, intensity: float, background: float = 0) -> R: ...
     @overload

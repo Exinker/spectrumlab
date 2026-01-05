@@ -4,7 +4,8 @@ from scipy import interpolate
 
 from spectrumlab.detectors import Detector
 from spectrumlab.grids import Grid
-from spectrumlab.spectra import AbstractSpectrum, EmittedSpectrum
+from spectrumlab.spectra.base_spectrum import SpectrumABC
+from spectrumlab.spectra.emitted_spectrum import EmittedSpectrum
 from spectrumlab.types import Array, MicroMeter, NanoMeter, Number
 
 
@@ -18,7 +19,7 @@ def calculate_factor(ratio: float) -> int:
     raise ValueError
 
 
-class HighResolutionSpectrum(AbstractSpectrum):
+class HighResolutionSpectrum(SpectrumABC):
 
     def __init__(
         self,
