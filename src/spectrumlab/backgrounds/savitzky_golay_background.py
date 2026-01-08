@@ -102,7 +102,7 @@ class SavitzkyGolayBackground(BackgroundABC):
         for t in range(spectrum.n_times):
             blinks = draft_blinks(
                 spectrum=spectrum[t],
-                config=DraftBlinksConfig(
+                config=DraftBlinksConfig.model_construct(
                     n_counts_min=1,
                     n_counts_max=500,
                     slope_max=5,

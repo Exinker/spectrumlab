@@ -10,7 +10,11 @@ if TYPE_CHECKING:
 
 class IntensityEstimatorABC(ABC):
 
-    def __init__(self, verbose: bool = False) -> None:
+    def __init__(
+        self,
+        verbose: bool = False,
+    ) -> None:
+
         self.verbose = verbose
 
     @property

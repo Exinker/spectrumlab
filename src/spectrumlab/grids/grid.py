@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 class IteratorGrid:
 
     def __init__(self, x: Array[T], y: Array[float]):
+
         self.x = x
         self.y = y
 
@@ -52,7 +53,10 @@ class GridFactory:
         assert self.spectrum.n_times == 1, 'time resolved spectra are not supported!'
 
         chunks = tuple(
-            Chunk.factory(spectrum=self.spectrum).create_from_peak(peak=peak, threshold=threshold)
+            Chunk.factory(spectrum=self.spectrum).create_from_peak(
+                peak=peak,
+                threshold=threshold,
+            )
             for peak in peaks
         )
 

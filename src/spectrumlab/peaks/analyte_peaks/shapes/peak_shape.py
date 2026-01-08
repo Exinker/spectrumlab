@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, Callable, Literal, overload, TYPE_CHECKING
+from typing import Any, Callable, Literal, TYPE_CHECKING, overload
 
 import numpy as np
 from scipy import interpolate, signal

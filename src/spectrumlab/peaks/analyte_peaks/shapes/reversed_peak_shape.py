@@ -50,11 +50,10 @@ class ReversedPeakShapeNaive(PeakShape):
             x = np.linspace(-self.rx, +self.rx, 2*int(self.rx/self.dx) + 1)
             y = np.array([self._apply_effect(x, e) for e in effect])
 
-            self._f = interpolate.interp2d(
-                x,
-                effect,
-                y,
-                kind='linear',
+            self._f = interpolate.RegularGridInterpolator(
+                (x, effect),
+                y.T,
+                method='linear',
                 bounds_error=False,
                 fill_value=0,
             )
@@ -108,7 +107,9 @@ class ReversedPeakShapeNaive(PeakShape):
     ) -> Array[R]: ...
     def __call__(self, x, position, intensity, background=0, effect=0):
         """Interpolate by grip."""
-        return background + intensity*self.f(x - position, effect)
+
+        points = np.column_stack([x - position, np.full_like(x - position, effect)])
+        return background + intensity*self.f(points)
 
     def __repr__(self) -> str:
         cls = self.__class__
@@ -150,6 +151,7 @@ class ReversedPeakShape(PeakShape):
 
     # --------        approx interface        --------
     def approx_keys(self) -> tuple[str]:
+
         if self.absorption_shape is None:
             return (
                 'background',
@@ -168,6 +170,7 @@ class ReversedPeakShape(PeakShape):
         )
 
     def approx_initial(self, peak: 'AnalytePeak') -> Array[float]:
+
         if self.absorption_shape is None:
             return np.array([
                 0,
@@ -186,7 +189,7 @@ class ReversedPeakShape(PeakShape):
         ])
 
     def approx_bounds(self, peak: 'AnalytePeak', delta: Number = 0) -> tuple[tuple[float, float]]:
-        delta += 1e-32  # fix bounds if delta == 0
+        delta += 1e-32
 
         if self.absorption_shape is None:
             return tuple([

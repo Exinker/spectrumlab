@@ -17,18 +17,14 @@ if TYPE_CHECKING:
 def approx_peak_by_tail(peak: 'AnalytePeak', shape: 'PeakShape') -> float:
     """Approximate the analyte peak with selected shape on the tail"""
 
-    # index
     index = peak.tail
     index = index[peak.mask[index]]
 
-    # intensity
     x = peak.number[index]
     y = peak.value[index]
     y_hat = shape(x=x, **{'position': peak.position, 'intensity': 1})
 
     intensity = np.dot(y, y) / np.dot(y_hat, y)
-
-    #
     return intensity
 
 

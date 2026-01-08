@@ -37,7 +37,7 @@ def draft_blinks(
     for i, (maximum, pair) in enumerate(zip(maxima, pairs)):
         left, right = pair  # left and right index of peak
 
-        # correct maxima / TODO: check it!
+        # correct maxima
         if spectrum.clipped[maximum]:
             index = np.arange(left, right+1)
             index = index[spectrum.clipped[index]]

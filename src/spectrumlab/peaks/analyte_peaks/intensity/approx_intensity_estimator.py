@@ -49,6 +49,7 @@ class ApproxIntensityEstimator(IntensityEstimatorABC):
             shape=self.shape,
             delta=self.delta,
             by_tail=self.by_tail,
+            verbose=self.verbose,
             show=self.show,
         )
 

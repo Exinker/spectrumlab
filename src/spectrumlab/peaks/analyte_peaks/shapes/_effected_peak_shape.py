@@ -11,6 +11,7 @@ from spectrumlab.types import Array, Number
 
 @dataclass
 class SelfReversedEffect:
+
     width: Number
     asymmetry: float
     ratio: float
@@ -41,6 +42,7 @@ class Effect:
 
 @dataclass
 class EffectedVoigtPeakShape(PeakShape):
+
     width: Number
     asymmetry: float
     ratio: float

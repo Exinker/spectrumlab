@@ -52,9 +52,10 @@ class AnalytePeakFactory:
         # mask
         blinks = draft_blinks(
             spectrum=spectrum,
-            config=DraftBlinksConfig(
+            config=DraftBlinksConfig.model_construct(
                 except_clipped_peak=False,
                 except_sloped_peak=False,
+                except_wide_peak=False,
                 except_edges=False,
 
                 noise_level=self.noise_level,
@@ -68,20 +69,20 @@ class AnalytePeakFactory:
 
             is_far = (np.abs(left - cursor) > 2) and (np.abs(right - cursor) > 2)  # расстояние от cursor до blink больше 2х отсчетов  # noqa: E501
             if is_far:
-                if blink.include(cursor):  # cursor находится внутри этого blink (линия без самопоглощения)
+                if blink.include(cursor):  # cursor находится внутри blink (линия без самопоглощения)
                     is_found = True
                     maxima.append(blink.maxima[0])
-
                 else:
                     mask[blink.number] = False
 
             else:
-                if blink.amplitude > 100 * blink.deviation:  # этот blink достаточную амплитуду, чтобы считаться частью линии (линия с самопоглощением)  # noqa: E501
-                    is_found = True
-                    maxima.append(blink.maxima[0])
-
-                else:
-                    mask[blink.number] = False
+                # if blink.amplitude > 100 * blink.deviation:  # этот blink достаточную амплитуду, чтобы считаться частью линии (линия с самопоглощением)  # noqa: E501
+                #     is_found = True
+                #     maxima.append(blink.maxima[0])
+                # else:
+                #     mask[blink.number] = False
+                is_found = True
+                maxima.append(blink.maxima[0])
 
         if not is_found:
             mask = np.full(spectrum.shape, True)
