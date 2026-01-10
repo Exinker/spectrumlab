@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
 
-from spectrumlab.grids.filter import AbstractGridFilter, LinearInterpolationGridFilter
+from spectrumlab.grids.filter import GridFilterABC, LinearInterpolationGridFilter
 from spectrumlab.types import T
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 def estimate_bias(
     grid: 'Grid',
     pitch: T,
-    filter: AbstractGridFilter | None = None,
+    filter: GridFilterABC | None = None,
     verbose: bool = False,
     show: bool = False,
 ) -> T:
@@ -90,7 +90,7 @@ def estimate_fwhm(
     grid: 'Grid',
     pitch: T,  # minimum `hwhm`
     position: T = 0,
-    filter: AbstractGridFilter | None = None,
+    filter: GridFilterABC | None = None,
     verbose: bool = False,
     show: bool = False,
 ) -> T:

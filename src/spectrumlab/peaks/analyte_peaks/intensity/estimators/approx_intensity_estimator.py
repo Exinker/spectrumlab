@@ -1,6 +1,8 @@
 from typing import Mapping, TYPE_CHECKING
 
-from spectrumlab.peaks.analyte_peaks.intensity.base_intensity_estimator import IntensityEstimatorABC
+from spectrumlab.peaks.analyte_peaks.intensity.estimators.base_intensity_estimator import (
+    IntensityEstimatorABC,
+)
 from spectrumlab.peaks.analyte_peaks.shapes.utils import approx_peak
 from spectrumlab.pictures.color import COLOR_INTENSITY, Color
 from spectrumlab.types import Number, R

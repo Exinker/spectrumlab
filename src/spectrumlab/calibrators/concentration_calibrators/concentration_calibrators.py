@@ -14,7 +14,7 @@ from spectrumlab.spectra import Spectrum
 from spectrumlab.types import Frame, Intercept, R, Series, Slope
 
 
-class AbstractConcentrationCalibrator(ABC):
+class ConcentrationCalibratorABC(ABC):
 
     @property
     @abstractmethod
@@ -75,7 +75,7 @@ class AbstractConcentrationCalibrator(ABC):
         return list(map(lambda x: mapping[x], mask))
 
 
-class RegressionConcentrationCalibrator(AbstractConcentrationCalibrator):
+class RegressionConcentrationCalibrator(ConcentrationCalibratorABC):
 
     def __init__(self) -> None:
 
@@ -334,8 +334,8 @@ def calibrate(
     spectra: Frame,
     handler: Callable[[Spectrum], R],
     show: bool = False,
-    calibrator: AbstractConcentrationCalibrator | None = None,
-) -> AbstractConcentrationCalibrator:
+    calibrator: ConcentrationCalibratorABC | None = None,
+) -> ConcentrationCalibratorABC:
 
     # blank
     index = spectra[spectra.index.get_level_values(0) == 'blank'].index

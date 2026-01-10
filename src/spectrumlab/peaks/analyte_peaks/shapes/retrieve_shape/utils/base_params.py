@@ -12,7 +12,7 @@ class Param:
     value: float | None
 
 
-class AbstractParams(Mapping):
+class ParamsABC(Mapping):
 
     def __init__(self, __items: Sequence[Param]) -> None:
         self._items = {

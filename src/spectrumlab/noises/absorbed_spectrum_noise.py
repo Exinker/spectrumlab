@@ -5,12 +5,12 @@ import numpy as np
 
 from spectrumlab.detectors import Detector
 from spectrumlab.noises.emitted_spectrum_noise import EmittedSpectrumNoise
-from spectrumlab.noises.noise import AbstractNoise
+from spectrumlab.noises.base_noise import NoiseABC
 from spectrumlab.types import Absorbance, Array, Electron, Percent
 
 
 @dataclass(frozen=True)
-class AbsorbedSpectrumNoise(AbstractNoise):
+class AbsorbedSpectrumNoise(NoiseABC):
     """Detector's noise dependence for any absorbtion spectra."""
     detector: Detector
     n_frames: int

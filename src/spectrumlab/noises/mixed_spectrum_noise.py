@@ -3,12 +3,12 @@ from dataclasses import dataclass, field
 from typing import overload
 
 from spectrumlab.detectors import Detector
-from spectrumlab.noises.noise import AbstractNoise
+from spectrumlab.noises.base_noise import NoiseABC
 from spectrumlab.types import Array, Percent
 
 
 @dataclass(frozen=True)
-class MixedSpectrumNoise(AbstractNoise):
+class MixedSpectrumNoise(NoiseABC):
     """Detector's noise dependence for any microwave or ICP spectra."""
     detector: Detector
     n_frames: int = field(default=1)

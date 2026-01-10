@@ -1,10 +1,3 @@
-"""
-Abstract type for any spectrum's background.
-
-Author: Vaschenko Pavel
- Email: vaschenko@vmk.ru
-  Date: 2024.01.31
-"""
 from dataclasses import dataclass, field
 from typing import Callable
 

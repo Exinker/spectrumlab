@@ -11,7 +11,7 @@ from spectrumlab.grids.shape import VoigtGridShape
 from spectrumlab.types import Array, MicroMeter, T
 
 
-class AbstractGridFilter(ABC):  # noqa: B024
+class GridFilterABC(ABC):  # noqa: B024
 
     def __init__(self, grid: Grid):
         self._grid = grid
@@ -60,7 +60,7 @@ class AbstractGridFilter(ABC):  # noqa: B024
         return self.f(x)
 
 
-class LinearInterpolationGridFilter(AbstractGridFilter):
+class LinearInterpolationGridFilter(GridFilterABC):
 
     def __init__(self, grid: Grid, show: bool = False):
         super().__init__(grid=grid)
@@ -77,7 +77,7 @@ class LinearInterpolationGridFilter(AbstractGridFilter):
             self.show()
 
 
-class VoigtGridShapeFilter(AbstractGridFilter):
+class VoigtGridShapeFilter(GridFilterABC):
 
     def __init__(self, grid: Grid, pitch: T, show: bool = False):
         super().__init__(grid=grid)

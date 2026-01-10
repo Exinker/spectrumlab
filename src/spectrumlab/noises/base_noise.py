@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from spectrumlab.types import Array, Electron, Percent
 
 
-class AbstractNoise(ABC):
+class NoiseABC(ABC):
 
     @abstractmethod
     def __call__(

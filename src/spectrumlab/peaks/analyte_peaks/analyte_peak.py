@@ -5,16 +5,16 @@ import numpy as np
 from scipy import interpolate
 
 from spectrumlab.calibrators.concentration_calibrators.concentration_calibrators import (
-    AbstractConcentrationCalibrator,
+    ConcentrationCalibratorABC,
 )
 from spectrumlab.grids import InterpolationKind
 from spectrumlab.lines.line import Line
-from spectrumlab.peaks.analyte_peaks.intensity import (
+from spectrumlab.peaks.analyte_peaks.intensity.estimators import (
     ApproxIntensityEstimator,
     IntegralIntensityEstimator,
     IntensityEstimator,
 )
-from spectrumlab.peaks.analyte_peaks.position import (
+from spectrumlab.peaks.analyte_peaks.position.estimators import (
     InterpolationPositionEstimator,
     PositionEstimator,
 )
@@ -122,7 +122,7 @@ class AnalytePeakConfig:
 
     position_estimator: PositionEstimator
     intensity_estimator: IntensityEstimator
-    concentration_calibrator: AbstractConcentrationCalibrator | None = field(default=None)
+    concentration_calibrator: ConcentrationCalibratorABC | None = field(default=None)
 
 
 class AnalytePeak(PeakABC):
@@ -209,7 +209,7 @@ class AnalytePeak(PeakABC):
 
         return self._concentration
 
-    def calculate_concentration(self, calibrator: AbstractConcentrationCalibrator | None = None) -> float:
+    def calculate_concentration(self, calibrator: ConcentrationCalibratorABC | None = None) -> float:
         """Calculate peak's concentration."""
         calibrator = calibrator or self.config.concentration_calibrator
 

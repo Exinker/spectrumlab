@@ -1,5 +1,5 @@
 """
-Abstract type for any spectrum's background.
+Base type for any spectrum's background.
 
 Author: Vaschenko Pavel
  Email: vaschenko@vmk.ru

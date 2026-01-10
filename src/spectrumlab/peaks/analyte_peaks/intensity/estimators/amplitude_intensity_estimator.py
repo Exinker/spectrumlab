@@ -2,7 +2,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peaks.analyte_peaks.intensity.base_intensity_estimator import IntensityEstimatorABC
+from spectrumlab.peaks.analyte_peaks.intensity.estimators.base_intensity_estimator import (
+    IntensityEstimatorABC,
+)
 from spectrumlab.pictures.color import COLOR_INTENSITY, Color
 from spectrumlab.types import R
 

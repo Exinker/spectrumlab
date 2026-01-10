@@ -3,7 +3,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from spectrumlab.peaks.analyte_peaks.position.base_position_estimator import PositionEstimatorABC
+from spectrumlab.peaks.analyte_peaks.position.estimators.base_position_estimator import (
+    PositionEstimatorABC,
+)
 from spectrumlab.types import Number
 
 

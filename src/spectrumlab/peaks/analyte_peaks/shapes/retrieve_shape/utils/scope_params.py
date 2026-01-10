@@ -1,9 +1,9 @@
 import numpy as np
 
 from spectrumlab.grids import Grid
-from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.params import (
-    AbstractParams,
+from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.base_params import (
     Param,
+    ParamsABC,
 )
 from spectrumlab.types import Number
 
@@ -11,7 +11,7 @@ from spectrumlab.types import Number
 TOLL = 1e-10
 
 
-class ScopeParams(AbstractParams):
+class ScopeParams(ParamsABC):
 
     def __init__(
         self,

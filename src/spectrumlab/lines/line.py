@@ -36,7 +36,6 @@ class Line:
     def intensity(self) -> float:
         return self._database_intensity
 
-    # --------            private            --------
     def __repr__(self) -> str:
         cls = self.__class__
 

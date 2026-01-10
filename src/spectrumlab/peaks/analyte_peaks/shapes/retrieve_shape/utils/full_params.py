@@ -1,12 +1,12 @@
 from collections.abc import Sequence
 
 from spectrumlab.grids import Grid
-from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.params import AbstractParams
+from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.base_params import ParamsABC
 from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.scope_params import ScopeParams
 from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.shape_params import ShapeParams
 
 
-class FullParams(AbstractParams):
+class FullParams(ParamsABC):
 
     def __init__(
         self,

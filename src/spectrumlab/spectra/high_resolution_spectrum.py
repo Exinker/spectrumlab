@@ -77,7 +77,6 @@ class HighResolutionSpectrum(SpectrumABC):
         self.shots = shots
         self.grid = grid
 
-    # --------        factory        --------
     @classmethod
     def from_spectrum(cls, spectrum: EmittedSpectrum, move: MicroMeter):
         assert spectrum.n_times > 1
@@ -124,76 +123,3 @@ class HighResolutionSpectrum(SpectrumABC):
         plt.grid(True, linestyle=':')
 
         plt.show()
-
-
-if __name__ == '__main__':
-    raise NotImplementedError
-
-    from spectrumlab.emulations.aperture import Aperture, RectangularApertureShape
-    from spectrumlab.emulations.apparatus import Apparatus, VoigtApparatusShape
-    from spectrumlab.detectors import Detector
-    from spectrumlab.emulations.device import Device
-    from spectrumlab.emulations.emulators import fetch_emulation, SpectrumConfig, EmittedSpectrumEmulationConfig
-
-    import warnings
-    warnings.filterwarnings('ignore')
-
-    # emulation
-    move: MicroMeter = .5
-    n_times, n_numbers = 28, 50
-
-    detector = Detector.BLPP2000
-    aperture = Aperture(
-        detector=detector,
-        shape=RectangularApertureShape(),
-    )
-    apparatus = Apparatus(
-        detector=detector,
-        shape=VoigtApparatusShape(
-            width=25,
-            asymmetry=0,
-            ratio=0.1,
-        ),
-    )
-
-    emulation = fetch_emulation(
-        config=EmittedSpectrumEmulationConfig(
-            device=Device.GRAND2_I,
-            detector=detector,
-
-            line=None,
-            apparatus=apparatus,
-            aperture=aperture,
-
-            spectrum=SpectrumConfig(
-                n_numbers=n_numbers,
-                n_frames=1,
-            ),
-            concentration_ratio=1,
-            background_level=0,
-
-            # info='',
-        ),
-    )
-
-    # shots
-    intensity = []
-    for t in range(n_times):
-        spectrum = emulation.setup(
-            position=n_numbers//2 + t*(move/detector.pitch),
-            concentration=1,
-        ).run(
-            is_noised=True,
-        )
-        intensity.append(spectrum.intensity)
-    intensity = np.array(intensity)
-
-    # spectrum
-    spectrum = HighResolutionSpectrum.from_spectrum(
-        spectrum=EmittedSpectrum(
-            intensity=intensity,
-            detector=emulation.detector,
-        ),
-        move=move,
-    )
-    spectrum.show()

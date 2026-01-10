@@ -11,7 +11,7 @@ class Variable:
     value: float | None
 
 
-class AbstractVariables(Mapping):
+class VariablesABC(Mapping):
 
     def __init__(self, __items: Sequence[Variable]) -> None:
         self._items = {
@@ -52,7 +52,7 @@ class AbstractVariables(Mapping):
 
 
 if __name__ == '__main__':
-    vars = AbstractVariables(
+    vars = VariablesABC(
         [
             Variable(f'test{i}', i, (i-1, i+1), None)
             for i in range(10)

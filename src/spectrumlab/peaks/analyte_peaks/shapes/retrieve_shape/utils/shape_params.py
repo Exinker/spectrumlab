@@ -1,14 +1,14 @@
 from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.config import (
     RETRIEVE_SHAPE_CONFIG as CONFIG,
 )
-from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.params import (
-    AbstractParams,
+from spectrumlab.peaks.analyte_peaks.shapes.retrieve_shape.utils.base_params import (
     Param,
+    ParamsABC,
 )
 from spectrumlab.types import Number
 
 
-class ShapeParams(AbstractParams):
+class ShapeParams(ParamsABC):
 
     def __init__(
         self,

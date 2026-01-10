@@ -37,7 +37,6 @@ class PeriodicTable:
     def database(self) -> Frame:
         return self._database
 
-    # --------            private            --------
     def __getitem__(self, index: int | str) -> Element:
 
         if isinstance(index, int):

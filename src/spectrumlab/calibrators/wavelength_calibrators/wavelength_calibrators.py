@@ -8,7 +8,7 @@ from spectrumlab.spectra import Spectrum
 from spectrumlab.types import Array, NanoMeter, Number
 
 
-class AbstractWavelengthCalibrator(ABC):
+class WavelengthCalibratorABC(ABC):
 
     @abstractmethod
     def fit(self, number: Array[Number], wavelength: Array[NanoMeter]) -> Self:
@@ -19,7 +19,7 @@ class AbstractWavelengthCalibrator(ABC):
         raise NotImplementedError
 
 
-class RegressionWavelengthCalibrator(AbstractWavelengthCalibrator):
+class RegressionWavelengthCalibrator(WavelengthCalibratorABC):
 
     def __init__(self, deg: int) -> None:
 
@@ -49,7 +49,7 @@ class RegressionWavelengthCalibrator(AbstractWavelengthCalibrator):
 
 def interpolate(
     spectrum: Spectrum,
-    calibrator: AbstractWavelengthCalibrator | None = None,
+    calibrator: WavelengthCalibratorABC | None = None,
 ) -> Callable[[Array[Number]], Array[NanoMeter]]:
 
     calibrator = calibrator or RegressionWavelengthCalibrator(deg=2)
@@ -66,7 +66,7 @@ def interpolate(
 
 def calibrate(
     spectrum: Spectrum,
-    calibrator: AbstractWavelengthCalibrator | None = None,
+    calibrator: WavelengthCalibratorABC | None = None,
 ) -> RegressionWavelengthCalibrator:
 
     calibrator = calibrator or RegressionWavelengthCalibrator(deg=2)

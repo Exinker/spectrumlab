@@ -1,11 +1,11 @@
 import numpy as np
 
-from spectrumlab.core.approximate.variables import AbstractVariables, Variable
+from spectrumlab.core.approximate.variables import VariablesABC, Variable
 from spectrumlab.grids import Grid
 from spectrumlab.types import Number
 
 
-class ScopeVariables(AbstractVariables):
+class ScopeVariables(VariablesABC):
 
     def __init__(
         self,
