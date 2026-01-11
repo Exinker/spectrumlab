@@ -1,0 +1,12 @@
+
+[report]
+exclude_also =
+    import *
+    from * import *
+    @abstractmethod
+    def __init__
+    def __repr__
+    def __str__
+    raise NotImplementedError
+    if __name__ == '__main__':
+    if verbose:
