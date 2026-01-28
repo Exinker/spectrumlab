@@ -21,6 +21,7 @@ class RetrieveShapeConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_file='.env',
         env_file_encoding='utf-8',
+        populate_by_name=True,
         extra='ignore',
     )
 
@@ -43,8 +44,10 @@ class RetrieveShapeConfig(BaseSettings):
 
         if self.n_peaks_filtrate_by_width:
             assert self.n_peaks_filtrate_by_width >= self.n_peaks_min
+            return self
 
         assert self.min_width < self.max_width
+        return self
 
 
 RETRIEVE_SHAPE_CONFIG = RetrieveShapeConfig()
