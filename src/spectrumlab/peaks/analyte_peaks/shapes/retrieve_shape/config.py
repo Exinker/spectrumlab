@@ -43,8 +43,10 @@ class RetrieveShapeConfig(BaseSettings):
 
         if self.n_peaks_filtrate_by_width:
             assert self.n_peaks_filtrate_by_width >= self.n_peaks_min
+            return self
 
         assert self.min_width < self.max_width
+        return self
 
 
 RETRIEVE_SHAPE_CONFIG = RetrieveShapeConfig()
