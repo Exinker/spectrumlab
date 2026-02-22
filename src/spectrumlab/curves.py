@@ -110,7 +110,7 @@ def voigt2pvoigt(x: Array[T], x0: T, sigma: float, gamma: float) -> tuple[T, flo
         partial(loss, x, x0, y),
         x0=[2, 0, 0],
         bounds=[
-            (0, 100),
+            (1e-15, 100),
             [-0.25, +0.25],
             [0, 1],
         ],
