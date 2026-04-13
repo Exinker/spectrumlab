@@ -163,10 +163,10 @@ def retrieve_shape_from_spectrum(
                 )
 
                 lb, ub = peak.minima
-                n_points = 5 * peak.n_numbers
-                x = np.linspace(spectrum.wavelength[lb], spectrum.wavelength[ub], n_points)
+                n_counts = 5 * peak.n_numbers
+                x = np.linspace(spectrum.wavelength[lb], spectrum.wavelength[ub], n_counts)
                 y_hat = shape(
-                    x=np.linspace(spectrum.number[lb], spectrum.number[ub], n_points),
+                    x=np.linspace(spectrum.number[lb], spectrum.number[ub], n_counts),
                     position=offset[i],
                     intensity=scale[i],
                     background=background[i],

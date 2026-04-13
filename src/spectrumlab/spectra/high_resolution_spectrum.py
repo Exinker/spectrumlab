@@ -73,7 +73,7 @@ class HighResolutionSpectrum(SpectrumABC):
         super().__init__(intensity=y_grid, number=x_grid/detector.pitch, wavelength=w_grid, detector=detector, **kwargs)
 
         self.move = move
-        self.factor = factor  # points per pitch
+        self.factor = factor  # counts per pitch
         self.shots = shots
         self.grid = grid
 

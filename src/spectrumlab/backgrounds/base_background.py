@@ -7,21 +7,29 @@ Author: Vaschenko Pavel
 """
 from abc import ABC, abstractmethod
 
+from pydantic import BaseModel, ConfigDict
+
 from spectrumlab.noises import Noise
 from spectrumlab.spectra import Spectrum
-from spectrumlab.types import Array
 
 
-class BackgroundConfigABC(ABC):
+class BackgroundConfigABC(BaseModel):
 
-    pass
+    model_config = ConfigDict(
+        extra='forbid',
+    )
 
 
-class BackgroundABC(ABC):
+class BackgroundModelABC(ABC):
 
     def __init__(self, config: BackgroundConfigABC):
-        self.config = config
+
+        self._config = config
+
+    @property
+    def config(self) -> BackgroundConfigABC:
+        return self._config
 
     @abstractmethod
-    def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Array[float]:
+    def fit(self, spectrum: Spectrum, noise: Noise, show: bool = False) -> Spectrum:
         raise NotImplementedError

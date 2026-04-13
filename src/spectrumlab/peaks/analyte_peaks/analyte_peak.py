@@ -240,13 +240,13 @@ class AnalytePeak(PeakABC):
             fill_value=0,
         )(number)
 
-    def space(self, n_points: int = 1000, units: Number | NanoMeter = Number) -> Array:
-        """Transform index or wavelength to space (n_points grid)."""
+    def space(self, n_counts: int = 1000, units: Number | NanoMeter = Number) -> Array:
+        """Transform index or wavelength to space."""
         left, right = self.minima
         if units == NanoMeter:
             left, right = self.wavelength[[left, right]]
 
-        return np.linspace(left, right, n_points)
+        return np.linspace(left, right, n_counts)
 
     def show(self, ax: plt.Axes | None = None, figsize: tuple[Inch, Inch] = (6, 4), verbose: bool = False) -> None:
         is_filling = ax is not None

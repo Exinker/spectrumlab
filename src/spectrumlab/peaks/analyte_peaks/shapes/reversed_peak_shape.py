@@ -108,8 +108,8 @@ class ReversedPeakShapeNaive(PeakShape):
     def __call__(self, x, position, intensity, background=0, effect=0):
         """Interpolate by grip."""
 
-        points = np.column_stack([x - position, np.full_like(x - position, effect)])
-        return background + intensity*self.f(points)
+        counts = np.column_stack([x - position, np.full_like(x - position, effect)])
+        return background + intensity*self.f(counts)
 
     def __repr__(self) -> str:
         cls = self.__class__

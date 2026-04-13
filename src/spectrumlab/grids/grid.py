@@ -182,8 +182,8 @@ class Grid:
 
         return self._interpolate
 
-    def space(self, n_points: int = 1000) -> Array[T]:
-        return np.linspace(min(self.x), max(self.x), n_points)
+    def space(self, n_counts: int = 1000) -> Array[T]:
+        return np.linspace(min(self.x), max(self.x), n_counts)
 
     def shift(self, value: T) -> Self:
         """Shift `grid` by the `value`."""
@@ -234,7 +234,7 @@ class Grid:
 
     def __iter__(self) -> Iterator:
         warn(
-            message='Iteration on the `grid` by points will be removed in the future!',
+            message='Iteration on the `grid` by counts will be removed in the future!',
             category=DeprecationWarning,
             stacklevel=1,
         )
