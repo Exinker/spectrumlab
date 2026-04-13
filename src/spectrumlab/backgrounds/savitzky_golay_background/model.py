@@ -9,7 +9,7 @@ from spectrumlab.backgrounds.base_background import (
     BackgroundConfigABC,
     BackgroundModelABC,
 )
-from spectrumlab.backgrounds.savitzky_golay_background.utils import filter_savitzky_golay
+from spectrumlab.backgrounds.savitzky_golay_background.utils import savitzky_golay_kernel
 from spectrumlab.peaks.blink_peaks.draft_blinks import DraftBlinksConfig, draft_blinks
 from spectrumlab.spectra import Spectrum
 from spectrumlab.types import Array, Number, R
@@ -26,11 +26,9 @@ class SavitzkyGolayBackgroundConfig(BackgroundConfigABC):
     @model_validator(mode='after')
     def check_model(self) -> Self:
 
-        # setup defaults
         if self.n_counts_min is None:
             self.n_counts_min = self.window
 
-        # validate values
         if self.window > self.window_max:
             raise ValueError('Window ({window}) cannot exceed window_max ({window_max})'.format(
                 window=self.window,
@@ -78,17 +76,15 @@ class SavitzkyGolayBackgroundModel(BackgroundModelABC):
         background = np.zeros(spectrum.shape)
         for t in range(spectrum.n_times):
 
-            # setup filter
-            filter = filter_savitzky_golay(
+            kernel = savitzky_golay_kernel(
                 spectrum.intensity[t, :],
                 mask[t, :],
                 n_counts_min=self.config.n_counts_min,
                 window_max=self.config.window_max,
             )
 
-            # calculate background
             for n in range(spectrum.n_numbers):
-                background[t, n] = filter(n, window=self.config.window, degree=self.config.degree)
+                background[t, n] = kernel(n, window=self.config.window, degree=self.config.degree)
 
         return spectrum.__class__(
             intensity=background,
@@ -101,8 +97,8 @@ class SavitzkyGolayBackgroundModel(BackgroundModelABC):
 
 def build_mask(
     spectrum: Spectrum,
-    threshold: float = 0.4,
     config: DraftBlinksConfig | None = None,
+    threshold: float = 0.4,
     show: bool = False,
 ) -> Array[bool]:
     config = config or DraftBlinksConfig(
@@ -145,11 +141,11 @@ def build_mask(
 def _filtrate_mask_by_time(
     __mask: Array[bool],
     threshold: float,
-    steps: int = 7,
+    n_times: int = 7,
 ) -> Array[bool]:
 
-    x = np.arange(steps)
-    kernel = np.exp(-x / steps).reshape(-1, 1)
+    time = np.arange(n_times)
+    kernel = np.exp(-time / n_times).reshape(-1, 1)
     kernel /= kernel.sum()
 
     smoothed_mask = convolve2d(__mask.astype(float), kernel, mode='same')
