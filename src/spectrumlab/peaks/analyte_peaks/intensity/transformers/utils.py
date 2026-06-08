@@ -9,17 +9,15 @@ def process_frame(
 ) -> Frame:
 
     data = pd.DataFrame(
-        [
-            {
-                'probe': i,
-                'parallel': j,
-                'concentration': __frame.loc[(i, j), 'concentration'],
-                'intensity': np.nanmax(__frame.loc[(i, j), 'intensity']),
-            }
-            for i, j in __frame.index
-        ],
-        columns=['probe', 'parallel', 'concentration', 'intensity'],
-    ).set_index(['probe', 'parallel'])
+        {
+            'concentration': __frame['concentration'],
+            'intensity': __frame['intensity'].apply(np.nanmax),
+        },
+        index=__frame.index,
+    ).astype({
+        'concentration': float,
+        'intensity': float,
+    })
 
     data = data.dropna(subset=['concentration'])
     data = data.groupby(level=0, sort=False).mean()
