@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "spectrumlab"
-version = "0.9.4"
-description = "`spectrumlab` is a base library designed to emulate and process spectra."
+dynamic = ["version"]
+description = "`spectrumlab` is a core library designed to spectrum emulation and procesing."
 readme = "README.md"
 keywords = [
     "spectroscopy",
@@ -44,8 +44,5 @@ dev = [
     {include-group = "linting"},
 ]
 
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-data]
-"*" = ["*.csv", "*.md", "*.txt", "*.xml"]
+[tool.hatch.version]
+source = "vcs"
