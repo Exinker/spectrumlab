@@ -52,6 +52,9 @@ def draft_blinks(
         # check n_counts
         n_counts = right - left + 1
 
+        if np.isnan(_amplitude):
+            continue
+
         if n_counts < config.n_counts_min:
             continue
 
