@@ -52,9 +52,6 @@ def draft_blinks(
         # check n_counts
         n_counts = right - left + 1
 
-        if np.isnan(_amplitude):
-            continue
-
         if n_counts < config.n_counts_min:
             continue
 
@@ -64,6 +61,9 @@ def draft_blinks(
         # check peaks's amplitude
         _amplitude = spectrum.intensity[maximum] - (spectrum.intensity[left] + spectrum.intensity[right])/2  # noqa: E501 - от среднего значения на границах до максимума
         _deviation = (spectrum.deviation[maximum]**2 + .25*spectrum.deviation[left]**2 + .25*spectrum.deviation[right]**2)**0.5  # noqa: E501
+
+        if np.isnan(_amplitude):
+            continue
 
         if _amplitude < config.amplitude_min:
             continue
