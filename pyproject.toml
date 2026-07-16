@@ -40,8 +40,14 @@ linting = [
     "flake8-builtins",
     "pep8-naming",
 ]
+testing = [
+    "pytest",
+    "pytest-cov",
+    "pytest-faker>=2.0.0",
+]
 dev = [
     {include-group = "linting"},
+    {include-group = "testing"},
 ]
 
 [tool.hatch.version]
