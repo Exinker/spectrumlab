@@ -6,16 +6,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class DraftBlinksConfig(BaseSettings):
 
-    n_counts_min: int = Field(10, ge=1, le=50, alias='DRAFT_BLINKS_N_COUNTS_MIN')
-    n_counts_max: int = Field(100, ge=1, le=500, alias='DRAFT_BLINKS_N_COUNTS_MAX')
+    n_counts_min: int = Field(10, ge=1, alias='DRAFT_BLINKS_N_COUNTS_MIN')
+    n_counts_max: int = Field(100, ge=1, alias='DRAFT_BLINKS_N_COUNTS_MAX')
 
     except_clipped_peak: bool = Field(True, alias='DRAFT_BLINKS_EXCEPT_CLIPPED_PEAK')
     except_wide_peak: bool = Field(False, alias='DRAFT_BLINKS_EXCEPT_WIDE_PEAK')
     except_sloped_peak: bool = Field(True, alias='DRAFT_BLINKS_EXCEPT_SLOPED_PEAK')
     except_edges: bool = Field(False, alias='DRAFT_BLINKS_EXCEPT_EDGES')
 
-    amplitude_min: float = Field(0, ge=0, le=1e+3, alias='DRAFT_BLINKS_AMPLITUDE_MIN')
-    width_max: float = Field(3.5, ge=1, le=10, alias='DRAFT_BLINKS_WIDTH_MAX')
+    amplitude_min: float = Field(0, ge=0, alias='DRAFT_BLINKS_AMPLITUDE_MIN')
+    width_max: float = Field(3.5, ge=1, alias='DRAFT_BLINKS_WIDTH_MAX')
     slope_max: float = Field(.25, ge=0, le=1, alias='DRAFT_BLINKS_SLOPE_MAX')
 
     noise_level: float = Field(10, ge=1, le=1_000_000, alias='DRAFT_BLINKS_NOISE_LEVEL')

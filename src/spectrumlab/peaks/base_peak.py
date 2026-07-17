@@ -8,24 +8,15 @@ from spectrumlab.types import Array, Number
 @dataclass(slots=True)
 class PeakABC:
 
-    minima: tuple[Number, Number]  # spectrum's internal index of the minima
-    maxima: tuple[Number] | tuple[Number, Number] | tuple[Number, ...]  # spectrum's internal index of the maximum (or indices, if line has a self-absorption)  # noqa: E501
+    minima: tuple[Number, Number]
+    maxima: tuple[Number] | tuple[Number, Number] | tuple[Number, ...]
 
-    except_edges: bool = field(default=False)
-
-    def __repr__(self) -> str:
-        cls = self.__class__
-
-        content = '; '.join([
-            f'minima: {self.minima}',
-            f'maxima: {self.maxima}',
-        ])
-        return f'{cls.__name__}({content})'
+    except_edges: bool = field(default=False, repr=False)
 
     @property
     def n_numbers(self) -> int:
-        left, right = self.minima
 
+        left, right = self.minima
         return right - left + 1
 
     @property
@@ -40,36 +31,23 @@ class PeakABC:
     @property
     def tail(self) -> Array[int]:
         """Internal index of peak's tail."""
-        maxima = self.maxima
-        index = self.index
 
-        # пустой пик (нет отсчетов)
-        if len(maxima) == 0:
-            return index
+        if len(self.maxima) <= 1:
+            return self.index
 
-        # обычный пик
-        if len(maxima) == 1:
-            return index
-
-        # пик с провалом (с зашкалом (FIXME: fix it) или с самопоглощением)
-        if len(maxima) == 2:
-            left, right = maxima
-            return index[(index < left) | (index > right)]
-
-        # пик с несколькими провалами (с зашкалом?)
-        left, *_, right = maxima
-        return index[(index < left) | (index > right)]
+        left, *_, right = self.maxima
+        return self.index[(self.number < left) | (self.number > right)]
 
     @property
     def number(self) -> Array[Number]:
         """External index of all peak."""
-        index = self.index
-        left, right = self.minima
 
+        left, right = self.minima
         number = np.arange(left, right+1)
 
-        return number[index]
+        return number[self.index]
 
     def include(self, n: Number) -> bool:
-        """Is `n` included in a range of the peak's number?"""
+        """Check if `n` is included in the peak's number."""
+
         return n in self.number

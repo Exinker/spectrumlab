@@ -1,4 +1,5 @@
 .mypy_cache/
+.opencode/
 .pytest_cache/
 .venv/
 .vscode/
