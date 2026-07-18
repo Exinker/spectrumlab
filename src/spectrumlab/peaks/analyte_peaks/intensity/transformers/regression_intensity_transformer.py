@@ -43,9 +43,9 @@ class RegressionIntensityTransformer(IntensityTransformerABC):
         # transformer kernel
         x = np.log10(concentration)
         y = np.log10(intensity)
-
         order = np.argsort(y)
-        kernel = interpolate.interp1d(
+
+        interp = interpolate.interp1d(
             y[order],
             x[order],
             kind='linear',
@@ -53,15 +53,15 @@ class RegressionIntensityTransformer(IntensityTransformerABC):
             fill_value=np.nan,
         )
 
-        # create transformer
-        transformer = cls(
+        kernel = lambda value: 10**(float(interp(np.log10(value)).item()))
+
+        return cls(
             intensity=intensity,
             concentration=concentration,
             kernel=kernel,
             bounds=(lb, ub),
             params=params,
         )
-        return transformer
 
     def __init__(
         self,
@@ -69,7 +69,7 @@ class RegressionIntensityTransformer(IntensityTransformerABC):
         concentration: Array[C],
         bounds: tuple[R, R],
         params: tuple[float, float],
-        kernel: Callable[[R], C],
+        kernel: Callable[[R], R],
     ) -> None:
 
         self.intensity = intensity
@@ -78,39 +78,29 @@ class RegressionIntensityTransformer(IntensityTransformerABC):
         self.params = params
         self.kernel = kernel
 
-    def estimate_concentration(
-        self,
-        __value: R,
-    ) -> C:
+    def transform(self, __value: R) -> R:
 
-        concentration_hat = 10**(float(self.kernel(np.log10(__value)).item()))
-        return concentration_hat
-
-    def estimate_intensity(
-        self,
-        __value: C,
-    ) -> R:
-        
-        intensity_hat = 10**(np.polyval(self.params, np.log10(__value)))
+        intensity_hat = 10**(np.polyval(self.params, np.log10(self.kernel(__value))))
         return intensity_hat
 
-    def __call__(
-        self,
-        __value: R,
-    ) -> R:
+    def __call__(self, __value: R) -> R:
 
         if __value <= self.bounds[1]:
             return __value
 
-        concentration_hat = self.estimate_concentration(__value)
-        intensity_hat = self.estimate_intensity(concentration_hat)
+        intensity_hat = self.transform(__value)
+        return intensity_hat
+
+    def estimate_intensity_hat(self, __value: C) -> R:
+
+        intensity_hat = 10**(np.polyval(self.params, np.log10(__value)))
         return intensity_hat
 
     def show(self) -> None:
         lb, ub = self.bounds
 
         mask = (lb <= self.intensity) & (self.intensity <= ub)
-        intensity_true = self.estimate_intensity(self.concentration)
+        intensity_true = self.estimate_intensity_hat(self.concentration)
 
         fig, (ax_left, ax_right) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
 
@@ -153,8 +143,6 @@ class RegressionIntensityTransformer(IntensityTransformerABC):
             x, y,
             color='grey', linestyle='none', marker='s', markersize=4,
         )
-        x = self.concentration
-        y = 100 * (self.intensity - intensity_true) / intensity_true
         plt.plot(
             x[mask], y[mask],
             color='black', linestyle='none', marker='s', markersize=4,
