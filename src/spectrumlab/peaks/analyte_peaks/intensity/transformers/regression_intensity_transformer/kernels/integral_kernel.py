@@ -15,9 +15,9 @@ class IntegralKernel(KernelABC):
 
     def __init__(
         self,
-        intensity: pd.Series[R],
-        concentration: pd.Series[C],
-        value: pd.Series[Array[R]],
+        intensity: Array[R],
+        concentration: Array[C],
+        value: 'pd.Series[Array[R]]',
         bounds: tuple[R, R],
         n: int = 10,
         alpha: float = 1e-5,
@@ -46,7 +46,7 @@ class IntegralKernel(KernelABC):
 
         self.kernel = interp1d(
             x=x,
-            y=x+np.cumsum(result['x']),
+            y=x + np.cumsum(result['x']),
             kind='linear',
             bounds_error=False,
             fill_value=np.nan,
@@ -56,8 +56,8 @@ class IntegralKernel(KernelABC):
 def loss(
     delta: Array[R],
     x: Array[R],
-    concentration: pd.Series[C],
-    value: pd.Series[Array[R]],
+    concentration: Array[C],
+    value: 'pd.Series[Array[R]]',
     alpha: float,
 ) -> float:
 
@@ -73,7 +73,7 @@ def loss(
     loss = estimate_error(
         concentration=concentration,
         intensity=intensity,
-    ) + alpha*np.sum(delta ** 2)
+    ) + alpha*np.sum(np.abs(delta))
 
     return loss
 
@@ -97,8 +97,8 @@ def estimate_intensity(
 
 
 def estimate_error(
-    concentration: pd.Series[C],
-    intensity: pd.Series[R],
+    concentration: Array[C],
+    intensity: Array[R],
 ) -> float:
 
     x = np.log10(concentration)

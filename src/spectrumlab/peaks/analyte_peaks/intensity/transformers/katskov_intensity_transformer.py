@@ -15,16 +15,12 @@ class KatskovIntensityTransformer(IntensityTransformerABC):
     DOI: 10.15826/analitika.2018.22.4.001
     """
 
-    def __init__(
-        self,
-        c1: R,
-        c2: R,
-    ) -> None:
+    def __init__(self, c1: R, c2: R) -> None:
 
         self.c1 = c1
         self.c2 = c2
 
-    def predict(self, __value: R) -> R:
+    def __call__(self, __value: R) -> R:
 
         if __value > self.c1:
             __value = ((__value + self.c1)**2)/(4*self.c1)

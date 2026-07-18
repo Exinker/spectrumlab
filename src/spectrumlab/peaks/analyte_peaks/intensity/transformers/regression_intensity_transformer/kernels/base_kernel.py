@@ -1,17 +1,18 @@
 from abc import ABC
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from spectrumlab.types import C, R
+from spectrumlab.types import Array, C, R
 
 
 class KernelABC(ABC):
 
     def __init__(
         self,
-        intensity: pd.Series[R],
-        concentration: pd.Series[C],
+        intensity: Array[R],
+        concentration: Array[C],
         bounds: tuple[R, R],
     ) -> None:
 
@@ -33,13 +34,21 @@ class KernelABC(ABC):
 
         self.bias = np.log10(self.intensity[mask]).mean() - np.log10(self.concentration[mask]).mean()
 
-    def cast(self, __value: C) -> R:
+    def show(self):
 
-        unicorn = 10**(np.polyval(
-            p=(1, self.bias),
-            x=np.log10(__value),
-        ))
-        return unicorn
+        fig, ax = plt.subplots(figsize=(6, 4))
+
+        x = np.linspace(0, 5, 101)
+        plt.plot(
+            x,
+            np.array(list(map(self.kernel, x))),
+            color='black', linestyle=':',
+        )
+
+        plt.xlabel(r'$R$')
+        plt.ylabel(r'$\hat{R}$')
+        plt.grid(color='grey', linestyle=':')
+        plt.show()
 
     def __call__(self, __value: R) -> R:
 

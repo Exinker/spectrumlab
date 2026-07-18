@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 from spectrumlab.peaks.analyte_peaks.intensity.transformers.base_intensity_transformer import (
     IntensityTransformerABC,
@@ -6,7 +7,7 @@ from spectrumlab.peaks.analyte_peaks.intensity.transformers.base_intensity_trans
 from spectrumlab.peaks.analyte_peaks.intensity.transformers.regression_intensity_transformer.kernels.base_kernel import (
     KernelABC,
 )
-from spectrumlab.types import R
+from spectrumlab.types import C, R
 
 
 class RegressionIntensityTransformer(IntensityTransformerABC):
@@ -15,15 +16,23 @@ class RegressionIntensityTransformer(IntensityTransformerABC):
 
         self.kernel = kernel
 
+    def estimate_intensity_true(self, __value: C) -> R:
+
+        intensity_true = 10**(np.polyval(
+            p=(1, self.kernel.bias),
+            x=np.log10(__value),
+        ))
+        return intensity_true
+
     def show(self) -> None:
         lb, ub = self.kernel.bounds
         intensity = self.kernel.intensity
         concentration = self.kernel.concentration
 
         mask = (lb <= intensity) & (intensity <= ub)
-        unicorn = self.kernel.cast(concentration)
+        unicorn = self.estimate_intensity_true(concentration)
 
-        fig, (ax_left, ax_right) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+        fig, (ax_left, ax_right) = plt.subplots(nrows=1, ncols=2, figsize=(12, 4))
 
         plt.sca(ax_left)
         plt.plot(
@@ -75,6 +84,6 @@ class RegressionIntensityTransformer(IntensityTransformerABC):
 
         plt.show()
 
-    def predict(self, __value: R) -> R:
+    def __call__(self, __value: R) -> R:
 
         return self.kernel(__value)
