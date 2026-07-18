@@ -15,9 +15,9 @@ class IntegralKernel(KernelABC):
 
     def __init__(
         self,
-        intensity: Array[R],
-        concentration: Array[C],
-        value: Array[R],
+        intensity: pd.Series[R],
+        concentration: pd.Series[C],
+        value: pd.Series[Array[R]],
         bounds: tuple[R, R],
         n: int = 10,
         alpha: float = 1e-5,
@@ -30,7 +30,7 @@ class IntegralKernel(KernelABC):
             partial(
                 loss,
                 x=x,
-                concentration=concentration.groupby(level=0, sort=False).mean(),
+                concentration=concentration,
                 value=value,
                 alpha=alpha,
             ),
@@ -56,8 +56,8 @@ class IntegralKernel(KernelABC):
 def loss(
     delta: Array[R],
     x: Array[R],
-    concentration: Array[C],
-    value: pd.Series,
+    concentration: pd.Series[C],
+    value: pd.Series[Array[R]],
     alpha: float,
 ) -> float:
 
@@ -97,8 +97,8 @@ def estimate_intensity(
 
 
 def estimate_error(
-    concentration: Array[C],
-    intensity: Array[R],
+    concentration: pd.Series[C],
+    intensity: pd.Series[R],
 ) -> float:
 
     x = np.log10(concentration)

@@ -1,19 +1,17 @@
 from abc import ABC
 
 import numpy as np
+import pandas as pd
 
-from spectrumlab.peaks.analyte_peaks.intensity.transformers.regression_intensity_transformer.kernels.base_kernel import (
-    KernelABC,
-)
-from spectrumlab.types import Array, C, R
+from spectrumlab.types import C, R
 
 
 class KernelABC(ABC):
 
     def __init__(
         self,
-        intensity: Array[R],
-        concentration: Array[C],
+        intensity: pd.Series[R],
+        concentration: pd.Series[C],
         bounds: tuple[R, R],
     ) -> None:
 
@@ -37,8 +35,10 @@ class KernelABC(ABC):
 
     def cast(self, __value: C) -> R:
 
-        p = (1, self.bias)
-        unicorn = 10**(np.polyval(p, np.log10(__value)))
+        unicorn = 10**(np.polyval(
+            p=(1, self.bias),
+            x=np.log10(__value),
+        ))
         return unicorn
 
     def __call__(self, __value: R) -> R:
