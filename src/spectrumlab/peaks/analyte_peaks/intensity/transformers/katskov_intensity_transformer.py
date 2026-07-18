@@ -24,7 +24,7 @@ class KatskovIntensityTransformer(IntensityTransformerABC):
         self.c1 = c1
         self.c2 = c2
 
-    def __call__(self, __value: R) -> R:
+    def predict(self, __value: R) -> R:
 
         if __value > self.c1:
             __value = ((__value + self.c1)**2)/(4*self.c1)

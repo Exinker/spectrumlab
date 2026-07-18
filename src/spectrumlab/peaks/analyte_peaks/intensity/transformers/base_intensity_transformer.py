@@ -16,5 +16,5 @@ class IntensityTransformerABC(ABC):
         return np.array(list(map(self, value)), dtype=np.float64)
 
     @abstractmethod
-    def __call__(self, __value: R, *args, **kwargs) -> R:
+    def predict(self, __value: R) -> R:
         raise NotImplementedError
