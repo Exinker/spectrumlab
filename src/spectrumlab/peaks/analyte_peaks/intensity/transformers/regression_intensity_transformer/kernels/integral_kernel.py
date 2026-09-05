@@ -60,21 +60,24 @@ def loss(
     value: 'pd.Series[Array[R]]',
     alpha: float,
 ) -> float:
+    y = x + np.cumsum(delta)
 
     # estimate intensity
     intensity = value.apply(partial(
         estimate_intensity,
         x=x,
-        y=x+np.cumsum(delta),
+        y=y,
     ))
-    intensity = intensity.groupby(level=0, sort=False).mean()
+    intensity = intensity.groupby(level=0, sort=False).nanmean()
 
     # calculate loss
-    loss = estimate_error(
+    error = estimate_error(
         concentration=concentration,
         intensity=intensity,
-    ) + alpha*np.sum(np.abs(delta))
+    ) 
+    penalty =  alpha*np.sum(np.abs(delta))
 
+    loss = error + penalty
     return loss
 
 
@@ -88,12 +91,11 @@ def estimate_intensity(
         x, y,
         kind='linear',
         bounds_error=False,
-        fill_value=np.nan,
     )
 
     value_hat = calibrate(value)
     value_hat = np.where(value < np.min(x), value, value_hat)
-    return np.sum(value_hat)
+    return np.nansum(value_hat)
 
 
 def estimate_error(
