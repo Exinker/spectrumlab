@@ -68,7 +68,7 @@ def loss(
         x=x,
         y=y,
     ))
-    intensity = intensity.groupby(level=0, sort=False).nanmean()
+    intensity = intensity.groupby(level=0, sort=False).mean()
 
     # calculate loss
     error = estimate_error(
