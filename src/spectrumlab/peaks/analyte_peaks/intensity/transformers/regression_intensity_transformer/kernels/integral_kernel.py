@@ -21,6 +21,7 @@ class IntegralKernel(KernelABC):
         bounds: tuple[R, R],
         n: int = 10,
         alpha: float = 1e-5,
+        slope: float | None = 1.0,
     ) -> None:
         super().__init__(intensity, concentration, bounds)
 
@@ -33,6 +34,7 @@ class IntegralKernel(KernelABC):
                 concentration=concentration,
                 value=value,
                 alpha=alpha,
+                slope=slope,
             ),
             x0=np.zeros(n),
             bounds=[
@@ -59,6 +61,7 @@ def loss(
     concentration: Array[C],
     value: 'pd.Series[Array[R]]',
     alpha: float,
+    slope: float | None,
 ) -> float:
     y = x + np.cumsum(delta)
 
@@ -74,8 +77,9 @@ def loss(
     error = estimate_error(
         concentration=concentration,
         intensity=intensity,
-    ) 
-    penalty =  alpha*np.sum(np.abs(delta))
+        slope=slope,
+    )
+    penalty = alpha*np.sum(np.abs(delta))
 
     loss = error + penalty
     return loss
@@ -101,12 +105,20 @@ def estimate_intensity(
 def estimate_error(
     concentration: Array[C],
     intensity: Array[R],
+    slope: float | None,
 ) -> float:
+    mask = ((concentration > 0) & ~np.isnan(concentration)) & ((intensity > 0) & ~np.isnan(intensity))
+    if not np.any(mask):
+        return float('nan')
 
-    x = np.log10(concentration)
-    bias = np.nanmean(np.log10(np.maximum(intensity, 1e-12)) - np.log10(concentration))
+    x = np.log10(concentration[mask])
+    y = np.log10(intensity[mask])
 
-    y = x + bias
-    y_hat = np.log10(np.maximum(intensity, 1e-12))
+    if slope is None:
+        slope, bias = np.polyfit(x, y, 1)
 
-    return np.linalg.norm(y_hat - y)
+    else:
+        bias = np.nanmean(y - slope*x)
+
+    y_hat = slope*x + bias
+    return np.linalg.norm(y - y_hat)
